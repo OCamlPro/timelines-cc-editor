@@ -8,6 +8,7 @@ open Form
 
 type 'a input_type =
     Radio of string list
+  | TextArea
   | Other of 'a
 
 let placeholder
@@ -15,17 +16,19 @@ let placeholder
     ?(content="")
     ?(input_type= Other `Text)
     ?title
+    ?(style="")
     ~id
     ~name
     () =
   let to_form form =
     match title with
       None -> form
-    | Some elt -> txt elt :: form
+    | Some elt -> div ~a:[a_class [clg3]] [txt elt] :: form
   in
+  let row = div ~a:[a_class ["row"]] in
   match input_type with
   | Radio l ->
-    div (
+    row (
       to_form @@
       List.flatten @@
       List.map
@@ -37,21 +40,33 @@ let placeholder
                  a_class (["placeholder"; form_inline] @ classes);
                  a_value str;
                  a_input_type `Radio;
-                 a_name name
+                 a_name name;
+                 a_style style;
                ] ();
              label [txt str]
            ]
         )
         l
     )
+  | TextArea ->
+    row (
+      to_form @@ [
+        textarea
+          ~a:[a_id id;
+              a_class (["placeholder"] @ classes);
+              a_style style;
+             ] (txt content)
+      ]
+    )
   | Other t ->
-    div (
+    row (
       to_form @@ [
         input
           ~a:[a_id id;
-              a_class (["placeholder"; form_inline] @ classes);
+              a_class (["placeholder"] @ classes);
               a_value content;
-              a_input_type t
+              a_input_type t;
+              a_style style;
              ] ()
       ]
     )
@@ -81,8 +96,7 @@ let event_form (e: event) (id_line: int) =
   form
     ~a:[
       a_id ("line-" ^ idl);
-      a_class ["row"; "line"];
-      a_action "update_form.php";
+      a_class ["line"];
       a_method `Post
     ] [
     placeholder
@@ -128,7 +142,6 @@ let event_form (e: event) (id_line: int) =
        ());
     placeholder
       ~id:(group idl)
-      ~classes:[clg1]
       ~content:(To_json.type_to_str e.group)
       ~title:"Group"
       ~name:"group"
@@ -139,13 +152,16 @@ let event_form (e: event) (id_line: int) =
       ~content:e.text.text
       ~title:"Text"
       ~name:"text"
+      ~input_type:TextArea
+      ~style:"width: 300px; height: 200px"
       ();
     placeholder
       ~content:"Save modifications"
       ~id:(valid idl)
       ~name:"submit"
       ~input_type:(Other `Submit)
-      ()
+      ();
+    a ~a:[a_href (Utils.link "admin"); a_class ["button"]] [txt "Back"]
   ]
 
 let read_line (id_line: int) =
@@ -180,25 +196,52 @@ let empty_event_form id =
   in
   event_form empty_event id
 
-let update_timeline_data page =
+let event_short_row i event =
+  let stri = string_of_int i in
+  let edit_link =
+    a ~a:[a_href (Utils.link ~args:["id", stri] "admin"); a_class ["button"]] [txt "Edit"] in
+  div ~a:[a_class [row]] [
+    div ~a:[a_class [clg1]] [txt @@ string_of_int i];
+    div ~a:[a_class [clg1]] [txt @@ string_of_int event.start_date.year];
+    div ~a:[a_class [clg3]] [txt event.text.headline];
+    div ~a:[a_class [clg2]] [edit_link]
+  ]
+
+let events_list events =
+  List.mapi event_short_row events
+
+let update_timeline_data id page =
   To_json.read_json Utils.full_data
     (fun events ->
-       let content = List.mapi (fun i e -> event_form e i) events.events in
-       Manip.replaceChildren page content;
-       Lwt.return (Ok "ok")
+       match id with
+       | Some i -> begin
+           let i = int_of_string i in
+           match List.nth_opt events.events i with
+           | None -> begin
+               Js_utils.log "Event %i does not exist" i;
+               raise (Invalid_argument "Unknown event")
+             end
+           | Some e ->
+             Manip.replaceChildren page @@ [event_form e i];
+             Lwt.return (Ok "ok")
+         end
+       | None -> begin
+           Manip.replaceChildren page @@ events_list events.events;
+           Lwt.return (Ok "ok")
+         end
     )
 
 let () =
-   let path_str =
+   let path_str, path_args =
      match Jsloc.url () with
-       Http h | Https h -> h.hu_path_string
-     | _ -> "" in
-   Js_utils.log "Path: %s"
-     path_str;
+       Http h | Https h -> h.hu_path_string, h.hu_arguments
+     | _ -> "", [] in
+   Js_utils.log "Path: %s" path_str;
    if path_str = "admin"
    then
+     let id = List.assoc_opt "id" path_args in
      let page =
        match Manip.by_id "page-content" with
        | None -> assert false
        | Some s -> s in
-   ignore @@ update_timeline_data page
+   ignore @@ update_timeline_data id page
