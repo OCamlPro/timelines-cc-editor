@@ -4,6 +4,9 @@ all:
 init:
 	git submodule init
 	git submodule update
+	cd libs/ocplib-jsutils
+	make
+	cd ../..
 
 clean:
 	rm -rf _obuild/*
