@@ -1,0 +1,3 @@
+[submodule "libs/ocplib-jsutils"]
+	path = libs/ocplib-jsutils
+	url = git@github.com:OCamlPro/ocplib-jsutils

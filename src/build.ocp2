@@ -1,0 +1,49 @@
+pp_js = { pp = [ "%{js_of_ocaml-ppx_SRC_DIR}%/ppx.exe"; "--as-pp" ] };
+
+OCaml.library("timeline-data", ocaml + {
+  files = [
+   	 "data_types.ml";
+   	 "utils.ml";
+	 "to_json.ml"];
+  requires = ["ocplib-json-typed"; "yojson"]
+});
+
+OCaml.program("csv-parser", ocaml + {
+   files = [
+   	 "data_types.ml";
+   	 "utils.ml";
+	 "to_json.ml";
+	 "main.ml" ];
+   requires = [ "timeline-data" ];
+    });
+
+OCaml.program("ocptimeline-js", ocaml + {
+   files = [
+   	 "data_types.ml", pp_js;
+   	 "utils.ml", pp_js;
+	 "to_json.ml", pp_js;
+	 "admin.ml", pp_js ];
+   requires = [
+    "js_of_ocaml";
+    "js_of_ocaml.tyxml";
+    "js_of_ocaml-lwt";
+    "ocplib-utils-js";
+    "timeline-data" ];
+   bytecomp = ["-g" ;"-annot"];
+   build_rules = [
+    "%{ocptimeline-js_FULL_DST_DIR}%/ocptimeline-js.js", {
+      build_target = true;
+      sources = "%{ocptimeline-js_FULL_DST_DIR}%/ocptimeline-js.byte";
+      commands = [
+          OCaml.system([
+                          "js_of_ocaml";
+                          "+weak.js";
+                          "+nat.js";
+                          "--sourcemap";
+                          "--pretty";
+                          "%{ocptimeline-js_FULL_DST_DIR}%/ocptimeline-js.byte";
+                        ])
+        ]
+    }
+    ]
+    });

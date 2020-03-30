@@ -1,0 +1,26 @@
+<html>
+  <head>
+  </head>
+  <body>
+<!-- 1 -->
+      <link title="timeline-styles" rel="stylesheet" href="https://cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+
+      <!-- 2 -->
+      <script src="https://cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+      <div id="page-content" class="container container-fluid"></div>
+	<div id='timeline-embed' style="width: 100%; height: 600px"></div>
+	<!-- 3 -->
+	<script type="text/javascript">
+          var xhr = new XMLHttpRequest();
+	  xhr.onreadystatechange = function() {
+          if (xhr.readyState == 4 && xhr.status == 200) {
+          window.timeline = new TL.Timeline('timeline-embed', JSON.parse (xhr.responseText));
+          }
+	  }
+	  xhr.open('GET', "data.json");
+	  xhr.send();
+
+	</script>
+      <script src="js/ocptimeline-js.js"></script>
+  </body>
+</html>

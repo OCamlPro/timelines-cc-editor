@@ -1,0 +1,45 @@
+OCPTimeline
+
+# Install
+
+1. Install dependnecies:
+   opam install \
+   	ocplib-json-typed \
+   	js_of_ocaml \
+	js_of_ocaml-tyxml \
+	js_of_ocaml-ppx \
+	yojson
+
+2. Install
+make init
+make
+
+# Usage
+
+## Transform data into JSON
+Execute _obuild/csv-parser/csv-parser.byte 'data_file'.
+The format is the following:
+
+Title
+Event#1
+Event#2
+...
+
+with
+Event#i =
+   * Start year (integer)
+   * Start month (integer)
+   * End year (integer)
+   * End month (integer)
+   * Type (software, person, client)
+   * Type 2 (custom string)
+   * Level (integer)
+   * Media
+   * Title
+   * Narration (optional)
+
+This generates a data.json file compatible with the timeline js library
+
+## Install the javascript
+When you compiled with 'make', the file _obuild/ocptimeline-js/ocptimeline-js.js
+was created. Copy it on www/js.
