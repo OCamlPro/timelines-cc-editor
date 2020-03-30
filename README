@@ -43,3 +43,8 @@ This generates a data.json file compatible with the timeline js library
 ## Install the javascript
 When you compiled with 'make', the file _obuild/ocptimeline-js/ocptimeline-js.js
 was created. Copy it on www/js.
+
+# Locally start a website
+
+cd www
+php -S localhost:8000
