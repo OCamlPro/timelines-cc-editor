@@ -21,9 +21,13 @@
 	<script type="text/javascript">
           var xhr = new XMLHttpRequest();
 	  xhr.onreadystatechange = function() {
-          if (xhr.readyState == 4 && xhr.status == 200) {
-          window.timeline = new TL.Timeline('timeline-embed', JSON.parse (xhr.responseText));
-          }
+            if (xhr.readyState == 4 && xhr.status == 200) {
+	      var json = JSON.parse (xhr.responseText);
+	      for (var event of json.events) {
+	        delete event["end_date"];
+	      };
+              window.timeline = new TL.Timeline('timeline-embed',json);
+            }
 	  }
 	  xhr.open('GET', "data.json");
 	  xhr.send();

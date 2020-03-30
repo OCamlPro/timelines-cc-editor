@@ -128,6 +128,8 @@ let event_encoding =
       )
   )
 
+let title_encoding = Json_encoding.(obj1 (req "text" text_encoding))
+
 let timeline_encoding =
   Json_encoding.(
     conv
@@ -135,7 +137,7 @@ let timeline_encoding =
       (fun (events, title) -> {events; title})
       (obj2
          (req "events" (list event_encoding))
-         (req "title" text_encoding))
+         (req "title" title_encoding))
   )
 
 let file_to_json f =
@@ -164,14 +166,3 @@ let write_json json f =
   let str = Format.asprintf "%a" (Json_repr.pp (module Json_repr.Yojson)) yojson in
   output_string chan str;
   close_out chan
-
-let read_json file cont =
-  let open Lwt in
-  Xhr_lwt.get file >>=
-  (function
-    | Ok yojson ->
-      let yojson = Yojson.Safe.from_string yojson in
-      let ezjsonm = Json_repr.from_yojson yojson in
-      cont @@ Json_encoding.destruct timeline_encoding ezjsonm
-    | Error e -> failwith "Error getting json file"
-  )

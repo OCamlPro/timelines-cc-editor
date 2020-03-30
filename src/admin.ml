@@ -211,7 +211,7 @@ let events_list events =
   List.mapi event_short_row events
 
 let update_timeline_data id page =
-  To_json.read_json Utils.full_data
+  Utils_js.read_json Utils.full_data
     (fun events ->
        match id with
        | Some i -> begin
