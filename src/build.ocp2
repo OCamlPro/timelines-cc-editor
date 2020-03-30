@@ -1,11 +1,21 @@
 pp_js = { pp = [ "%{js_of_ocaml-ppx_SRC_DIR}%/ppx.exe"; "--as-pp" ] };
 
+OCaml.library("xhr-lwt", ocaml+ {
+  requires = [
+    "ez-api-js";
+    "js_of_ocaml-lwt"
+  ] ;
+  files = [
+    "xhr_lwt.ml";
+    ];
+});
+
 OCaml.library("timeline-data", ocaml + {
   files = [
    	 "data_types.ml";
    	 "utils.ml";
 	 "to_json.ml"];
-  requires = ["ocplib-json-typed"; "yojson"]
+  requires = ["ocplib-json-typed"; "yojson"; "js_of_ocaml-lwt"; "xhr-lwt"]
 });
 
 OCaml.program("csv-parser", ocaml + {
@@ -19,16 +29,16 @@ OCaml.program("csv-parser", ocaml + {
 
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
-   	 "data_types.ml", pp_js;
-   	 "utils.ml", pp_js;
-	 "to_json.ml", pp_js;
 	 "admin.ml", pp_js ];
    requires = [
     "js_of_ocaml";
     "js_of_ocaml.tyxml";
     "js_of_ocaml-lwt";
     "ocplib-utils-js";
-    "timeline-data" ];
+    "yojson";
+    "xhr-lwt";
+    "timeline-data"
+    ];
    bytecomp = ["-g" ;"-annot"];
    build_rules = [
     "%{ocptimeline-js_FULL_DST_DIR}%/ocptimeline-js.js", {

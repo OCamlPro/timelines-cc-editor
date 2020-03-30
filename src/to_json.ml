@@ -165,7 +165,13 @@ let write_json json f =
   output_string chan str;
   close_out chan
 
-let read_json f =
-  let yojson = Yojson.Safe.from_file f in
-  let ezjsonm = Json_repr.from_yojson yojson in
-  Json_encoding.destruct timeline_encoding ezjsonm
+let read_json file cont =
+  let open Lwt in
+  Xhr_lwt.get file >>=
+  (function
+    | Ok yojson ->
+      let yojson = Yojson.Safe.from_string yojson in
+      let ezjsonm = Json_repr.from_yojson yojson in
+      cont @@ Json_encoding.destruct timeline_encoding ezjsonm
+    | Error e -> failwith "Error getting json file"
+  )
