@@ -2,8 +2,11 @@ OCPTimeline
 
 # Install
 
+0. You need a switch 4.07.0 (for ocp-build)
+
 1. Install dependnecies:
    opam install \
+   	ocp-build \
    	ocplib-json-typed \
    	js_of_ocaml \
 	js_of_ocaml-tyxml \
