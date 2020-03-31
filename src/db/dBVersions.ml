@@ -33,12 +33,12 @@ let sql_downgrade_2_to_1 = [
 let sql_upgrade_1_to_2 = [
   {|CREATE TABLE events_ (
     id_          SERIAL PRIMARY KEY NOT NULL,
-    start_date_  DATE NOT NULL,
-    end_date_     DATE,
-    headline_     VARCHAR(100),
-    text_         TEXT NOT NULL,
-    media_        VARCHAR(200),
-    group_        VARCHAR(10)
+    start_date_  DATE,
+    end_date_    DATE,
+    headline_    VARCHAR(100) NOT NULL,
+    text_        TEXT NOT NULL,
+    media_       VARCHAR(200),
+    group_       VARCHAR(10)
     )|};
 ]
 

@@ -1,6 +1,7 @@
 
 open Data_types
 open Db_intf
+open Utils
 
 let verbose_mode = ref false
 let verbose_counter = ref 0
@@ -65,17 +66,52 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let of_db_opt = of_db_optf (fun x -> x)
   let of_count_opt = of_db_optf Int64.to_int
   let of_count = of_dbf Int64.to_int *)
-
+      
+  let line_to_event line =
+    match line with
+      (_, Some start_date, end_date, headline, text, url, group) ->
+      Some ({
+          start_date;
+          end_date;
+          text = {
+            text;
+            headline};
+          media = opt (fun url -> {url}) url;
+          group = match group with None -> None | Some g -> to_type g
+        }
+        )
+    | _ -> None
+ 
   let event id =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
     PGSQL(dbh)
       "SELECT * FROM events_ \
        WHERE (id_ = $id)" >>= function
-    | [] -> return None
-    | h :: _ -> return (Some h)
+    | res :: _ -> return (line_to_event res)
+    | _ -> return None
 
   let events () =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_"
+    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0" >>=
+    fun l ->
+    return @@ List.fold_left
+      (fun acc line ->
+         match line_to_event line with
+         | None -> acc
+         | Some e -> e :: acc
+      )
+      []
+      l
+
+  let title () =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ = 0" >>=
+    function
+    | [] -> return None
+    | (_,_,_,headline, text,_,_) :: _ -> return (Some {headline; text})
 end
+
+module Self = Reader_generic(Db_intf.Default_monad)
+
+include Self

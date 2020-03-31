@@ -1,609 +1,19 @@
 { "events":
-    [ { "start_date": { "year": 2020, "month": 3 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de VILAIN Maxime</div>" }, "group": "" },
-      { "start_date": { "year": 2020, "month": 3 },
-        "text":
-          { "headline": "", "text": "<div  >Embauche de ANDRES Léo</div>" },
-        "group": "" },
-      { "start_date": { "year": 2020, "month": 1 },
-        "text":
-          { "headline": "", "text": "<div  >Embauche de ROUX Mattias</div>" },
-        "group": "" },
-      { "start_date": { "year": 2020, "month": 4 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de CONCHON Sylvain</div>" },
-        "group": "" },
-      { "start_date": { "year": 2019, "month": 11 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de DROMBRY Aurore</div>" },
-        "group": "" },
-      { "start_date": { "year": 2019, "month": 3 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de GIBAUD Laurène</div>" },
-        "group": "" },
-      { "start_date": { "year": 2019, "month": 7 },
-        "text":
-          { "headline": "ICFP",
-            "text":
-              "<div  >ICFP Berlin : Muriel discute avec Xavier Michel etc.</div>" },
-        "group": "" },
-      { "start_date": { "year": 2019, "month": 7 },
-        "text":
-          { "headline": "Mitsubishi",
-            "text": "<div  >Mission pour Mitsubishi</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2019, "month": 5 },
+    [ { "start_date": { "year": 2010, "month": 2 },
         "text":
           { "headline": "",
             "text":
-              "<div  >Split : spinoff Dune Network / Origin Labs</div>" },
+              "<div  >Travail avec l’entité DTI de l’Inria à établir un modèle d’éditeur, pour commercialiser du support et une version d’OCaml industrielle</div>" },
         "group": "" },
-      { "start_date": { "year": 2019, "month": 2 },
-        "text":
-          { "headline": "Club Alt-Ergo",
-            "text":
-              "<div  >Lancement du Club Alt-Ergo, 1er membre Gold : AdaCore</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 11 },
+      { "start_date": { "year": 2010, "month": 3 },
         "text":
           { "headline": "",
-            "text": "<div  >Embauche de CHAMPION Adrien</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 10 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de DECLERCK David</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 10 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de BURY Guillaume</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 10 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de COQUEREAU Albin</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 8 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de DE OLIVEIRA Steven</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 5 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de LEVILLAIN Maxime</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 3 },
-        "text":
-          { "headline": "", "text": "<div  >Embauche de BOUJBEL Raja</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de RISBOURG Samuel</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de SHAN SEI FAN Muriel</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 9 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Déménagement dans le nouvel établissement Rue deChatillon</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 9 },
-        "text":
-          { "headline": "Fondation Tezos",
-            "text": "<div  >Grant Tzscan</div>" }, "group": "Client" },
-      { "start_date": { "year": 2018, "month": 6 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Premier séminaire au vert de l’équipe OCamlPro</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 4 },
-        "text":
-          { "headline": "Fondation OCaml",
-            "text":
-              "<div  >OCamlPro premier sponsor de la Fondation OCaml</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "end_date": { "year": 2018 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Clients : Tezos, SPOT Samsung JS BNP Inria/LearnOCaml JS</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Goodies : tshirts et autocollants OCP</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "text":
-          { "headline": "Liquidity",
-            "text": "<div  >Exposé Liquidity aux JFLA</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 6 },
-        "text":
-          { "headline": "Tzscan",
-            "text": "<div  >Release de Tzscan v1 (à conf)</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 4 },
-        "text":
-          { "headline": "Fondation Tezos",
-            "text":
-              "<div  >Contrat 6 mois x4 pour la Fondation Tezos, relations avec Ryan Jesperson</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2018, "month": 2 },
-        "end_date": { "year": 2019 },
-        "text":
-          { "headline": "", "text": "<div  >Genèse du Club Alt-Ergo</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Protocole transactionnel avec DLS</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "text":
-          { "headline": "", "text": "<div  >Stage de Samuel Risbourg</div>" },
-        "group": "" },
-      { "start_date": { "year": 2018, "month": 1 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Arrivée de Muriel SHAN SEI FAN à temps plein</div>" },
-        "group": "" },
-      { "start_date": { "year": 2017, "month": 4 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de MEBSOUT Alain</div>" }, "group": "" },
-      { "start_date": { "year": 2017, "month": 10 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Négociations avec la Fondation Tezos – mais prise dans une class action.</div>" },
-        "group": "" },
-      { "start_date": { "year": 2017, "month": 12 },
-        "text":
-          { "headline": "Tilkal",
-            "text": "<div  >Début des relations avec Tilkal</div>" },
-        "group": "" },
-      { "start_date": { "year": 2017, "month": 8 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Rupture avec Tezos : Arthur annonce à Fabrice qu’il veut rompre – pas assez réactif, tensions pour la rémunération d’OCP suite à l’ICO qui a fait gagner 230 M$ à la fondation.  Départ de Benjamin Grégoire, et 1/5e Pierre. </div>" },
-        "group": "" },
-      { "start_date": { "year": 2017, "month": 7 },
-        "text":
-          { "headline": "Tezos",
-            "text":
-              "<div  >Réunion Tezos : Arthur Didier Michel : factures ICO, insertion fondation OCaml pour financement par Tezos, mises en relations par Fabrice entre tous les acteurs. Recherche de locaux. Inria ok pour passer par OCamlPro.</div>" },
-        "group": "" },
-      { "start_date": { "year": 2017, "month": 1 },
-        "end_date": { "year": 2017 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Clients : Tezos DLS JS CEAList Cryptosense Facebook Mosaic</div>" },
-        "group": "" },
-      { "start_date": { "year": 2017, "month": 12 },
-        "text":
-          { "headline": "Inria",
-            "text":
-              "<div  >Première présence de Muriel SSF au Consortium Caml ; lancement de la Fondation OCaml pour remplacer le Consortium Caml. XL est nommé au Collège de France. Planches de présentation sur Opam faites par OCL : à aucun moment n’est cité OCamlPro</div>" },
-        "group": "" },
-      { "start_date": { "year": 2017, "month": 11 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Présentation d’OCP aux 50 ans d’Inria : 13 ingénieurs, Tezos, Liquidity, vérif de smart contrats Why3 </div>" },
-        "group": "" },
-      { "start_date": { "year": 2016, "month": 10 },
-        "text":
-          { "headline": "Inria",
-            "text":
-              "<div  >Contrat d’étude avec Inria (30k€) pour memprof</div>" },
-        "group": "" },
-      { "start_date": { "year": 2016, "month": 1 },
-        "end_date": { "year": 2016 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Clients : Tezos Paris7MOOC Mosaic Facebook JS</div>" },
-        "group": "" },
-      { "start_date": { "year": 2016 }, "end_date": { "year": 2017 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Quelques embauches liées à Tezos</div>" },
-        "group": "" },
-      { "start_date": { "year": 2016, "month": 5 },
-        "text":
-          { "headline": "Alt-Ergo",
-            "text":
-              "<div  >Contrat de recherche avec le LRI – OCamlPro reprend la maintenance d’Alt-Ergo</div>" },
-        "group": "" },
-      { "start_date": { "year": 2016, "month": 8 },
-        "text":
-          { "headline": "Facebook",
-            "text":
-              "<div  >Mission pour Facebook « Porting Hack and Flow to Windows »</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2015, "month": 11 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de DOLIGEZ Damien</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 6 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de LAVIRON Vincent</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 1 },
-        "end_date": { "year": 2015 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Clients : Bloomberg Siemens Paris7MOOC ICFEM JS</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 11 },
-        "text":
-          { "headline": "Inria",
-            "text":
-              "<div  >Signature d’un CLA avec Inria pour intervenir sur OCaml</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015 },
-        "text":
-          { "headline": "ICFEM",
-            "text": "<div  >OCamlPro organise ICFEM 2015</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 9 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >[geopolitique] nombreux clients, « c’était juste avant qu’Anil d’OCamlLabs commence à savonner la planche »</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 7 },
-        "text":
-          { "headline": "Université Paris 7",
-            "text": "<div  >MOOC OCaml – mission pour Paris 7</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2015, "month": 11 },
-        "text":
-          { "headline": "Siemens",
-            "text": "<div  >Licence Memprof pour Siemens</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2015, "month": 9 },
-        "text":
-          { "headline": "Bloomberg",
-            "text": "<div  >Mission Formation pour Bloomberg</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2015, "month": 5 },
-        "end_date": { "year": 2016 },
-        "text":
-          { "headline": "Facebook",
-            "text": "<div  >Mission pour Facebook</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2015, "month": 7 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Devis Facebook « Porting Hack and Flow to Windows »</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 6 },
-        "text":
-          { "headline": "Trust-In-Soft",
-            "text": "<div  >Première mission pour TrustInSoft</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2015, "month": 3 },
-        "text":
-          { "headline": "Learn-OCaml",
-            "text":
-              "<div  >Démarrage de la mission MOOC d’OCamlPro : repartir de TryOCaml, fournir ue première base d’exercices, intégrer dans FUN</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 10 },
-        "end_date": { "year": 2020 },
-        "text":
-          { "headline": "ANR Vocal",
-            "text": "<div  >Démarrage de l’aNR VOCAL</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 1 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Prémières réunions du lundi</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 1 },
-        "text":
-          { "headline": "OPAM",
-            "text": "<div  >Memprof - Présentation au OUPS</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 11 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Présentation d’OCP au consortium Caml : 10 personnes, opam tools, flambda, the OCaml Mooc, TypeRex, memprof, uncaught exceptions, LLDB debugger, OCPwin)</div>" },
-        "group": "" },
-      { "start_date": { "year": 2015, "month": 1 },
-        "end_date": { "year": 2018 },
-        "text":
-          { "headline": "FUI SecurOCaml",
-            "text":
-              "<div  >Démarrage du FUI SecurOCaml (porté par OCamlPro)</div>" },
-        "group": "" },
-      { "start_date": { "year": 2014, "month": 12 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de LAPORTE Michael</div>" },
-        "group": "" },
-      { "start_date": { "year": 2014, "month": 12 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de COUDERC Pierrick</div>" },
-        "group": "" },
-      { "start_date": { "year": 2014, "month": 4 },
-        "text":
-          { "headline": "Arthur B",
-            "text": "<div  >Première mission pour Arthur Breitman</div>" },
-        "group": "" },
-      { "start_date": { "year": 2014, "month": 11 },
-        "text":
-          { "headline": "Bloomberg",
-            "text":
-              "<div  >Bloomberg : session de formation à Londres</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2014, "month": 7 },
-        "text":
-          { "headline": "Facebook",
-            "text":
-              "<div  >Facebook : proposition sur le hack converter</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2014, "month": 6 },
-        "text":
-          { "headline": "Tezos",
-            "text": "<div  >Tezos : Contact avec Arthur Breitman</div>" },
-        "group": "" },
-      { "start_date": { "year": 2014, "month": 10 },
-        "end_date": { "year": 2019 },
-        "text":
-          { "headline": "ANR Soprano",
-            "text": "<div  >Démarrage de l’ANR Soprano</div>" },
-        "group": "" },
-      { "start_date": { "year": 2014, "month": 7 },
-        "end_date": { "year": 2017 },
-        "text":
-          { "headline": "FUI UCF", "text": "<div  >Projet FUI UCF</div>" },
-        "group": "" },
-      { "start_date": { "year": 2014, "month": 12 },
-        "end_date": { "year": 2016 },
-        "text":
-          { "headline": "Opam",
-            "text":
-              "<div  >Convention OCP-Irill/Inria 60k€ : OPAM-Dose</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 11 },
-        "text":
-          { "headline": "", "text": "<div  >Embauche de BLANC Thomas</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 6 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de IGUERNLALA Mohamed</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 9 },
-        "text":
-          { "headline": "ANSSI",
-            "text":
-              "<div  >Présentation à l’ANSSI d’OCaml et ses qualités</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 12 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Réponse à la consultation sur le Cloud par Fabrice Le Fessant</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 12 },
-        "text":
-          { "headline": "Memprof",
-            "text":
-              "<div  >Première licence Typerex Pro memprof : Université d’Orléans</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 11 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de Grégoire Henry</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 10 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de Benjamin Canou</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 10 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Rupture conventionnelle Thomas Gazagnaire</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013 },
-        "text": { "headline": "", "text": "<div  >Stage Thomas Blanc</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013 },
-        "text":
-          { "headline": "", "text": "<div  >Stage Pierrick Couderc</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013 },
-        "text": { "headline": "", "text": "<div  >Stage David Maison</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 9 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Diego propose un projet de BDD fonctionnelle typée en OCaml</div>" },
-        "group": "" },
-      { "start_date": { "year": 2013, "month": 1 },
-        "text":
-          { "headline": "Irill",
-            "text": "<div  >Adhésion à l’Irill</div>" }, "group": "" },
-      { "start_date": { "year": 2012, "month": 11 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de GESBERT Louis</div>" }, "group": "" },
-      { "start_date": { "year": 2012, "month": 8 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de CHAMBART Pierre</div>" },
-        "group": "" },
-      { "start_date": { "year": 2012, "month": 12 },
-        "text":
-          { "headline": "Optal",
-            "text":
-              "<div  >Diego propose un projet de DSL pour l’optimisation combinatoire, Optal</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2012 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Organisation : « 1 article de blog par ingénieur par mois »</div>" },
-        "group": "" },
-      { "start_date": { "year": 2012, "month": 8 },
-        "text":
-          { "headline": "FUI Richelieu",
-            "text":
-              "<div  >Démarrage du FUI Richelieu – livrable : scilint + parseur de scilab</div>" },
-        "group": "" },
-      { "start_date": { "year": 2012, "month": 3 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Offre de stage pour un commercial…</div>" },
-        "group": "" },
-      { "start_date": { "year": 2012, "month": 3 },
-        "text":
-          { "headline": "Intel",
-            "text": "<div  >Prise de contact avec Intel</div>" },
-        "group": "" },
-      { "start_date": { "year": 2012, "month": 9 },
-        "end_date": { "year": 2018 },
-        "text":
-          { "headline": "ANR Bware",
-            "text": "<div  >Démarrage de l’ANR Bware</div>" },
-        "group": "" },
-      { "start_date": { "year": 2012, "month": 6 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Citrix : premier devis « Implement performance metrics for Xen Server »</div>" },
-        "group": "" },
-      { "start_date": { "year": 2012, "month": 7 },
-        "text":
-          { "headline": "Citrix",
-            "text":
-              "<div  >Première mission pour Citrix « Adding new metrics for Xen Server »</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2012, "month": 6 },
-        "text":
-          { "headline": "Airbus",
-            "text":
-              "<div  >Présentation à Airbus : proposition d’un club Alt-Ergo</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 4 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de LE FESSANT Fabrice</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 11 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de BOZMAN Cagdas</div>" }, "group": "" },
-      { "start_date": { "year": 2011, "month": 12 },
-        "text":
-          { "headline": "TryOCaml",
-            "text": "<div  >Naissance de try.ocamlpro.com</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 5 },
-        "text": { "headline": "", "text": "<div  >TypeRex.svg</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 9 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Lancement de l’idée du Club Alt-Ergo</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 9 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Présentation de Mirage à Citrix (Cambridge) – Fabrice Thomas Tiphaine</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 9 },
-        "text":
-          { "headline": "Mirage",
-            "text":
-              "<div  >Présentation de Mirage au GTLL pour candidature à projet</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 11 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >Embauche de Çagdas Bozman en thèse Cifre « Etude du comportement mémoire des programmes OCaml » (et naissance de memprof)</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 4 },
-        "text":
-          { "headline": "Jane Street",
-            "text": "<div  >Début de la collaboration avec JaneStreet</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2011, "month": 1 },
-        "text":
-          { "headline": "",
-            "text":
-              "<div  >« Club des juristes » 20 jours de prestation avec Ocsigen ORM</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 4 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Embauche de Thomas Gazagnaire</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 4 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Création officielle d’OCamlPro</div>" },
-        "group": "" },
-      { "start_date": { "year": 2011, "month": 6 },
-        "text":
-          { "headline": "Alt-Ergo",
-            "text":
-              "<div  >Bases du partenariat Proval / OCamlPro autour d’Alt-Ergo – esquisse de candidature OMTE</div>" },
-        "group": "" },
-      { "start_date": { "year": 2010 },
-        "text":
-          { "headline": "",
-            "text": "<div  >Soumission à l’ANR Emergence</div>" },
-        "group": "" },
-      { "start_date": { "year": 2010 },
-        "text":
-          { "headline": "Lexifi",
-            "text": "<div  >Premier client : LEXIFI</div>" },
-        "group": "Client" },
-      { "start_date": { "year": 2010 },
-        "text": { "headline": "", "text": "<div  >ICFP à Baltimore</div>" },
-        "group": "" },
-      { "start_date": { "year": 2010, "month": 11 },
-        "end_date": { "year": 2014 },
-        "text":
-          { "headline": "FUI Dorm",
-            "text":
-              "<div  >Lancement du projet Feder DORM qui permit de financer OPAM</div>" },
+            "text": "<div  >Premier prospect : visite chez MLState</div>" },
         "group": "" },
       { "start_date": { "year": 2010, "month": 6 },
         "text":
           { "headline": "",
-            "text": "<div  >AerospaceValley : présentation à Airbus</div>" },
+            "text": "<div  >Candidature Centre francilien Innovation</div>" },
         "group": "" },
       { "start_date": { "year": 2010, "month": 7 },
         "text":
@@ -614,17 +24,608 @@
       { "start_date": { "year": 2010, "month": 6 },
         "text":
           { "headline": "",
-            "text": "<div  >Candidature Centre francilien Innovation</div>" },
+            "text": "<div  >AerospaceValley : présentation à Airbus</div>" },
         "group": "" },
-      { "start_date": { "year": 2010, "month": 3 },
+      { "start_date": { "year": 2010, "month": 11 },
+        "end_date": { "year": 2014, "month": 1 },
+        "text":
+          { "headline": "FUI Dorm",
+            "text":
+              "<div  >Lancement du projet Feder DORM qui permit de financer OPAM</div>" },
+        "group": "" },
+      { "start_date": { "year": 2010, "month": 1 },
+        "text": { "headline": "", "text": "<div  >ICFP à Baltimore</div>" },
+        "group": "" },
+      { "start_date": { "year": 2010, "month": 1 },
+        "text":
+          { "headline": "Lexifi",
+            "text": "<div  >Premier client : LEXIFI</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2010, "month": 1 },
         "text":
           { "headline": "",
-            "text": "<div  >Premier prospect : visite chez MLState</div>" },
+            "text": "<div  >Soumission à l’ANR Emergence</div>" },
         "group": "" },
-      { "start_date": { "year": 2010, "month": 2 },
+      { "start_date": { "year": 2011, "month": 6 },
+        "text":
+          { "headline": "Alt-Ergo",
+            "text":
+              "<div  >Bases du partenariat Proval / OCamlPro autour d’Alt-Ergo – esquisse de candidature OMTE</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 4 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Création officielle d’OCamlPro</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 4 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de Thomas Gazagnaire</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 1 },
         "text":
           { "headline": "",
             "text":
-              "<div  >Travail avec l’entité DTI de l’Inria à établir un modèle d’éditeur, pour commercialiser du support et une version d’OCaml industrielle</div>" },
-        "group": "" } ],
+              "<div  >« Club des juristes » 20 jours de prestation avec Ocsigen ORM</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 4 },
+        "text":
+          { "headline": "Jane Street",
+            "text": "<div  >Début de la collaboration avec JaneStreet</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2011, "month": 11 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Embauche de Çagdas Bozman en thèse Cifre « Etude du comportement mémoire des programmes OCaml » (et naissance de memprof)</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 9 },
+        "text":
+          { "headline": "Mirage",
+            "text":
+              "<div  >Présentation de Mirage au GTLL pour candidature à projet</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 9 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Présentation de Mirage à Citrix (Cambridge) – Fabrice Thomas Tiphaine</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 9 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Lancement de l’idée du Club Alt-Ergo</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 5 },
+        "text": { "headline": "", "text": "<div  >TypeRex.svg</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 12 },
+        "text":
+          { "headline": "TryOCaml",
+            "text": "<div  >Naissance de try.ocamlpro.com</div>" },
+        "group": "" },
+      { "start_date": { "year": 2011, "month": 11 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de BOZMAN Cagdas</div>" }, "group": "" },
+      { "start_date": { "year": 2011, "month": 4 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de LE FESSANT Fabrice</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 6 },
+        "text":
+          { "headline": "Airbus",
+            "text":
+              "<div  >Présentation à Airbus : proposition d’un club Alt-Ergo</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 7 },
+        "text":
+          { "headline": "Citrix",
+            "text":
+              "<div  >Première mission pour Citrix « Adding new metrics for Xen Server »</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2012, "month": 6 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Citrix : premier devis « Implement performance metrics for Xen Server »</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 9 },
+        "end_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "ANR Bware",
+            "text": "<div  >Démarrage de l’ANR Bware</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 3 },
+        "text":
+          { "headline": "Intel",
+            "text": "<div  >Prise de contact avec Intel</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 3 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Offre de stage pour un commercial…</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 8 },
+        "text":
+          { "headline": "FUI Richelieu",
+            "text":
+              "<div  >Démarrage du FUI Richelieu – livrable : scilint + parseur de scilab</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 1 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Organisation : « 1 article de blog par ingénieur par mois »</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 12 },
+        "text":
+          { "headline": "Optal",
+            "text":
+              "<div  >Diego propose un projet de DSL pour l’optimisation combinatoire, Optal</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2012, "month": 8 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de CHAMBART Pierre</div>" },
+        "group": "" },
+      { "start_date": { "year": 2012, "month": 11 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de GESBERT Louis</div>" }, "group": "" },
+      { "start_date": { "year": 2013, "month": 1 },
+        "text":
+          { "headline": "Irill",
+            "text": "<div  >Adhésion à l’Irill</div>" }, "group": "" },
+      { "start_date": { "year": 2013, "month": 9 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Diego propose un projet de BDD fonctionnelle typée en OCaml</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 1 },
+        "text": { "headline": "", "text": "<div  >Stage David Maison</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 1 },
+        "text":
+          { "headline": "", "text": "<div  >Stage Pierrick Couderc</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 1 },
+        "text": { "headline": "", "text": "<div  >Stage Thomas Blanc</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 10 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Rupture conventionnelle Thomas Gazagnaire</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 10 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de Benjamin Canou</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 11 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de Grégoire Henry</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 12 },
+        "text":
+          { "headline": "Memprof",
+            "text":
+              "<div  >Première licence Typerex Pro memprof : Université d’Orléans</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 12 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Réponse à la consultation sur le Cloud par Fabrice Le Fessant</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 9 },
+        "text":
+          { "headline": "ANSSI",
+            "text":
+              "<div  >Présentation à l’ANSSI d’OCaml et ses qualités</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 6 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de IGUERNLALA Mohamed</div>" },
+        "group": "" },
+      { "start_date": { "year": 2013, "month": 11 },
+        "text":
+          { "headline": "", "text": "<div  >Embauche de BLANC Thomas</div>" },
+        "group": "" },
+      { "start_date": { "year": 2014, "month": 12 },
+        "end_date": { "year": 2016, "month": 1 },
+        "text":
+          { "headline": "Opam",
+            "text":
+              "<div  >Convention OCP-Irill/Inria 60k€ : OPAM-Dose</div>" },
+        "group": "" },
+      { "start_date": { "year": 2014, "month": 7 },
+        "end_date": { "year": 2017, "month": 1 },
+        "text":
+          { "headline": "FUI UCF", "text": "<div  >Projet FUI UCF</div>" },
+        "group": "" },
+      { "start_date": { "year": 2014, "month": 10 },
+        "end_date": { "year": 2019, "month": 1 },
+        "text":
+          { "headline": "ANR Soprano",
+            "text": "<div  >Démarrage de l’ANR Soprano</div>" },
+        "group": "" },
+      { "start_date": { "year": 2014, "month": 6 },
+        "text":
+          { "headline": "Tezos",
+            "text": "<div  >Tezos : Contact avec Arthur Breitman</div>" },
+        "group": "" },
+      { "start_date": { "year": 2014, "month": 7 },
+        "text":
+          { "headline": "Facebook",
+            "text":
+              "<div  >Facebook : proposition sur le hack converter</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2014, "month": 11 },
+        "text":
+          { "headline": "Bloomberg",
+            "text":
+              "<div  >Bloomberg : session de formation à Londres</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2014, "month": 4 },
+        "text":
+          { "headline": "Arthur B",
+            "text": "<div  >Première mission pour Arthur Breitman</div>" },
+        "group": "" },
+      { "start_date": { "year": 2014, "month": 12 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de COUDERC Pierrick</div>" },
+        "group": "" },
+      { "start_date": { "year": 2014, "month": 12 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de LAPORTE Michael</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 1 },
+        "end_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "FUI SecurOCaml",
+            "text":
+              "<div  >Démarrage du FUI SecurOCaml (porté par OCamlPro)</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 11 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Présentation d’OCP au consortium Caml : 10 personnes, opam tools, flambda, the OCaml Mooc, TypeRex, memprof, uncaught exceptions, LLDB debugger, OCPwin)</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 1 },
+        "text":
+          { "headline": "OPAM",
+            "text": "<div  >Memprof - Présentation au OUPS</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 1 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Prémières réunions du lundi</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 10 },
+        "end_date": { "year": 2020, "month": 1 },
+        "text":
+          { "headline": "ANR Vocal",
+            "text": "<div  >Démarrage de l’aNR VOCAL</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 3 },
+        "text":
+          { "headline": "Learn-OCaml",
+            "text":
+              "<div  >Démarrage de la mission MOOC d’OCamlPro : repartir de TryOCaml, fournir ue première base d’exercices, intégrer dans FUN</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 6 },
+        "text":
+          { "headline": "Trust-In-Soft",
+            "text": "<div  >Première mission pour TrustInSoft</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2015, "month": 7 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Devis Facebook « Porting Hack and Flow to Windows »</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 5 },
+        "end_date": { "year": 2016, "month": 1 },
+        "text":
+          { "headline": "Facebook",
+            "text": "<div  >Mission pour Facebook</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2015, "month": 9 },
+        "text":
+          { "headline": "Bloomberg",
+            "text": "<div  >Mission Formation pour Bloomberg</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2015, "month": 11 },
+        "text":
+          { "headline": "Siemens",
+            "text": "<div  >Licence Memprof pour Siemens</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2015, "month": 7 },
+        "text":
+          { "headline": "Université Paris 7",
+            "text": "<div  >MOOC OCaml – mission pour Paris 7</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2015, "month": 9 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >[geopolitique] nombreux clients, « c’était juste avant qu’Anil d’OCamlLabs commence à savonner la planche »</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 1 },
+        "text":
+          { "headline": "ICFEM",
+            "text": "<div  >OCamlPro organise ICFEM 2015</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 11 },
+        "text":
+          { "headline": "Inria",
+            "text":
+              "<div  >Signature d’un CLA avec Inria pour intervenir sur OCaml</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 1 },
+        "end_date": { "year": 2015, "month": 1 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Clients : Bloomberg Siemens Paris7MOOC ICFEM JS</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 6 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de LAVIRON Vincent</div>" },
+        "group": "" },
+      { "start_date": { "year": 2015, "month": 11 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de DOLIGEZ Damien</div>" },
+        "group": "" },
+      { "start_date": { "year": 2016, "month": 8 },
+        "text":
+          { "headline": "Facebook",
+            "text":
+              "<div  >Mission pour Facebook « Porting Hack and Flow to Windows »</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2016, "month": 5 },
+        "text":
+          { "headline": "Alt-Ergo",
+            "text":
+              "<div  >Contrat de recherche avec le LRI – OCamlPro reprend la maintenance d’Alt-Ergo</div>" },
+        "group": "" },
+      { "start_date": { "year": 2016, "month": 1 },
+        "end_date": { "year": 2017, "month": 1 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Quelques embauches liées à Tezos</div>" },
+        "group": "" },
+      { "start_date": { "year": 2016, "month": 1 },
+        "end_date": { "year": 2016, "month": 1 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Clients : Tezos Paris7MOOC Mosaic Facebook JS</div>" },
+        "group": "" },
+      { "start_date": { "year": 2016, "month": 10 },
+        "text":
+          { "headline": "Inria",
+            "text":
+              "<div  >Contrat d’étude avec Inria (30k€) pour memprof</div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 11 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Présentation d’OCP aux 50 ans d’Inria : 13 ingénieurs, Tezos, Liquidity, vérif de smart contrats Why3 </div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 12 },
+        "text":
+          { "headline": "Inria",
+            "text":
+              "<div  >Première présence de Muriel SSF au Consortium Caml ; lancement de la Fondation OCaml pour remplacer le Consortium Caml. XL est nommé au Collège de France. Planches de présentation sur Opam faites par OCL : à aucun moment n’est cité OCamlPro</div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 1 },
+        "end_date": { "year": 2017, "month": 1 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Clients : Tezos DLS JS CEAList Cryptosense Facebook Mosaic</div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 7 },
+        "text":
+          { "headline": "Tezos",
+            "text":
+              "<div  >Réunion Tezos : Arthur Didier Michel : factures ICO, insertion fondation OCaml pour financement par Tezos, mises en relations par Fabrice entre tous les acteurs. Recherche de locaux. Inria ok pour passer par OCamlPro.</div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 8 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Rupture avec Tezos : Arthur annonce à Fabrice qu’il veut rompre – pas assez réactif, tensions pour la rémunération d’OCP suite à l’ICO qui a fait gagner 230 M$ à la fondation.  Départ de Benjamin Grégoire, et 1/5e Pierre. </div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 12 },
+        "text":
+          { "headline": "Tilkal",
+            "text": "<div  >Début des relations avec Tilkal</div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 10 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Négociations avec la Fondation Tezos – mais prise dans une class action.</div>" },
+        "group": "" },
+      { "start_date": { "year": 2017, "month": 4 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de MEBSOUT Alain</div>" }, "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Arrivée de Muriel SHAN SEI FAN à temps plein</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "", "text": "<div  >Stage de Samuel Risbourg</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Protocole transactionnel avec DLS</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 2 },
+        "end_date": { "year": 2019, "month": 1 },
+        "text":
+          { "headline": "", "text": "<div  >Genèse du Club Alt-Ergo</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 4 },
+        "text":
+          { "headline": "Fondation Tezos",
+            "text":
+              "<div  >Contrat 6 mois x4 pour la Fondation Tezos, relations avec Ryan Jesperson</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2018, "month": 6 },
+        "text":
+          { "headline": "Tzscan",
+            "text": "<div  >Release de Tzscan v1 (à conf)</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "Liquidity",
+            "text": "<div  >Exposé Liquidity aux JFLA</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Goodies : tshirts et autocollants OCP</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "end_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Clients : Tezos, SPOT Samsung JS BNP Inria/LearnOCaml JS</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 4 },
+        "text":
+          { "headline": "Fondation OCaml",
+            "text":
+              "<div  >OCamlPro premier sponsor de la Fondation OCaml</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 6 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Premier séminaire au vert de l’équipe OCamlPro</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 9 },
+        "text":
+          { "headline": "Fondation Tezos",
+            "text": "<div  >Grant Tzscan</div>" }, "group": "Client" },
+      { "start_date": { "year": 2018, "month": 9 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Déménagement dans le nouvel établissement Rue deChatillon</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de SHAN SEI FAN Muriel</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 1 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de RISBOURG Samuel</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 3 },
+        "text":
+          { "headline": "", "text": "<div  >Embauche de BOUJBEL Raja</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 5 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de LEVILLAIN Maxime</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 8 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de DE OLIVEIRA Steven</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 10 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de COQUEREAU Albin</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 10 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de BURY Guillaume</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 10 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de DECLERCK David</div>" },
+        "group": "" },
+      { "start_date": { "year": 2018, "month": 11 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de CHAMPION Adrien</div>" },
+        "group": "" },
+      { "start_date": { "year": 2019, "month": 2 },
+        "text":
+          { "headline": "Club Alt-Ergo",
+            "text":
+              "<div  >Lancement du Club Alt-Ergo, 1er membre Gold : AdaCore</div>" },
+        "group": "" },
+      { "start_date": { "year": 2019, "month": 5 },
+        "text":
+          { "headline": "",
+            "text":
+              "<div  >Split : spinoff Dune Network / Origin Labs</div>" },
+        "group": "" },
+      { "start_date": { "year": 2019, "month": 7 },
+        "text":
+          { "headline": "Mitsubishi",
+            "text": "<div  >Mission pour Mitsubishi</div>" },
+        "group": "Client" },
+      { "start_date": { "year": 2019, "month": 7 },
+        "text":
+          { "headline": "ICFP",
+            "text":
+              "<div  >ICFP Berlin : Muriel discute avec Xavier Michel etc.</div>" },
+        "group": "" },
+      { "start_date": { "year": 2019, "month": 3 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de GIBAUD Laurène</div>" },
+        "group": "" },
+      { "start_date": { "year": 2019, "month": 11 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de DROMBRY Aurore</div>" },
+        "group": "" },
+      { "start_date": { "year": 2020, "month": 4 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de CONCHON Sylvain</div>" },
+        "group": "" },
+      { "start_date": { "year": 2020, "month": 1 },
+        "text":
+          { "headline": "", "text": "<div  >Embauche de ROUX Mattias</div>" },
+        "group": "" },
+      { "start_date": { "year": 2020, "month": 3 },
+        "text":
+          { "headline": "", "text": "<div  >Embauche de ANDRES Léo</div>" },
+        "group": "" },
+      { "start_date": { "year": 2020, "month": 3 },
+        "text":
+          { "headline": "",
+            "text": "<div  >Embauche de VILAIN Maxime</div>" }, "group": "" } ],
   "title": { "text": { "headline": "OCP", "text": "<div  >OCP</div>" } } }

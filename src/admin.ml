@@ -101,18 +101,20 @@ let event_form (e: event) (id_line: int) =
     ] [
     placeholder
       ~id:(start_year idl)
-      ~content:(string_of_int e.start_date.year)
+      ~content:(string_of_int @@ CalendarLib.Date.year e.start_date)
       ~title:"Start year"
       ~name:"start_year"
       ();
-    (let content = match e.start_date.month with None -> "" | Some e -> string_of_int e in
-     placeholder
-       ~id:(start_month idl)
-       ~content
-       ~title:"Start month"
-       ~name:"start_month"
-       ());
-    (let content = match e.end_date with None -> "" | Some e -> string_of_int e.year in
+    placeholder
+      ~id:(start_month idl)
+      ~content:(string_of_int @@ CalendarLib.Date.(int_of_month @@ month e.start_date))
+      ~title:"Start month"
+      ~name:"start_month"
+      ();
+    (let content =
+       match e.end_date with
+       | None -> ""
+       | Some d -> string_of_int @@ CalendarLib.Date.year d in
      placeholder
        ~id:(end_year idl)
        ~content
@@ -120,7 +122,9 @@ let event_form (e: event) (id_line: int) =
        ~name:"end_year"
        ());
     (let content =
-       match e.end_date with Some {month = Some e; _} -> string_of_int e | _ -> "" in
+       match e.end_date with
+       | Some d -> string_of_int @@ CalendarLib.Date.(int_of_month @@ month d)
+       | None -> "" in
      placeholder
        ~id:(end_month idl)
        ~content
@@ -142,7 +146,7 @@ let event_form (e: event) (id_line: int) =
        ());
     placeholder
       ~id:(group idl)
-      ~content:(To_json.type_to_str e.group)
+      ~content:(Utils.type_to_str e.group)
       ~title:"Group"
       ~name:"group"
       ~input_type:(Radio ["Software"; "Person"; "Client"])
@@ -169,25 +173,25 @@ let read_line (id_line: int) =
   let start_date =
     let year  = int_of_string @@ get_value @@ start_year  idl in
     let month = try Some (int_of_string @@ get_value @@ start_month idl) with _ -> None in
-    { year; month } in
+    Utils.to_date year month in
   let end_date =
     match int_of_string_opt @@ get_value @@ start_year  idl with
       None -> None
     | Some year ->
       let month = try Some (int_of_string @@ get_value @@ start_month idl) with _ -> None in
-      Some {year; month} in
+      Some (Utils.to_date year month) in
   let text =
     let text = get_value @@ text idl in
     let headline = get_value @@ title idl in
     {text; headline} in
   let media = try Some {url = get_value @@ media idl} with _ -> None in
-  let group = To_json.to_type @@ get_value @@ group idl in {
+  let group = Utils.to_type @@ get_value @@ group idl in {
     start_date; end_date; text; media; group
   }
 
 let empty_event_form id =
   let empty_event = {
-    start_date = {year = 0; month = None};
+    start_date = Utils.to_date 0 None;
     end_date = None;
     text = {text = ""; headline = ""};
     media = None;
@@ -198,11 +202,12 @@ let empty_event_form id =
 
 let event_short_row i event =
   let stri = string_of_int i in
+  let start_year = string_of_int @@ CalendarLib.Date.year event.start_date in
   let edit_link =
     a ~a:[a_href (Utils.link ~args:["id", stri] "admin"); a_class ["button"]] [txt "Edit"] in
   div ~a:[a_class [row]] [
     div ~a:[a_class [clg1]] [txt @@ string_of_int i];
-    div ~a:[a_class [clg1]] [txt @@ string_of_int event.start_date.year];
+    div ~a:[a_class [clg1]] [txt @@ start_year];
     div ~a:[a_class [clg3]] [txt event.text.headline];
     div ~a:[a_class [clg2]] [edit_link]
   ]

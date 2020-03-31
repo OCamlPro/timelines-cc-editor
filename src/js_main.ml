@@ -12,8 +12,8 @@ let () =
       let json =
         try
           let log_error line error = Js_utils.log "Error at line %s: %s@." line error in
-          let timeline = To_json.str_to_events ~log_error file in
-          Json_encoding.construct To_json.timeline_encoding timeline
+          let timeline = Data_encoding.str_to_events ~log_error file in
+          Json_encoding.construct Data_encoding.timeline_encoding timeline
         with Failure s -> Js_utils.log "Error while on line %s@." s; exit 1
       in
       let yojson = Json_repr.to_yojson json in

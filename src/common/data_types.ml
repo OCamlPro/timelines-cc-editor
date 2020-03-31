@@ -1,7 +1,4 @@
-type date = {
-  year : int;
-  month: int option;
-}
+type date = CalendarLib.Date.t
 
 type text = {
   headline : string;

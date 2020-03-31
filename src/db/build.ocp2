@@ -66,6 +66,20 @@ OCaml.library("database-reader-lib",
     ];
 });
 
+OCaml.library("database-writer-lib",
+  ocaml+ {
+    files = [
+      "writer.ml", pgocaml_syntax ;
+    ];
+    requires = [
+     "timeline-data";
+     "database-interface";
+     "ez-pgocaml";
+     "db-config";
+     "database-reader-lib"
+    ];
+});
+
 OCaml.program("dbupdater",
   ocaml + {
     files = [ "dBUpdater.ml" ];

@@ -1,0 +1,19 @@
+
+OCaml.library("xhr-lwt", ocaml+ {
+  requires = [
+    "ez-api-js";
+    "js_of_ocaml-lwt"
+  ] ;
+  files = [
+    "xhr_lwt.ml";
+    ];
+});
+
+OCaml.library("timeline-data", ocaml + {
+  files = [
+   	 "data_types.ml";
+   	 "utils.ml";];
+  requires = [
+    "calendar";
+  ] ;
+});

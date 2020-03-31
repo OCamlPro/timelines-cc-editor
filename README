@@ -11,7 +11,8 @@ OCPTimeline
    	js_of_ocaml \
 	js_of_ocaml-tyxml \
 	js_of_ocaml-ppx \
-	yojson
+	yojson \
+	calendar
 
 2. Install
 make init

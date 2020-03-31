@@ -2,7 +2,11 @@ include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 DATABASE=ocptl_db
 DBUPDATER=dbupdater
 
-all:
+.PHONY: all build init db clean mr-proper
+
+all: build
+
+build:
 	ocp-build init
 	PGDATABASE=$(DATABASE) ocp-build
 	cp _obuild/csv-parser/csv-parser.asm csv-parser
@@ -21,3 +25,8 @@ db: db-update
 
 clean:
 	rm -rf _obuild/*
+	rm www/js/ocptimeline-js.js
+	rm csv-parser
+
+mr-proper: clean
+	dropdb $(DATABASE)

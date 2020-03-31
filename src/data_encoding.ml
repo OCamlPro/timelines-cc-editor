@@ -1,50 +1,5 @@
 open Data_types
-
-let to_int_opt s =
-  if s = "" then None
-  else Some (int_of_string s)
-
-let to_date year month = {
-  year  = int_of_string year;
-  month = to_int_opt month
-}
-
-let to_date_opt year month =
-  if year = "" then None
-  else Some (to_date year month)
-
-let to_text headline text subtyp level =
-  let id = if subtyp = "" then "" else ("id = '" ^ subtyp ^ "'") in
-  let cl = if level  = "" then "" else ("class = '" ^ level ^ "'") in
-  let text =
-    Format.asprintf
-      "<div %s %s>%s</div>"
-      id
-      cl
-      text
-  in
-  {
-    headline;
-    text
-  }
-
-let to_type s =
-  match String.lowercase_ascii s with
-  | "soft" -> Some Software
-  | "person" -> Some Person
-  | "client" -> Some Client
-  | _ -> None
-
-let type_to_str = function
-  | Some Software -> "Soft"
-  | Some Person -> "Person"
-  | Some Client -> "Client"
-  | _ -> ""
-
-let to_media url =
-  if url = "" then
-    None
-  else Some {url}
+open Utils
 
 (* Format évènement:
    * Debut
@@ -63,6 +18,10 @@ let to_event line =
     end_year :: end_month ::
     main_typ :: sub_typ ::
     level :: url :: title :: text :: _ ->
+    let start_year = int_of_string start_year in
+    let start_month = int_of_string_opt start_month in
+    let end_year = if end_year = "" then None else Some (int_of_string end_year) in
+    let end_month = int_of_string_opt end_month in
     {
       start_date = to_date start_year start_month;
       end_date   = to_date_opt end_year end_month;
@@ -80,11 +39,11 @@ let to_title line =
 let date_encoding =
   Json_encoding.(
     conv
-      (fun {year; month} -> (year, month))
-      (fun (year, month) -> {year; month})
+      (fun date -> (CalendarLib.Date.year date, CalendarLib.Date.(int_of_month @@ month date)))
+      (fun (year, month) -> Utils.to_date year (Some month))
       (obj2
          (req "year" int)
-         (opt "month" int)
+         (req "month" int)
       )
   )
 
@@ -140,7 +99,7 @@ let timeline_encoding =
          (req "title" title_encoding))
   )
 
-let file_to_json f =
+let file_to_events f =
   let chan = open_in f in
   let title = to_title @@ input_line chan in
   let events =
@@ -157,7 +116,10 @@ let file_to_json f =
     in !l
   in
   close_in chan;
-  let timeline = {title; events} in
+  {title; events}
+
+let file_to_json f =
+  let timeline = file_to_events f in
   Json_encoding.construct timeline_encoding timeline
 
 let str_to_events ~log_error str =
