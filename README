@@ -2,8 +2,11 @@ OCPTimeline
 
 # Install
 
+0. You need a switch 4.07.0 (for ocp-build)
+
 1. Install dependnecies:
    opam install \
+   	ocp-build base64 lwt \
    	ocplib-json-typed \
    	js_of_ocaml \
 	js_of_ocaml-tyxml \
@@ -17,7 +20,7 @@ make
 # Usage
 
 ## Transform data into JSON
-Execute _obuild/csv-parser/csv-parser.byte 'data_file'.
+Execute ./csv-parser 'data_file'.
 The format is the following:
 
 Title
@@ -47,4 +50,6 @@ was created. Copy it on www/js.
 # Locally start a website
 
 cd www
-php -S localhost:8000
+php -S 127.0.0.1:8000 &
+xdg-open http://127.0.0.1:8000
+

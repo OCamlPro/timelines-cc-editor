@@ -3,7 +3,10 @@ DATABASE=ocptl_db
 DBUPDATER=dbupdater
 
 all:
+	ocp-build init
 	PGDATABASE=$(DATABASE) ocp-build
+	cp _obuild/csv-parser/csv-parser.asm csv-parser
+	cp _obuild/ocptimeline-js/ocptimeline-js.js www/js
 
 init:
 	git submodule init
@@ -18,7 +21,3 @@ db: db-update
 
 clean:
 	rm -rf _obuild/*
-
-install:
-	cp data.json www
-	cp _obuild/ocptimeline-js/ocptimeline-js.js www/js
