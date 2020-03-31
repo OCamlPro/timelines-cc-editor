@@ -27,10 +27,41 @@ OCaml.program("csv-parser", ocaml + {
    requires = [ "timeline-data" ];
     });
 
-OCaml.program("ocptimeline-js", ocaml + {
+OCaml.program("ocptimeline-js-admin", ocaml + {
    files = [
    	 "utils_js.ml", pp_js;
 	 "admin.ml", pp_js ];
+   requires = [
+    "js_of_ocaml";
+    "js_of_ocaml.tyxml";
+    "js_of_ocaml-lwt";
+    "ocplib-utils-js";
+    "yojson";
+    "xhr-lwt";
+    "timeline-data"
+    ];
+   bytecomp = ["-g" ;"-annot"];
+   build_rules = [
+    "%{ocptimeline-js-admin_FULL_DST_DIR}%/ocptimeline-js-admin.js", {
+      build_target = true;
+      sources = "%{ocptimeline-js-admin_FULL_DST_DIR}%/ocptimeline-js-admin.byte";
+      commands = [
+          OCaml.system([
+                          "js_of_ocaml";
+                          "+weak.js";
+                          "+nat.js";
+                          "--sourcemap";
+                          "--pretty";
+                          "%{ocptimeline-js-admin_FULL_DST_DIR}%/ocptimeline-js-admin.byte";
+                        ])
+        ]
+    }
+    ]
+    });
+
+OCaml.program("ocptimeline-js", ocaml + {
+   files = [
+	 "js_main.ml", pp_js ];
    requires = [
     "js_of_ocaml";
     "js_of_ocaml.tyxml";

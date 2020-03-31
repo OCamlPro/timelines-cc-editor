@@ -1,0 +1,73 @@
+Sys = { file_exists = Sys_file_exists };
+
+sexplib0 = [
+    "%{sexplib_FULL_DST_DIR}%0/sexplib0.cma";
+    "%{parsexp_FULL_DST_DIR}%/parsexp.cma";
+  ];
+
+pp_pgocaml = [
+  "camlp4o"; "-I"; "%{OCAMLLIB}%";
+  "%{OCAMLLIB}%/unix.cma"; "-I"; "%{OCAMLLIB}%"; "%{OCAMLLIB}%/str.cma"; "%{OCAMLLIB}%/bigarray.cma";
+  "-I"; "%{calendar_FULL_DST_DIR}%";
+  "%{calendar_FULL_DST_DIR}%/calendarLib.cma"; "-I"; "%{re_FULL_DST_DIR}%";
+  "%{re_FULL_DST_DIR}%/re.cma"; "-I"; "%{csv_FULL_DST_DIR}%";
+  "%{csv_FULL_DST_DIR}%/csv.cma";
+
+  "-I"; "%{sexplib_FULL_DST_DIR}%"; "-I"; "%{sexplib_FULL_DST_DIR}%/0"; "-I"; "%{sexplib_FULL_DST_DIR}%/unix" ]
+  + sexplib0 +
+  [
+  "%{sexplib_FULL_DST_DIR}%/sexplib.cma";
+  "%{sexplib_FULL_DST_DIR}%/unix/sexplib_unix.cma";
+  "-I"; "%{bigarray-compat_FULL_DST_DIR}%"; "%{bigarray-compat_FULL_DST_DIR}%/bigarray_compat.cma";
+  "-I"; "%{cstruct_FULL_DST_DIR}%"; "%{cstruct_FULL_DST_DIR}%/cstruct.cma";
+  "-I"; "%{hex_FULL_DST_DIR}%"; "%{hex_FULL_DST_DIR}%/hex.cma";
+  "-I"; "%{pgocaml_FULL_DST_DIR}%";
+  "%{pgocaml_FULL_DST_DIR}%/pgocaml.cma"; "-I";
+  "%{pgocaml_FULL_DST_DIR}%"; "%{pgocaml_FULL_DST_DIR}%/pa_pgsql.cma";
+];
+
+OCaml.library("db-config", ocaml+{
+	files = ["config.ml"];
+});
+
+OCaml.library("database-interface", ocaml+ {
+  files = [
+    "db_intf.ml";
+  ];
+  requires = [
+    "timeline-data";
+    "calendar";
+  ];
+});
+
+OCaml.library("database-version",
+ ocaml+ {
+  files = [
+    "dBVersions.ml"
+  ];
+  requires = [ "ez-pgocaml"; "db-config" ];
+ });
+
+
+pgocaml_syntax = {
+  pp = pp_pgocaml;
+  (*more_deps = dunscan_root + "../../db-version.txt"*) };
+
+OCaml.library("database-reader-lib",
+  ocaml+ {
+    files = [
+      "reader.ml", pgocaml_syntax ;
+    ];
+    requires = [
+     "timeline-data";
+     "database-interface";
+     "ez-pgocaml";
+     "db-config";
+    ];
+});
+
+OCaml.program("dbupdater",
+  ocaml + {
+    files = [ "dBUpdater.ml" ];
+    requires = [ "database-version" ];
+    });

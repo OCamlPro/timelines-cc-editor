@@ -160,6 +160,25 @@ let file_to_json f =
   let timeline = {title; events} in
   Json_encoding.construct timeline_encoding timeline
 
+let str_to_events ~log_error str =
+  let rec loop = function
+    | [] -> failwith "Empty file"
+    | hd :: tl ->
+      let title = to_title hd in
+      let events =
+        List.flatten @@
+        List.map
+          (fun l ->
+             try [to_event l] with
+               Invalid_argument s ->
+               log_error l s;
+               []
+          )
+          tl
+      in {title; events}
+  in
+  loop @@ String.split_on_char '\n' str
+
 let write_json json f =
   let chan = open_out f in
   let yojson = Json_repr.to_yojson json in

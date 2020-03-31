@@ -1,12 +1,20 @@
+include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
+DATABASE=ocptl_db
+DBUPDATER=dbupdater
+
 all:
-	ocp-build
+	PGDATABASE=$(DATABASE) ocp-build
 
 init:
 	git submodule init
 	git submodule update
 	cd libs/ocplib-jsutils
 	make
+	cd ../ez-pgocaml
+	make
 	cd ../..
+
+db: db-update
 
 clean:
 	rm -rf _obuild/*

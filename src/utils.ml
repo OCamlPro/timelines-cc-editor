@@ -1,3 +1,5 @@
+let raw_data = "data"
+
 let full_data = "data.json"
 
 let timeline_data = "data_raw.json"
