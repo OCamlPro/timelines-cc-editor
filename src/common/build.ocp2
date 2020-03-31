@@ -1,4 +1,9 @@
 
+OCaml.library("data-encoding", ocaml + {
+  files = ["data_encoding.ml"];
+  requires = ["ocplib-json-typed"; "yojson"; "timeline-data"]
+});
+
 OCaml.library("xhr-lwt", ocaml+ {
   requires = [
     "ez-api-js";

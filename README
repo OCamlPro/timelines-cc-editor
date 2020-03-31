@@ -17,6 +17,7 @@ OCPTimeline
 2. Install
 make init
 make
+make build
 
 # Usage
 
@@ -44,9 +45,13 @@ Event#i =
 
 This generates a data.json file compatible with the timeline js library
 
-## Install the javascript
-When you compiled with 'make', the file _obuild/ocptimeline-js/ocptimeline-js.js
-was created. Copy it on www/js.
+## Put data into database
+Execute ./csv-parser 'data_file' --db.
+This will put the data into the database.
+
+If you wish to empty the database:
+dropdb ocptl_db
+make
 
 # Locally start a website
 
