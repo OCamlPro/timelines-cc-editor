@@ -1,6 +1,7 @@
 all:
 	ocp-build init
 	ocp-build
+	cp _obuild/csv-parser/csv-parser.asm csv-parser
 
 init:
 	git submodule init

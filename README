@@ -20,7 +20,7 @@ make
 # Usage
 
 ## Transform data into JSON
-Execute _obuild/csv-parser/csv-parser.byte 'data_file'.
+Execute ./csv-parser 'data_file'.
 The format is the following:
 
 Title
@@ -50,4 +50,6 @@ was created. Copy it on www/js.
 # Locally start a website
 
 cd www
-php -S localhost:8000
+php -S 127.0.0.1:8000 &
+xdg-open http://127.0.0.1:8000
+
