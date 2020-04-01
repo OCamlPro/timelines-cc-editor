@@ -1,4 +1,3 @@
-include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 DATABASE=ocptl_db
 DBUPDATER=dbupdater
 
@@ -6,10 +5,12 @@ DBUPDATER=dbupdater
 
 all: build
 
+include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
+
 build:
-	ocp-build init
 	PGDATABASE=$(DATABASE) ocp-build
 	cp _obuild/csv-parser/csv-parser.asm csv-parser
+	cp _obuild/csv-dbparser/csv-dbparser.asm csv-dbparser
 	cp _obuild/ocptimeline-js/ocptimeline-js.js www/js
 
 init:
@@ -20,8 +21,13 @@ init:
 	cd ../ez-pgocaml
 	make
 	cd ../..
+	ocp-build init
 
 db: db-update
+
+parser:
+	ocp-build csv-parser
+	cp _obuild/csv-parser/csv-parser.asm csv-parser
 
 clean:
 	rm -rf _obuild/*

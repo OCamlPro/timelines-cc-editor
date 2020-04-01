@@ -85,3 +85,13 @@ OCaml.program("dbupdater",
     files = [ "dBUpdater.ml" ];
     requires = [ "database-version" ];
     });
+
+OCaml.program("csv-dbparser",
+  ocaml + {
+    files = [ "main.ml" ];
+    requires = [
+      "database-writer-lib";
+      "database-reader-lib";
+      "timeline-data";
+      "data-encoding"];
+    });
