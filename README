@@ -2,22 +2,55 @@ OCPTimeline
 
 # Install
 
-0. You need a switch 4.07.0 (for ocp-build)
+1. Prepare installation of dependencies.
 
-1. Install dependnecies:
-   opam install \
+  You need a switch 4.07.1 (for ocp-build). You are strongly advised to
+  create a new switch for the installation.
+
+  $ opam switch create timeline 4.07.1
+
+  Before installing and compiling all dependencies, you need to disable
+  the sandbox mode of opam. Check the file `~/.opam/config`, and comment
+  the lines below if there are still there:
+
+```
+  wrap-build-commands:
+    ["%{hooks}%/sandbox.sh" "build"] {os = "linux" | os = "macos"}
+  wrap-install-commands:
+    ["%{hooks}%/sandbox.sh" "install"] {os = "linux" | os = "macos"}
+  wrap-remove-commands:
+    ["%{hooks}%/sandbox.sh" "remove"] {os = "linux" | os = "macos"}
+```
+2. Install dependnecies:
+  $ opam install -y \
    	ocp-build base64 lwt \
    	ocplib-json-typed \
    	js_of_ocaml \
 	js_of_ocaml-tyxml \
 	js_of_ocaml-ppx \
+	js_of_ocaml-lwt \
+	js_of_ocaml-ocamlbuild \
+	js_of_ocaml-toplevel \
+	faraday-async \
+	ezjsonm \
+	geoip \
+	cohttp \
+	cohttp-lwt-unix \
+	lwt_log \
+	extunix \
+	httpaf \
+	httpaf-lwt-unix \
+	ocurl \
 	yojson \
-	calendar
+	calendar \
+	camlp4 \
+	pgocaml.3.2 \
+	sexplib \
+	omd
 
-2. Install
+3. Compile.
 make init
-make
-make build
+make parser
 
 # Usage
 
