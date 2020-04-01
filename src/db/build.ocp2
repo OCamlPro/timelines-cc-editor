@@ -32,9 +32,11 @@ OCaml.library("db-config", ocaml+{
 
 OCaml.library("database-interface", ocaml+ {
   files = [
+    "monad_lwt.ml";
     "db_intf.ml";
   ];
   requires = [
+    "lwt.unix";
     "timeline-data";
     "calendar";
   ];
@@ -63,6 +65,8 @@ OCaml.library("database-reader-lib",
      "database-interface";
      "ez-pgocaml";
      "db-config";
+     "lwt";
+     "lwt.unix";
     ];
 });
 

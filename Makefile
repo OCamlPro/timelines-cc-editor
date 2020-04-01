@@ -21,6 +21,9 @@ parser:
 	ocp-build csv-parser
 	cp _obuild/csv-parser/csv-parser.asm csv-parser
 
+api: db
+	PGDATABASE=$(DATABASE) ocp-build api
+
 js:
 	ocp-build ocptimeline-js
 	cp _obuild/ocptimeline-js/ocptimeline-js.js www/js

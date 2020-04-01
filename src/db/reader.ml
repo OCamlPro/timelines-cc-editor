@@ -113,5 +113,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 end
 
 module Self = Reader_generic(Db_intf.Default_monad)
+module LwtReader = Reader_generic (Monad_lwt)
 
 include Self
