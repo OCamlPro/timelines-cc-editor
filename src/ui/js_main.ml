@@ -5,23 +5,13 @@ let file_url = Utils.raw_data
 
 let () =
   Js_utils.log "Start";
-  Xhr_lwt.get file_url >>=
-  (function
-    | Ok file ->
-      Js_utils.log "File %s" file;
-      let json =
-        try
-          let log_error line error = Js_utils.log "Error at line %s: %s@." line error in
-          let timeline = Data_encoding.str_to_events ~log_error file in
-          Json_encoding.construct Data_encoding.timeline_encoding timeline
-        with Failure s -> Js_utils.log "Error while on line %s@." s; exit 1
-      in
-      let yojson = Json_repr.to_yojson json in
-      let cmd =
-        Format.asprintf "window.timeline = new TL.Timeline('timeline-embed',%a)"
-          (Json_repr.pp (module Json_repr.Yojson)) yojson in
-      let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
-      Lwt.return (Ok "Ok")
-    | Error _ -> failwith "Error getting file"
-  ) |> ignore
+  Request.events
+    (fun json ->
+       let json = Format.sprintf "{\"events\":%s}" json in
+       let cmd =
+         Format.asprintf "window.timeline = new TL.Timeline('timeline-embed',%s)" json in
+       let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
+       Lwt.return (Ok "Ok")
+    )
+  |> ignore
 (*window.timeline = new TL.Timeline('timeline-embed',json); *)

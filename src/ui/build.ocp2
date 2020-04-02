@@ -36,6 +36,7 @@ OCaml.program("ocptimeline-js-admin", ocaml + {
 
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
+   	 "request.ml";
 	 "js_main.ml", pp_js ];
    requires = [
     "js_of_ocaml";
@@ -44,6 +45,7 @@ OCaml.program("ocptimeline-js", ocaml + {
     "ocplib-utils-js";
     "yojson";
     "xhr-lwt";
+    "config";
     "timeline-data";
     "data-encoding"
     ];

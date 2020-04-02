@@ -35,10 +35,10 @@ let sql_upgrade_1_to_2 = [
     id_          SERIAL PRIMARY KEY NOT NULL,
     start_date_  DATE,
     end_date_    DATE,
-    headline_    VARCHAR(100) NOT NULL,
+    headline_    TEXT NOT NULL,
     text_        TEXT NOT NULL,
-    media_       VARCHAR(200),
-    group_       VARCHAR(10)
+    media_       TEXT,
+    group_       VARCHAR(100)
     )|};
 ]
 

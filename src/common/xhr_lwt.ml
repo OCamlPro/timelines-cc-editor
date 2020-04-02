@@ -56,8 +56,8 @@ let base ?port ?(scheme="https") hu_host =
   | _ -> Http url
 
 let base_url = Http {
-  hu_host = "localhost";
-  hu_port = 8000;
+  hu_host = "d4.dune.network";
+  hu_port = 12346;
   hu_path = [];
   hu_path_string = "";
   hu_arguments = [];

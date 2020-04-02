@@ -26,10 +26,6 @@ pp_pgocaml = [
   "%{pgocaml_FULL_DST_DIR}%"; "%{pgocaml_FULL_DST_DIR}%/pa_pgsql.cma";
 ];
 
-OCaml.library("db-config", ocaml+{
-	files = ["config.ml"];
-});
-
 OCaml.library("database-interface", ocaml+ {
   files = [
     "monad_lwt.ml";
@@ -47,7 +43,7 @@ OCaml.library("database-version",
   files = [
     "dBVersions.ml"
   ];
-  requires = [ "ez-pgocaml"; "db-config" ];
+  requires = [ "ez-pgocaml"; "config" ];
  });
 
 
@@ -64,7 +60,7 @@ OCaml.library("database-reader-lib",
      "timeline-data";
      "database-interface";
      "ez-pgocaml";
-     "db-config";
+     "config";
      "lwt";
      "lwt.unix";
     ];
@@ -79,7 +75,7 @@ OCaml.library("database-writer-lib",
      "timeline-data";
      "database-interface";
      "ez-pgocaml";
-     "db-config";
+     "config";
      "database-reader-lib"
     ];
 });
@@ -97,5 +93,6 @@ OCaml.program("csv-dbparser",
       "database-writer-lib";
       "database-reader-lib";
       "timeline-data";
-      "data-encoding"];
+      "data-encoding";
+      ];
     });

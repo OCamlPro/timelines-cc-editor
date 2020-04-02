@@ -22,3 +22,5 @@ OCaml.library("timeline-data", ocaml + {
     "calendar";
   ] ;
 });
+
+OCaml.library("config", ocaml + {files = ["config.ml"]});

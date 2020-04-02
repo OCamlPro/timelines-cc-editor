@@ -17,7 +17,7 @@ type text = {
    * Titre
    * Narration (optionnel)   *)
 
-type main_event_type = | Software | Person | Client
+type main_event_type = string
 
 type sub_event_type = string
 type level = int

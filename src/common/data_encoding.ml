@@ -12,28 +12,86 @@ open Utils
    * Image ou lien video ou github
    * Titre
    * Narration (optionnel)   *)
-let to_event line =
-  match String.split_on_char '\t' line with
-  | start_year :: start_month ::
-    end_year :: end_month ::
-    main_typ :: sub_typ ::
-    level :: url :: title :: text :: _ ->
-    let start_year = int_of_string start_year in
-    let start_month = int_of_string_opt start_month in
-    let end_year = if end_year = "" then None else Some (int_of_string end_year) in
-    let end_month = int_of_string_opt end_month in
-    {
-      start_date = to_date start_year start_month;
-      end_date   = to_date_opt end_year end_month;
-      text = to_text title text sub_typ level;
-      group = to_type main_typ;
-      media = to_media url
-    }
-  | _ -> raise (Invalid_argument (Format.sprintf "Missing elements for building event (%s)" line))
+
+exception NewLine of string
+
+let to_event (header : Header.t) line =
+  let data = String.split_on_char '\t' line in
+  (*Format.printf "Splitted data = %a@."
+    (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
+  let data = Array.of_list data in
+  let start_year  = Header.start_year  header data in
+  let start_month = Header.start_month header data in
+  let end_year    = Header.end_year    header data in
+  let end_month   = Header.end_month    header data in
+  let typ         = Header.typ         header data in
+  let typ2        = Header.typ2        header data in
+  let importance  = Header.importance  header data in
+  let media       = Header.media       header data in
+  let title       = Header.title       header data in
+  let text        = Header.text        header data in
+  let start_year =
+    match start_year with
+    | None -> raise (NewLine "No start year")(* This is the next line of the previous text *)
+    | Some s -> try int_of_string s with Failure _ -> raise (NewLine (s ^" is not an integer")) in
+
+  let start_month =
+    match start_month with
+      None -> None
+    | Some e ->
+      (*Format.printf "Start month = %s@." e; *)
+      int_of_string_opt e in
+  
+  let end_year =
+    match end_year with
+      None -> None
+    | Some e ->
+      (*Format.printf "End year = %s@." e; *)
+      int_of_string_opt e in
+
+  let end_month =
+    match end_month with
+      None -> None
+    | Some e ->
+      (* Format.printf "End month = %s@." e; *)
+      int_of_string_opt e in
+
+  let text =
+    let title =
+      match title with
+      | None -> ""
+      | Some t -> t in
+    let text =
+      match text with
+      | None -> ""
+      | Some t -> t in
+    to_text title text typ2 importance
+  in
+
+  let media = opt to_media media in
+
+  let start_date = to_date start_year start_month in
+
+  let end_date =
+    match to_date_opt end_year end_month with
+    | None ->
+      (*Format.printf "End date = Start date@."; *)
+      Some start_date
+    | Some res ->
+      (*Format.printf "End date = %a@." (CalendarLib.Printer.Date.fprint "%D") res;
+      *)
+      Some res
+  in {
+    start_date;
+    end_date;
+    text;
+    group = typ;
+    media
+  }
 
 let to_title line =
   match String.split_on_char '\t' line with
-  | title :: text :: _ -> to_text title text "" ""
+  | title :: text :: _ -> to_text title text None None
   | _ -> raise (Invalid_argument (Format.sprintf "Missing elements for building title (%s)" line))
 
 let date_encoding =
@@ -63,13 +121,7 @@ let media_encoding =
       (obj1 (req "url" string))
   )
 
-let group_encoding =
-  Json_encoding.(
-    conv
-      type_to_str
-      to_type
-      string
-  )
+let group_encoding = Json_encoding.string
 
 let event_encoding =
   Json_encoding.(
@@ -82,7 +134,7 @@ let event_encoding =
          (req "start_date" date_encoding)
          (opt "end_date"   date_encoding)
          (req "text"       text_encoding)
-         (req "group"      group_encoding)
+         (opt "group"      group_encoding)
          (opt "media"      media_encoding)
       )
   )
@@ -102,15 +154,36 @@ let timeline_encoding =
 let file_to_events f =
   let chan = open_in f in
   let title = to_title @@ input_line chan in
+  let header = Header.header_to_map @@ input_line chan in
+  (* Format.printf "Header = %a@." Header.pp header;*)
   let events =
     let l = ref [] in
     let () =
       try
         while true do
           let line = input_line chan in
+          (* Format.printf "Line %s@." line;*)
           try
-            l := to_event line :: !l
-          with Failure s -> Format.printf "Failing at line %s: %s" line s
+            let event = to_event header line in
+            l := event :: !l;
+            (* Format.printf
+              "Event of line %s started on %a and ended on %s@."
+              line
+              (CalendarLib.Printer.Date.fprint "%D") event.start_date
+              (match event.end_date with
+               | None -> ""
+               | Some i -> Format.asprintf "and ended on %a" (CalendarLib.Printer.Date.fprint  "%D") i) *)
+          with
+            Failure s -> Format.printf "Failing at line %s: %s" line s
+          | NewLine s -> begin
+              match !l with
+              | hd :: tl ->
+                let text = hd.text in
+                l := {hd with text = {text with text = text.text ^ "\n" ^ line}} :: tl
+              | [] ->
+                failwith
+                  (Format.sprintf "First line %s is incorrect: %s" line s)
+            end
         done
       with End_of_file -> ()
     in !l
@@ -125,21 +198,36 @@ let file_to_json f =
 let str_to_events ~log_error str =
   let rec loop = function
     | [] -> failwith "Empty file"
-    | hd :: tl ->
-      let title = to_title hd in
+    | [title] -> {title = to_title title ; events = []}
+    | title :: header :: tl ->
+      let title = to_title title in
+      let header = Header.header_to_map header in
       let events =
-        List.flatten @@
-        List.map
-          (fun l ->
-             try [to_event l] with
-               Invalid_argument s ->
-               log_error l s;
-               []
-          )
-          tl
-      in {title; events}
-  in
-  loop @@ String.split_on_char '\n' str
+        let l = ref [] in
+        let () =
+          List.iter
+            (fun line ->
+               try
+                 let new_event = to_event header line in
+                 l := new_event :: !l
+               with
+               | NewLine s -> begin
+                   match !l with
+                   | hd :: tl ->
+                     let text = hd.text in
+                     l := {hd with text = {text with text = text.text ^ "\n" ^ line}} :: tl
+                   | [] ->
+                     let error = (Format.sprintf "First line %s is incorrect: %s" line s) in
+                     log_error line s;
+                     failwith error
+                 end
+               | Failure s -> log_error line s
+               | _ -> log_error line "Exception"
+            ) tl
+        in !l
+  in {title; events}
+in
+loop @@ String.split_on_char '\n' str
 
 let write_json json f =
   let chan = open_out f in

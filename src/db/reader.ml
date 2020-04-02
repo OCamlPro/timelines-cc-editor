@@ -66,7 +66,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let of_db_opt = of_db_optf (fun x -> x)
   let of_count_opt = of_db_optf Int64.to_int
   let of_count = of_dbf Int64.to_int *)
-      
   let line_to_event line =
     match line with
       (_, Some start_date, end_date, headline, text, url, group) ->
@@ -77,7 +76,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
             text;
             headline};
           media = opt (fun url -> {url}) url;
-          group = match group with None -> None | Some g -> to_type g
+          group
         }
         )
     | _ -> None
@@ -113,6 +112,4 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 end
 
 module Self = Reader_generic(Db_intf.Default_monad)
-module LwtReader = Reader_generic (Monad_lwt)
-
 include Self

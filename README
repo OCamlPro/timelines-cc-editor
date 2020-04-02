@@ -23,7 +23,7 @@ OCPTimeline
 ```
 2. Install dependnecies:
   $ opam install -y \
-   	ocp-build base64 lwt \
+   	ocp-build base64 lwt.4.5 \
    	ocplib-json-typed \
    	js_of_ocaml \
 	js_of_ocaml-tyxml \

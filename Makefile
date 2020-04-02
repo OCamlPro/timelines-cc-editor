@@ -22,7 +22,9 @@ parser:
 	cp _obuild/csv-parser/csv-parser.asm csv-parser
 
 api: db
-	PGDATABASE=$(DATABASE) ocp-build api
+	PGDATABASE=$(DATABASE) ocp-build api-lib
+	ocp-build api
+	cp _obuild/api/api.asm api
 
 js:
 	ocp-build ocptimeline-js
