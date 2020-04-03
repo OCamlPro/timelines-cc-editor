@@ -213,7 +213,7 @@ let event_form (e: event) (id_line: int) action =
           )
       ] [txt "Add"];
     div ~a:[a_class ["btn"; "btn-primary"]] [
-      a ~a:[a_href (Utils.link "admin"); ] [txt "Back"]
+      a ~a:[a_href (Ui_utils.link "admin"); ] [txt "Back"]
     ]
   ]
 
@@ -253,7 +253,7 @@ let event_short_row i event =
   let stri = string_of_int i in
   let start_year = string_of_int @@ CalendarLib.Date.year event.start_date in
   let edit_link =
-    a ~a:[a_href (Utils.link ~args:["id", stri] "admin"); a_class ["button"]] [txt "Edit"] in
+    a ~a:[a_href (Ui_utils.link ~args:["id", stri] "admin"); a_class ["button"]] [txt "Edit"] in
   div ~a:[a_class [row]] [
     div ~a:[a_class [clg1]] [txt @@ string_of_int i];
     div ~a:[a_class [clg1]] [txt @@ start_year];
@@ -264,7 +264,7 @@ let event_short_row i event =
 let events_list events =
   List.mapi event_short_row events
 
-let update_timeline_data id page action =
+let update_timeline_data id page action = (*
   Utils_js.read_json Utils.full_data
     (fun events ->
        match id with
@@ -283,10 +283,9 @@ let update_timeline_data id page action =
            Manip.replaceChildren page @@ events_list events.events;
            Lwt.return (Ok "ok")
          end
-    )
+    ) *) failwith "TODO"
 
-let add_new_event page =
-  let form =
+let add_new_event_form () =
     empty_event_form
       0
       (fun event ->
@@ -298,21 +297,4 @@ let add_new_event page =
                 Lwt.return (Ok ())
               else Lwt.return (Error (Xhr_lwt.Str_err "Add new event action failed"))
            )
-      ) in
-  Manip.replaceChildren page [form]
-
-let () =
-   let path_str, path_args =
-     match Jsloc.url () with
-       Http h | Https h -> h.hu_path_string, h.hu_arguments
-     | _ -> "", [] in
-   Js_utils.log "Path: %s" path_str;
-   match path_str with
-   | "admin" ->
-     let page =
-       match Manip.by_id "page-content" with
-       | None -> assert false
-       | Some s -> s in
-     ignore @@ add_new_event page
-
-   | _ -> ()
+      )

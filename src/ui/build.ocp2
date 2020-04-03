@@ -2,7 +2,7 @@ pp_js = { pp = [ "%{js_of_ocaml-ppx_SRC_DIR}%/ppx.exe"; "--as-pp" ] };
 
 OCaml.program("ocptimeline-js-admin", ocaml + {
    files = [
-   	 "utils_js.ml", pp_js;
+   	 "ui_utils.ml", pp_js;
    	 "request.ml";
 	 "admin.ml", pp_js ];
    requires = [
@@ -38,8 +38,12 @@ OCaml.program("ocptimeline-js-admin", ocaml + {
 
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
+   	 "ui_utils.ml", pp_js;
    	 "request.ml";
-	 "js_main.ml", pp_js ];
+	 "admin.ml", pp_js;
+	 "pages.ml", pp_js;
+	 "main.ml", pp_js;
+	 ];
    requires = [
     "js_of_ocaml";
     "js_of_ocaml.tyxml";
