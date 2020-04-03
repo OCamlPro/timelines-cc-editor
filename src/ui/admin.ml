@@ -211,9 +211,7 @@ let event_form (e: event) (id_line: int) action =
           )
       ] [txt "Update timeline"];
     br ();
-    div ~a:[a_class ["btn"; "btn-primary"; row]] [
-      a ~a:[a_href (Ui_utils.link ""); ] [txt "Back"]
-    ]
+    Ui_utils.a_link ~path:"admin" ~classes:["btn"; "btn-primary"; row] [txt "Back"]
   ]
 
 let empty_event_form id action =
@@ -231,8 +229,12 @@ let event_short_row i event =
   let stri = string_of_int (i + 1) in
   let start_year = string_of_int @@ CalendarLib.Date.year event.start_date in
   let edit_link =
-    a ~a:[a_href (Ui_utils.link ~args:["action", "edit"; "id", stri] "admin");
-          a_class ["button"]] [txt "Edit"] in
+    Ui_utils.a_link
+      ~path:"admin"
+      ~args:["action", "edit"; "id", stri]
+      ~classes:["btn"; "btn-primary"; row]
+      [txt "Edit"]
+  in
   div ~a:[a_class [row]] [
     div ~a:[a_class [clg1]] [txt @@ string_of_int i];
     div ~a:[a_class [clg1]] [txt @@ start_year];
@@ -240,6 +242,11 @@ let event_short_row i event =
     div ~a:[a_class [clg2]] [edit_link]
   ]
 
-let events_list events = List.mapi event_short_row events
+let events_list events =
+  let add_link =
+    div ~a:[a_class [row]] [
+      a ~a:[a_href (Ui_utils.link ~args:["action", "add"] "admin");
+            a_class ["btn"; "btn-primary"]] [txt "Create event"]] in
+  add_link :: List.mapi event_short_row events
 
 let add_new_event_form action = empty_event_form 0 action
