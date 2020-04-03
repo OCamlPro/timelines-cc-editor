@@ -18,11 +18,11 @@ let default_page ?(link_name = "Home") ~classes () =
     ~classes:("border" :: classes)
     [txt link_name]
 
-let error_404 ~path ~args =
+let error_404 ?(msg="Unknown page") ~path ~args () =
   div ~a:[a_class ["center"; "big-block"]] [
     h2 [txt "Error 404"];
     br ();
-    txt @@ Format.sprintf "It seems you are lost. I don't know page %s" path;
+    txt @@ Format.sprintf "It seems you are lost. %s" msg;
     br ();
     default_page ~classes:["center"] ()
   ]
@@ -31,7 +31,7 @@ let dispatch ~path ~args =
   (*Misc_js.UpdateOnFocus.incr_page ();*)
   try
     match Hashtbl.find pages path with
-    | exception Not_found -> set_in_main_page [error_404 ~path ~args]
+    | exception Not_found -> set_in_main_page [error_404 ~path ~args ()]
     | f -> f ~args
   with exn ->
     Js_utils.log "Exception in dispatch of %s: %s"
@@ -41,7 +41,7 @@ let dispatch ~path ~args =
 
 let finish () = Lwt.return (Ok ())
 let main_page ~args =
-  Request.events
+  Request.raw_events
     (fun json ->
        let json = Format.sprintf "{\"events\":%s}" json in
        let cmd =
@@ -55,11 +55,14 @@ let admin_page ~args =
   match List.assoc_opt "action" args with
     | None | Some "add" -> [Admin.add_new_event_form ()]
     | Some "edit" ->
-      begin
-        failwith "TODO"
+      begin (*
+        match List.assoc_opt "id" args with
+        | None -> error_404 ~msg "No id provided for event edition"
+        | Some id ->
+          Request.event id
+            (fun event *) failwith "TODO"
       end
-    | Some _ ->
-      [error_404 ~path:"admin" ~args]
+    | Some _ -> [error_404 ~path:"admin" ~args ()]
   in
   set_in_main_page content
 
