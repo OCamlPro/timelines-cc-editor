@@ -10,39 +10,34 @@ let to_int_opt s =
   if s = "" then None
   else Some (int_of_string s)
 
-let to_date year month : date =
-  let month =
-    match month with
-    | None -> 1
-    | Some m -> m in
-  CalendarLib.Date.make year month 1
-
-let to_date_opt year month =
-  match year with
-  | None -> None
-  | Some year ->
-    Some (to_date year month)
-
-let to_text headline text subtyp level =
-  let id =
-    match subtyp with
-      None | Some "" -> ""
-    | Some subtyp -> ("id = '" ^ subtyp ^ "'") in
-  let cl =
-    match level with
-      None | Some "" -> ""
-    | Some level -> ("class = '" ^ level ^ "'") in
-  let text =
-    Format.asprintf
-      "<div %s %s>%s</div>"
-      id
-      cl
-      text
-  in
+let to_text headline text =
   {
     headline;
     text
   }
+
+let to_date year month day =
+  let default_first = function
+      None -> 1
+    | Some e -> e in
+  let month = default_first month in
+  let day   = default_first day   in
+  CalendarLib.Date.make year month day
+
+let string_to_date str =
+  try
+    match String.split_on_char '-' str with
+    | [] -> None
+    | [year] -> Some (to_date (int_of_string year) None None)
+    | [year; month] -> Some (to_date (int_of_string year) (Some (int_of_string month)) None)
+    | year :: month :: day :: _ ->
+      Some (
+        to_date
+          (int_of_string year)
+          (Some (int_of_string month))
+          (Some (int_of_string day))
+      )
+  with Invalid_argument _ (* int_of_string *) -> None
 
 let to_media url = {url}
 

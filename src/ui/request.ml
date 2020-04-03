@@ -22,11 +22,11 @@ let get ?args apifun cont =
     Js_utils.log "Error %i while getting to api: %s" code msg;
     Lwt.return (Error e)
 
-let post apifun input cont =
+let post apifun input_encoding input output_encoding cont =
   let () = Js_utils.log "POST %s" apifun in
   let url = api () in
   let () = Js_utils.log "Calling API at %s" (Js_of_ocaml.Url.string_of_url url) in
-  Xhr_lwt.post ~base:url Data_encoding.event_encoding Json_encoding.bool apifun input >>=
+  Xhr_lwt.post ~base:url input_encoding output_encoding apifun input >>=
   function
     Ok elt -> cont elt
   | Error e ->
@@ -44,6 +44,16 @@ let cook encoding cont =
 let raw_events cont = get "events" cont
 let events cont = raw_events (cook (Json_encoding.list Data_encoding.event_encoding) cont)
 
-let event id cont = get "event" ~args:id cont
+let event id cont = get (Format.sprintf "event/%i" id)  (cook Data_encoding.event_encoding cont)
 
-let add_event event cont = post "add_event" event cont
+let add_event (event : Data_types.event) cont =
+  post
+    "add_event"
+    Data_encoding.event_encoding event
+    Json_encoding.bool cont
+
+let update_event id event cont =
+  post
+    "update_event"
+    Json_encoding.(tup2 (tup1 int) Data_encoding.event_encoding) (id, event)
+    Json_encoding.bool cont

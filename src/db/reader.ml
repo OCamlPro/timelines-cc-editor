@@ -47,61 +47,35 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let with_dbh f = M.pool_use dbh_pool f
 
   let (>>>) f g = f g
-(*
-  let of_count_pair =
-    let opt_check = function
-        Some count -> Int64.to_int count
-      | None -> 0 in
-    function
-    | [ a,b ] -> return (opt_check a, opt_check b)
-    | _ -> return (0,0)
 
-  let of_dbf f = function
-    | [ c ] -> return (f c)
-    | _ -> return (f 0L)
-  let of_db_optf f = function
-    | [ Some c ] -> return (f c)
-    | _ -> return (f 0L)
-  let of_db = of_dbf (fun x -> x)
-  let of_db_opt = of_db_optf (fun x -> x)
-  let of_count_opt = of_db_optf Int64.to_int
-  let of_count = of_dbf Int64.to_int *)
   let line_to_event line =
     match line with
-      (_, Some start_date, end_date, headline, text, url, group) ->
-      Some ({
-          start_date;
-          end_date;
-          text = {
-            text;
-            headline};
-          media = opt (fun url -> {url}) url;
-          group
-        }
-        )
-    | _ -> None
- 
+      (_, Some start_date, end_date, headline, text, url, group) -> {
+        start_date;
+        end_date;
+        text = {
+          text;
+          headline};
+        media = opt (fun url -> {url}) url;
+        group
+      }
+
+    | _ -> assert false
+
   let event id =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
     PGSQL(dbh)
       "SELECT * FROM events_ \
        WHERE (id_ = $id)" >>= function
-    | res :: _ -> return (line_to_event res)
+    | res :: _ -> return (Some (line_to_event res))
     | _ -> return None
 
   let events () =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0" >>=
+    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 ORDER BY id_ ASC" >>=
     fun l ->
-    return @@ List.fold_left
-      (fun acc line ->
-         match line_to_event line with
-         | None -> acc
-         | Some e -> e :: acc
-      )
-      []
-      l
+    return @@ List.map line_to_event l
 
   let title () =
     with_dbh >>> fun dbh ->

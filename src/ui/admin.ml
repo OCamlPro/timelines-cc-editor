@@ -7,7 +7,7 @@ open Grid
 open Form
 
 type 'a input_type =
-    Radio of string list
+    Radio of string * string list
   | TextArea
   | Other of 'a
 
@@ -28,22 +28,26 @@ let placeholder
   let row = div ~a:[a_class ["row"]] in
   let html_elt =
     match input_type with
-    | Radio l ->
+    | Radio (value, l) ->
+      let value = String.lowercase_ascii value in
       row (
         to_form @@
         List.flatten @@
         List.map
           (fun str ->
-             [
-               input
-                 ~a:[
-                   a_id id;
-                   a_class (["placeholder"; form_inline] @ classes);
-                   a_value str;
-                   a_input_type `Radio;
-                   a_name name;
-                   a_style style;
-                 ] ();
+             let a =
+               let default = [
+                 a_id id;
+                 a_class (["placeholder"; form_inline] @ classes);
+                 a_value str;
+                 a_input_type `Radio;
+                 a_name name;
+                 a_style style;
+               ] in
+               if String.(equal (lowercase_ascii str) value) then
+                 a_checked () :: default
+               else default in [
+               input ~a ();
                label [txt str]
              ]
           )
@@ -89,10 +93,8 @@ let get_value id =
     None -> ""
   | Some elt -> Manip.value elt
 
-let start_year  i = "start-year-"  ^ i
-let start_month i = "start-month-" ^ i
-let end_year    i = "end-year-"    ^ i
-let end_month   i = "end-month-"   ^ i
+let start_date  i = "start-date-"  ^ i
+let end_date    i = "end-date-"    ^ i
 let title       i = "title-"       ^ i
 let media       i = "media-"       ^ i
 let group       i = "group-"       ^ i
@@ -101,44 +103,30 @@ let valid       i = "button-"      ^ i
 
 let event_form (e: event) (id_line: int) action =
   let idl = string_of_int id_line in
-  let start_year, get_start_year =
+  let start_date, get_start_date =
+    let str_date =
+      Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%F") e.start_date
+    in
     placeholder
-      ~id:(start_year idl)
-      ~content:(string_of_int @@ CalendarLib.Date.year e.start_date)
-      ~title:"Start year"
-      ~name:"start_year"
+      ~id:(start_date idl)
+      ~content:str_date
+      ~title:"From"
+      ~name:"start_date"
+      ~input_type:(Other `Date)
       () in
 
-  let start_month, get_start_month =
-    placeholder
-      ~id:(start_month idl)
-      ~content:(string_of_int @@ CalendarLib.Date.(int_of_month @@ month e.start_date))
-      ~title:"Start month"
-      ~name:"start_month"
-      () in
-
-  let end_year, get_end_year =
+  let end_date, get_end_date =
     let content =
        match e.end_date with
        | None -> ""
-       | Some d -> string_of_int @@ CalendarLib.Date.year d in
-     placeholder
-       ~id:(end_year idl)
-       ~content
-       ~title:"End year"
-       ~name:"end_year"
-       () in
-
-  let end_month, get_end_month =
-    let content =
-      match e.end_date with
-      | Some d -> string_of_int @@ CalendarLib.Date.(int_of_month @@ month d)
-      | None -> "" in
+       | Some d ->
+         Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%F") d in
     placeholder
-      ~id:(end_month idl)
+      ~id:(end_date idl)
       ~content
-      ~title:"End month"
-      ~name:"end_month"
+      ~title:"To"
+      ~name:"end_date"
+      ~input_type:(Other `Date)
       () in
 
   let headline, get_headline =
@@ -159,12 +147,12 @@ let event_form (e: event) (id_line: int) action =
       () in
 
   let group, get_group =
+    let str_group = match e.group with None -> "" | Some g -> g in
     placeholder
       ~id:(group idl)
-      ?content:e.group
       ~title:"Group"
       ~name:"group"
-      ~input_type:(Radio ["Software"; "Person"; "Client"])
+      ~input_type:(Radio (str_group, ["Software"; "Person"; "Client"; "OCaml"]))
       () in
 
   let text, get_text =
@@ -174,14 +162,27 @@ let event_form (e: event) (id_line: int) action =
       ~title:"Text"
       ~name:"text"
       ~input_type:TextArea
-      ~style:"width: 300px; height: 200px"
+      ~style:"width: 300px; height: 200px; resize: both"
       () in
   let get_event () =
+    let start_date =
+      match get_start_date () with
+      | None -> assert false
+      | Some str_date -> begin
+          match Utils.string_to_date str_date with
+          | None -> begin
+              Js_utils.log "Error with date %s" str_date;
+              failwith "Error while parsing date"
+            end
+          | Some date -> date end
+    in
+    let end_date =
+      match get_start_date () with
+      | None -> None
+      | Some d -> Utils.string_to_date d in
     Data_encoding.to_event
-      (get_start_year ())
-      (get_start_month ())
-      (get_end_year ())
-      (get_end_month ())
+      start_date
+      end_date
       (get_group ())
       None
       None
@@ -194,53 +195,30 @@ let event_form (e: event) (id_line: int) action =
       a_id ("line-" ^ idl);
       a_class ["line"];
     ] [
-    start_year;
-    start_month;
-    end_year;
-    end_month;
+    start_date;
+    end_date;
     media;
     headline;
     group;
     text;
     div
       ~a:[
-        a_class ["btn";"btn-primary"];
+        a_class ["btn";"btn-primary"; row];
         a_onclick
           (fun _ ->
-             Js_utils.log "Clicked on Add";
              action (get_event ());
              true
           )
-      ] [txt "Add"];
-    div ~a:[a_class ["btn"; "btn-primary"]] [
-      a ~a:[a_href (Ui_utils.link "admin"); ] [txt "Back"]
+      ] [txt "Update timeline"];
+    br ();
+    div ~a:[a_class ["btn"; "btn-primary"; row]] [
+      a ~a:[a_href (Ui_utils.link ""); ] [txt "Back"]
     ]
   ]
 
-let read_line (id_line: int) =
-  let idl = string_of_int id_line in
-  let start_date =
-    let year  = int_of_string @@ get_value @@ start_year  idl in
-    let month = try Some (int_of_string @@ get_value @@ start_month idl) with _ -> None in
-    Utils.to_date year month in
-  let end_date =
-    match int_of_string_opt @@ get_value @@ start_year  idl with
-      None -> None
-    | Some year ->
-      let month = try Some (int_of_string @@ get_value @@ start_month idl) with _ -> None in
-      Some (Utils.to_date year month) in
-  let text =
-    let text = get_value @@ text idl in
-    let headline = get_value @@ title idl in
-    {text; headline} in
-  let media = try Some {url = get_value @@ media idl} with _ -> None in
-  let group = Some (get_value @@ group idl) in {
-    start_date; end_date; text; media; group
-  }
-
 let empty_event_form id action =
   let empty_event = {
-    start_date = Utils.to_date 0 None;
+    start_date = Utils.to_date 1 None None;
     end_date = None;
     text = {text = ""; headline = ""};
     media = None;
@@ -250,10 +228,11 @@ let empty_event_form id action =
   event_form empty_event id action
 
 let event_short_row i event =
-  let stri = string_of_int i in
+  let stri = string_of_int (i + 1) in
   let start_year = string_of_int @@ CalendarLib.Date.year event.start_date in
   let edit_link =
-    a ~a:[a_href (Ui_utils.link ~args:["id", stri] "admin"); a_class ["button"]] [txt "Edit"] in
+    a ~a:[a_href (Ui_utils.link ~args:["action", "edit"; "id", stri] "admin");
+          a_class ["button"]] [txt "Edit"] in
   div ~a:[a_class [row]] [
     div ~a:[a_class [clg1]] [txt @@ string_of_int i];
     div ~a:[a_class [clg1]] [txt @@ start_year];
@@ -261,40 +240,6 @@ let event_short_row i event =
     div ~a:[a_class [clg2]] [edit_link]
   ]
 
-let events_list events =
-  List.mapi event_short_row events
+let events_list events = List.mapi event_short_row events
 
-let update_timeline_data id page action = (*
-  Utils_js.read_json Utils.full_data
-    (fun events ->
-       match id with
-       | Some i -> begin
-           let i = int_of_string i in
-           match List.nth_opt events.events i with
-           | None -> begin
-               Js_utils.log "Event %i does not exist" i;
-               raise (Invalid_argument "Unknown event")
-             end
-           | Some e ->
-             Manip.replaceChildren page @@ [event_form e i action];
-             Lwt.return (Ok "ok")
-         end
-       | None -> begin
-           Manip.replaceChildren page @@ events_list events.events;
-           Lwt.return (Ok "ok")
-         end
-    ) *) failwith "TODO"
-
-let add_new_event_form () =
-    empty_event_form
-      0
-      (fun event ->
-         Js_utils.log "Adding event %a" Utils.pp_event event;
-         Request.add_event
-           event
-           (fun b ->
-              if b then
-                Lwt.return (Ok ())
-              else Lwt.return (Error (Xhr_lwt.Str_err "Add new event action failed"))
-           )
-      )
+let add_new_event_form action = empty_event_form 0 action

@@ -54,6 +54,13 @@ let add_event : (Data_types.event, bool) post_service0 =
     ~input:Data_encoding.event_encoding
     ~output:Json_encoding.bool
     Path.(root // "add_event")
+
+let update_event : (int * Data_types.event, bool) post_service0 =
+  post_service
+    ~name:"update_event"
+    ~input:(Json_encoding.tup2 tup1_int Data_encoding.event_encoding)
+    ~output:Json_encoding.bool
+    Path.(root // "update_event")
 (*
 let update_event : (int * Data_types.event, int) post_service0 =
   post_service

@@ -16,41 +16,14 @@ open Utils
 exception NewLine of string
 
 let to_event
-    start_year
-    start_month
-    end_year
-    end_month
+    start_date
+    end_date
     typ
     typ2
     importance
     media
     title
     text =
-  let start_year =
-    match start_year with
-    | None -> raise (NewLine "No start year")(* This is the next line of the previous text *)
-    | Some s -> try int_of_string s with Failure _ -> raise (NewLine (s ^" is not an integer")) in
-
-  let start_month =
-    match start_month with
-      None -> None
-    | Some e ->
-      (*Format.printf "Start month = %s@." e; *)
-      int_of_string_opt e in
-
-  let end_year =
-    match end_year with
-      None -> None
-    | Some e ->
-      (*Format.printf "End year = %s@." e; *)
-      int_of_string_opt e in
-
-  let end_month =
-    match end_month with
-      None -> None
-    | Some e ->
-      (* Format.printf "End month = %s@." e; *)
-      int_of_string_opt e in
 
   let text =
     let title =
@@ -61,22 +34,15 @@ let to_event
       match text with
       | None -> ""
       | Some t -> t in
-    to_text title text typ2 importance
+    to_text title text
   in
 
   let media = opt to_media media in
 
-  let start_date = to_date start_year start_month in
-
   let end_date =
-    match to_date_opt end_year end_month with
-    | None ->
-      (*Format.printf "End date = Start date@."; *)
-      Some start_date
-    | Some res ->
-      (*Format.printf "End date = %a@." (CalendarLib.Printer.Date.fprint "%D") res;
-      *)
-      Some res
+    match end_date with
+    | None -> Some start_date
+    | Some res -> Some res
   in {
     start_date;
     end_date;
@@ -90,10 +56,18 @@ let line_to_event (header : Header.t) line =
   (*Format.printf "Splitted data = %a@."
     (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
   let data = Array.of_list data in
-  let start_year  = Header.start_year  header data in
-  let start_month = Header.start_month header data in
-  let end_year    = Header.end_year    header data in
-  let end_month   = Header.end_month   header data in
+  let start_date =
+    match Header.start_year  header data with
+    | None -> failwith "There should be a start year for an event"
+    | Some start_year ->
+      let start_month = Header.start_month header data in
+      to_date (int_of_string start_year) (opt int_of_string start_month) None in
+  let end_date =
+    match Header.end_year header data with
+    | None -> None
+    | Some end_year ->
+      let end_month = Header.end_month header data in
+      Some (to_date (int_of_string end_year) (opt int_of_string end_month) None) in
   let typ         = Header.typ         header data in
   let typ2        = Header.typ2        header data in
   let importance  = Header.importance  header data in
@@ -101,10 +75,8 @@ let line_to_event (header : Header.t) line =
   let title       = Header.title       header data in
   let text        = Header.text        header data in
   to_event
-    start_year
-    start_month
-    end_year
-    end_month
+    start_date
+    end_date
     typ
     typ2
     importance
@@ -114,14 +86,14 @@ let line_to_event (header : Header.t) line =
 
 let to_title line =
   match String.split_on_char '\t' line with
-  | title :: text :: _ -> to_text title text None None
+  | title :: text :: _ -> to_text title text
   | _ -> raise (Invalid_argument (Format.sprintf "Missing elements for building title (%s)" line))
 
 let date_encoding =
   Json_encoding.(
     conv
       (fun date -> (CalendarLib.Date.year date, CalendarLib.Date.(int_of_month @@ month date)))
-      (fun (year, month) -> Utils.to_date year (Some month))
+      (fun (year, month) -> Utils.to_date year (Some month) None)
       (obj2
          (req "year" int)
          (req "month" int)

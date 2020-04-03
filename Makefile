@@ -7,7 +7,7 @@ all: build
 
 include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 
-build: parser db api js js-admin
+build: parser db api js
 
 init:
 	git submodule init
@@ -29,10 +29,6 @@ api: db
 js:
 	ocp-build ocptimeline-js
 	cp _obuild/ocptimeline-js/ocptimeline-js.js www/js
-
-js-admin:
-	ocp-build ocptimeline-js-admin
-	cp _obuild/ocptimeline-js-admin/ocptimeline-js-admin.js www/js
 
 clean:
 	rm -rf _obuild/*
