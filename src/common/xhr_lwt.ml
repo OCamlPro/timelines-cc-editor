@@ -29,6 +29,7 @@ module Xhr = Js_of_ocaml_lwt.XmlHttpRequest
 open Xhr
 open Js_of_ocaml.Url
 open Lwt
+open Json_encoding
 
 type 'a error =
   | Xhr_err of string generic_http_frame
@@ -99,6 +100,7 @@ let post_raw ?base ?args ?(content_type="application/json") url contents =
   try Xhr.perform ~content_type ~contents url2 >>= handle_response
   with _ -> return (Error (Xhr_err (make_frame ~url ("No response from server for " ^ url))))
 
+(*
 type 'a encoding =
   | Raw of ('a -> string) * (string -> 'a)
   | Enc of 'a Json_encoding.encoding
@@ -109,23 +111,21 @@ let destruct enc s = match enc with
 
 let construct enc o = match enc with
   | Raw (to_string, _) -> Printf.sprintf "%S" (to_string o)
-  | Enc enc -> EzEncoding.construct enc o
-
-let decode enc = function
-  | Error e -> return (Error e)
-  | Ok s -> match destruct enc s with
-    | res -> return (Ok res)
-    | exception _ ->
-      return (Error (Str_err ("Cannot destruct " ^ s)))
+  | Enc enc -> EzEncoding.construct enc o *)
 
 let get ?base ?args url = get_raw ?base ?args url
 
 let post ?base ?args ?content_type input_enc output_enc url contents =
   let contents = construct input_enc contents in
+  let contents = Format.asprintf "%a" (Json_repr.pp_any ()) (Json_repr.to_any contents) in
   post_raw ?base ?args ?content_type url contents >>=
-  (fun e -> decode output_enc e >>=
-    function
-      Ok res -> Lwt.return (Ok res)
+  (function
+    | Ok res ->
+      let res =
+        let yoj = Yojson.Safe.from_string res in
+        let js = Json_repr.from_yojson yoj in
+        destruct output_enc js in
+      Lwt.return (Ok res)
     | Error e ->
       let code, error = error_content e in
       Format.eprintf "[Xhr_lwt.post] Error %i: %s@." code error; Lwt.return (Error e))

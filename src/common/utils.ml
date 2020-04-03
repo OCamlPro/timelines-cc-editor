@@ -112,3 +112,6 @@ module Header = struct
       (List.of_seq (StringMap.to_seq header))
 
 end
+
+let pp_event fmt (e : event) =
+  Format.fprintf fmt "{Event '%s' starting on %a}" e.text.headline (CalendarLib.Printer.Date.fprint "%D") e.start_date

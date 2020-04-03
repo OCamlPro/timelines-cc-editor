@@ -15,21 +15,17 @@ open Utils
 
 exception NewLine of string
 
-let to_event (header : Header.t) line =
-  let data = String.split_on_char '\t' line in
-  (*Format.printf "Splitted data = %a@."
-    (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
-  let data = Array.of_list data in
-  let start_year  = Header.start_year  header data in
-  let start_month = Header.start_month header data in
-  let end_year    = Header.end_year    header data in
-  let end_month   = Header.end_month    header data in
-  let typ         = Header.typ         header data in
-  let typ2        = Header.typ2        header data in
-  let importance  = Header.importance  header data in
-  let media       = Header.media       header data in
-  let title       = Header.title       header data in
-  let text        = Header.text        header data in
+let to_event
+    start_year
+    start_month
+    end_year
+    end_month
+    typ
+    typ2
+    importance
+    media
+    title
+    text =
   let start_year =
     match start_year with
     | None -> raise (NewLine "No start year")(* This is the next line of the previous text *)
@@ -41,7 +37,7 @@ let to_event (header : Header.t) line =
     | Some e ->
       (*Format.printf "Start month = %s@." e; *)
       int_of_string_opt e in
-  
+
   let end_year =
     match end_year with
       None -> None
@@ -88,6 +84,33 @@ let to_event (header : Header.t) line =
     group = typ;
     media
   }
+
+let line_to_event (header : Header.t) line =
+  let data = String.split_on_char '\t' line in
+  (*Format.printf "Splitted data = %a@."
+    (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
+  let data = Array.of_list data in
+  let start_year  = Header.start_year  header data in
+  let start_month = Header.start_month header data in
+  let end_year    = Header.end_year    header data in
+  let end_month   = Header.end_month   header data in
+  let typ         = Header.typ         header data in
+  let typ2        = Header.typ2        header data in
+  let importance  = Header.importance  header data in
+  let media       = Header.media       header data in
+  let title       = Header.title       header data in
+  let text        = Header.text        header data in
+  to_event
+    start_year
+    start_month
+    end_year
+    end_month
+    typ
+    typ2
+    importance
+    media
+    title
+    text
 
 let to_title line =
   match String.split_on_char '\t' line with
@@ -164,7 +187,7 @@ let file_to_events f =
           let line = input_line chan in
           (* Format.printf "Line %s@." line;*)
           try
-            let event = to_event header line in
+            let event = line_to_event header line in
             l := event :: !l;
             (* Format.printf
               "Event of line %s started on %a and ended on %s@."
@@ -208,7 +231,7 @@ let str_to_events ~log_error str =
           List.iter
             (fun line ->
                try
-                 let new_event = to_event header line in
+                 let new_event = line_to_event header line in
                  l := new_event :: !l
                with
                | NewLine s -> begin

@@ -7,7 +7,8 @@ OCaml.library("data-encoding", ocaml + {
 OCaml.library("xhr-lwt", ocaml+ {
   requires = [
     "ez-api-js";
-    "js_of_ocaml-lwt"
+    "js_of_ocaml-lwt";
+    "yojson";
   ] ;
   files = [
     "xhr_lwt.ml";

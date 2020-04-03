@@ -7,7 +7,7 @@ all: build
 
 include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 
-build: parser db js
+build: parser db api js js-admin
 
 init:
 	git submodule init

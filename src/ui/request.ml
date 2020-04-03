@@ -11,13 +11,29 @@ let api () =
     hu_fragment = ""
   }
 
-let events cont =
+let get apifun cont =
   let url = api () in
-  let () = Js_utils.log "GET %s from %s" "events" (Js_of_ocaml.Url.string_of_url url) in
-  Xhr_lwt.get ~base:url "events" >>=
+  let () = Js_utils.log "GET %s from %s" apifun (Js_of_ocaml.Url.string_of_url url) in
+  Xhr_lwt.get ~base:url apifun >>=
   function
     Ok elt -> cont elt
   | Error e ->
     let code, msg = Xhr_lwt.error_content e in
     Js_utils.log "Error %i while getting to api: %s" code msg;
     Lwt.return (Error e)
+
+let post apifun input cont =
+  let () = Js_utils.log "POST %s" apifun in
+  let url = api () in
+  let () = Js_utils.log "Calling API at %s" (Js_of_ocaml.Url.string_of_url url) in
+  Xhr_lwt.post ~base:url Data_encoding.event_encoding Json_encoding.bool apifun input >>=
+  function
+    Ok elt -> cont elt
+  | Error e ->
+    let code, msg = Xhr_lwt.error_content e in
+    Js_utils.log "Error %i while getting to api: %s" code msg;
+    Lwt.return (Error e)
+
+let events cont = get "events" cont
+
+let add_event event cont = post "add_event" event cont
