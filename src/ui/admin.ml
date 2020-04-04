@@ -152,7 +152,18 @@ let event_form (e: event) (id_line: int) action =
       ~id:(group idl)
       ~title:"Group"
       ~name:"group"
-      ~input_type:(Radio (str_group, ["Software"; "Person"; "Client"; "OCaml"]))
+      ~input_type:(
+        Radio (
+          str_group, [
+            "Software";
+            "Person";
+            "Client";
+            "OCaml";
+            "Blockchain";
+            "Tooling";
+            "Alt-Ergo";
+            "Confidential"
+          ]))
       () in
 
   let text, get_text =

@@ -8,7 +8,7 @@ let timeline_data = "data_raw.json"
 
 let to_int_opt s =
   if s = "" then None
-  else Some (int_of_string s)
+  else try Some (int_of_string s) with Invalid_argument _ -> None
 
 let to_text headline text =
   {
@@ -37,7 +37,7 @@ let string_to_date str =
           (Some (int_of_string month))
           (Some (int_of_string day))
       )
-  with Invalid_argument _ (* int_of_string *) -> None
+  with Failure _ (* int_of_string *) -> None
 
 let to_media url = {url}
 

@@ -58,16 +58,33 @@ let line_to_event (header : Header.t) line =
   let data = Array.of_list data in
   let start_date =
     match Header.start_year  header data with
-    | None -> failwith "There should be a start year for an event"
-    | Some start_year ->
-      let start_month = Header.start_month header data in
-      to_date (int_of_string start_year) (opt int_of_string start_month) None in
+      | None -> failwith "There should be a start year for an event"
+      | Some start_year ->
+        let start_month =
+          match opt int_of_string (Header.start_month header data) with
+            None -> None
+          | res -> res
+          | exception Failure _ -> None in
+        try
+          to_date (int_of_string start_year) start_month None
+        with Failure _ -> raise (NewLine ("Error trying to parse start year " ^ start_year))
+  in
   let end_date =
     match Header.end_year header data with
-    | None -> None
+    | None | Some "" -> None
     | Some end_year ->
-      let end_month = Header.end_month header data in
-      Some (to_date (int_of_string end_year) (opt int_of_string end_month) None) in
+      let end_month =
+        match opt int_of_string (Header.end_month header data) with
+          None -> None
+        | res -> res
+        | exception Failure _ -> None
+      in
+      try
+        Some (to_date (int_of_string end_year) end_month None)
+      with
+        Failure _ ->
+        failwith ("Error trying to parse end year year " ^ end_year)
+  in
   let typ         = Header.typ         header data in
   let typ2        = Header.typ2        header data in
   let importance  = Header.importance  header data in
@@ -169,7 +186,7 @@ let file_to_events f =
                | None -> ""
                | Some i -> Format.asprintf "and ended on %a" (CalendarLib.Printer.Date.fprint  "%D") i) *)
           with
-            Failure s -> Format.printf "Failing at line %s: %s" line s
+            Failure s -> Format.printf "Failing at line %s: %s@." line s
           | NewLine s -> begin
               match !l with
               | hd :: tl ->

@@ -81,6 +81,7 @@ let admin_page ~args =
                 let form =
                   Admin.event_form e i (
                     fun new_event ->
+                      Js_utils.log "Update...";
                       Request.update_event i new_event (
                         fun b ->
                           Js_utils.log "Update OK";
