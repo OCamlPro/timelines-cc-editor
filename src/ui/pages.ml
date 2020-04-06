@@ -42,7 +42,7 @@ let dispatch ~path ~args =
     raise exn
 
 let main_page ~args =
-  Request.raw_events
+  Request.timeline_data
     (fun json ->
        let json = Format.sprintf "{\"events\":%s}" json in
        let cmd =

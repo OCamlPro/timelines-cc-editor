@@ -13,7 +13,7 @@ let () =
     let () =
       List.iter
         Writer.add_event
-        events
+        (List.rev events)
     in
     exit 0
   | Some "--json" -> begin
@@ -22,6 +22,7 @@ let () =
       | None -> Format.printf "No title registered, ending"; exit 1;
       | Some title ->
         Reader.events () >>= fun events ->
+        let events = List.map snd events in
         let json =
           Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
         Data_encoding.write_json json (file ^ ".json")

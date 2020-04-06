@@ -42,10 +42,10 @@ let event : (int, Data_types.event option) service1 =
     ~output:(Json_encoding.option Data_encoding.event_encoding)
     Path.(root // "event" /: (arg_default "event_key"))
 
-let events : (Data_types.event list) service0 =
+let events : ((int * Data_types.event) list) service0 =
   service
     ~name:"events"
-    ~output:(Json_encoding.list Data_encoding.event_encoding)
+    ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
     Path.(root // "events")
 
 let add_event : (Data_types.event, bool) post_service0 =
@@ -67,3 +67,9 @@ let categories : (string list) service0 =
     ~name:"categories"
     ~output:(Json_encoding.(list string))
     Path.(root // "categories")
+
+let timeline_data : (Data_types.event list) service0 =
+  service
+    ~name:"timeline_data"
+    ~output:(Json_encoding.list Data_encoding.event_encoding)
+    Path.(root // "timeline_data")

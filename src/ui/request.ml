@@ -41,8 +41,9 @@ let cook encoding cont =
      let elt = Json_encoding.destruct encoding json in
      cont elt)
 
-let raw_events cont = get "events" cont
-let events cont = raw_events (cook (Json_encoding.list Data_encoding.event_encoding) cont)
+let timeline_data cont = get "timeline_data" cont
+let events cont =
+  get "events" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
 let event id cont = get (Format.sprintf "event/%i" id)  (cook Data_encoding.event_encoding cont)
 

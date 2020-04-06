@@ -50,7 +50,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let line_to_event line =
     match line with
-      (_, Some start_date, end_date, headline, text, url, group) -> {
+      (id, Some start_date, end_date, headline, text, url, group) ->
+      Int32.to_int id, {
         start_date;
         end_date;
         text = {
@@ -68,12 +69,12 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     PGSQL(dbh)
       "SELECT * FROM events_ \
        WHERE (id_ = $id)" >>= function
-    | res :: _ -> return (Some (line_to_event res))
+    | res :: _ -> return (Some (snd @@ line_to_event res))
     | _ -> return None
 
   let events () =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 ORDER BY id_ ASC" >>=
+    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 ORDER BY id_ DESC" >>=
     fun l ->
     return @@ List.map line_to_event l
 
@@ -93,6 +94,11 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let categories () =
     with_dbh >>> fun dbh -> PGSQL(dbh) "SELECT * FROM groups_"
+
+  let timeline_data () =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 ORDER BY id_ DESC" >>=
+    fun l -> return @@ List.map (fun l -> snd @@ line_to_event l) l
 
 end
 

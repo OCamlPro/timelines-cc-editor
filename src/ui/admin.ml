@@ -274,8 +274,8 @@ let empty_event_form id action =
   in
   event_form empty_event id action
 
-let event_short_row i event =
-  let stri = string_of_int (i + 1) in
+let event_short_row (i, event) =
+  let stri = string_of_int i in
   let start_year = string_of_int @@ CalendarLib.Date.year event.start_date in
   let edit_link =
     Ui_utils.a_link
@@ -296,6 +296,6 @@ let events_list events =
     div ~a:[a_class [row]] [
       a ~a:[a_href (Ui_utils.link ~args:["action", "add"] "admin");
             a_class ["btn"; "btn-primary"]] [txt "Create event"]] in
-  add_link :: List.mapi event_short_row events
+  add_link :: List.map event_short_row events
 
 let add_new_event_form action = empty_event_form 0 action

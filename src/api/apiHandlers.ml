@@ -11,3 +11,5 @@ let add_event _ event = Writer.add_event event; EzAPIServerUtils.return true
 let update_event _ (id, event) = Writer.update_event id event |> EzAPIServerUtils.return
 
 let categories _ () = Reader.categories () >>= EzAPIServerUtils.return
+
+let timeline_data _ () = Reader.timeline_data () >>= EzAPIServerUtils.return
