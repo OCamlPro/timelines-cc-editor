@@ -3,6 +3,14 @@ open Utils
 
 let dbh : _ PGOCaml.t PGOCaml.monad = PGOCaml.connect ~database:Config.database ()
 
+let add_category str =
+  let open Db_intf.Default_monad in
+  if not (str = "") then
+    Reader.category_exists str >>= (fun group_exists ->
+        if not group_exists
+        then PGSQL(dbh) "INSERT INTO groups_(group_) VALUES ($str)"
+      )
+
 let add_event (e : event) =
   let start_date = e.start_date in
   let end_date = e.end_date in
@@ -11,18 +19,12 @@ let add_event (e : event) =
   let media = opt (fun m -> m.url) e.media in
   let group = e.group in
 
-  let open Db_intf.Default_monad in
   let () =
       PGSQL(dbh) "INSERT INTO events_(start_date_, end_date_, headline_, text_, media_, group_) \
                   VALUES($start_date, $?end_date, $headline,$text,$?media,$?group)" in
   match group with
-    None -> ()
-  | Some group -> begin
-      Reader.category_exists group >>= (fun group_exists ->
-          if not group_exists
-          then PGSQL(dbh) "INSERT INTO groups_(group_) VALUES ($group)"
-        )
-    end
+  | None -> ()
+  | Some group -> add_category group
 
 let add_title (t : title) =
   let headline = t.headline in
@@ -48,6 +50,9 @@ let update_event (i: int) (e : event) =
     let text = e.text.text in
     let media = opt (fun m -> m.url) e.media in
     let group = e.group in
-    PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
+    let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
                 headline_=$headline, text_=$text, media_=$?media, group_=$?group WHERE id_=$i";
+      match group with
+      | None -> ()
+      | Some group -> add_category group in
     true

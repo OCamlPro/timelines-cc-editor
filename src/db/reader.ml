@@ -91,7 +91,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     | [] -> return false
     | _  -> return true
 
-  let get_categories () =
+  let categories () =
     with_dbh >>> fun dbh -> PGSQL(dbh) "SELECT * FROM groups_"
 
 end

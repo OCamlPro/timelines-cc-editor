@@ -57,3 +57,5 @@ let update_event id event cont =
     "update_event"
     Json_encoding.(tup2 (tup1 int) Data_encoding.event_encoding) (id, event)
     Json_encoding.bool cont
+
+let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)

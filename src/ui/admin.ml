@@ -25,63 +25,112 @@ let placeholder
       None -> form
     | Some elt -> div ~a:[a_class [clg3]] [txt elt] :: form
   in
-  let row = div ~a:[a_class ["row"]] in
-  let html_elt =
-    match input_type with
-    | Radio (value, l) ->
-      let value = String.lowercase_ascii value in
-      row (
-        to_form @@
-        List.flatten @@
-        List.map
-          (fun str ->
-             let a =
-               let default = [
-                 a_id id;
-                 a_class (["placeholder"; form_inline] @ classes);
-                 a_value str;
-                 a_input_type `Radio;
-                 a_name name;
-                 a_style style;
-               ] in
-               if String.(equal (lowercase_ascii str) value) then
-                 a_checked () :: default
-               else default in [
-               input ~a ();
-               label [txt str]
-             ]
-          )
-          l
-      )
-    | TextArea ->
-      row (
-        to_form @@ [
-          textarea
-            ~a:[a_id id;
-                a_class (["placeholder"] @ classes);
-                a_style style;
-               ] (txt content)
-        ]
-      )
-    | Other t ->
-      row (
-        to_form @@ [
-          input
-            ~a:[a_id id;
-                a_class (["placeholder"] @ classes);
-                a_value content;
-                a_input_type t;
-                a_style style;
-               ] ()
-        ]
-      )
+  let row = div ~a:[a_class [row]]
   in
-  let getter =
-    fun () ->
-      match Manip.by_id id with
-      | None -> Js_utils.log "Error: placeholder %s not found" id; None
-      | Some e -> Some (Manip.value e) in
-  html_elt, getter
+  match input_type with
+  | Radio (value, l) -> begin
+      let html_elt =
+        let value = String.lowercase_ascii value in
+        let a str = [
+          a_class (["placeholder"; form_inline] @ classes);
+          a_value str;
+          a_input_type `Radio;
+          a_name name;
+          a_style style
+        ] in
+        let form_list =
+          List.map
+            (fun str ->
+               let a =
+                 let default = a str in
+                 if String.(equal (lowercase_ascii str) value) then
+                   a_checked () :: default
+                 else default in
+               row [
+                 input ~a ();
+                 label [txt str];
+               ]
+            )
+            l in
+        let other =
+          row [input ~a:(a "__other__") ();
+           input
+             ~a:[
+               a_id "__other_value";
+               a_class (["placeholder"] @ classes);
+               a_style style;
+               a_input_type `Text
+             ] ()
+          ]
+        in
+        row (to_form @@ [div ~a:[a_class [clg9]; a_id id] (form_list @ [other])])
+      in
+      let getter () =
+        let form = Js_utils.find_component id in
+        let input_list = Js_utils.Manip.children form in
+        let rec loop = function
+          | [] -> Js_utils.log "Error: no checked checkbox"; None
+          | hd :: tl -> begin
+              let children = Js_utils.Manip.children hd in
+              match
+                List.find_opt (
+                  fun child ->
+                    let with_check = Js.Unsafe.coerce @@ Html.toelt child in
+                    with_check##.checked
+                )
+                  children
+              with
+              | None -> loop tl
+              | Some elt -> begin
+                  let value = Manip.value elt in
+                  if value = "__other__" then
+                    Some (Manip.value (find_component "__other_value"))
+                  else Some (Manip.value elt)
+                end
+            end
+        in loop input_list
+      in
+      html_elt, getter
+    end
+  | TextArea -> begin
+      let html_elt =
+        row (
+          to_form @@ [
+            textarea
+              ~a:[a_id id;
+                  a_class (["placeholder"; clg9] @ classes);
+                  a_style style;
+                 ] (txt content)
+          ]
+        ) in
+      let getter =
+        fun () ->
+          match Manip.by_id id with
+          | None -> Js_utils.log "Error: placeholder %s not found" id; None
+          | Some e -> Some (Manip.value e) in
+      html_elt, getter
+    end
+  | Other t -> begin
+      let html_elt =
+        row (
+          to_form @@ [
+            input
+              ~a:[a_id id;
+                  a_class (["placeholder"; clg9] @ classes);
+                  a_value content;
+                  a_input_type t;
+                  a_style style;
+                 ] ()
+          ]
+        )
+      in
+      let getter =
+        fun () ->
+          match Manip.by_id id with
+          | None -> Js_utils.log "Error: placeholder %s not found" id; None
+          | Some e -> Some (Manip.value e) in
+      html_elt, getter
+    end
 
 let add_text_to_placeholder id t =
   match Manip.by_id id with
@@ -101,7 +150,7 @@ let group       i = "group-"       ^ i
 let text        i = "text-"        ^ i
 let valid       i = "button-"      ^ i
 
-let event_form (e: event) (id_line: int) action =
+let event_form (e: event) (id_line: int) categories action =
   let idl = string_of_int id_line in
   let start_date, get_start_date =
     let str_date =
@@ -152,18 +201,7 @@ let event_form (e: event) (id_line: int) action =
       ~id:(group idl)
       ~title:"Group"
       ~name:"group"
-      ~input_type:(
-        Radio (
-          str_group, [
-            "Software";
-            "Person";
-            "Client";
-            "OCaml";
-            "Blockchain";
-            "Tooling";
-            "Alt-Ergo";
-            "Confidential"
-          ]))
+      ~input_type:(Radio (str_group, categories))
       () in
 
   let text, get_text =

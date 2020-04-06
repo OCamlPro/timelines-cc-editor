@@ -48,7 +48,7 @@ let sql_downgrade_3_to_2 = [
 
 let sql_upgrade_2_to_3 =  [
   {| CREATE TABLE groups_ (
-     group_ VARCHAR(100)
+     group_ VARCHAR(100) PRIMARY KEY NOT NULL
   )|}
 ]
 

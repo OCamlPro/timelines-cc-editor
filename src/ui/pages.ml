@@ -65,7 +65,10 @@ let admin_page ~args =
                dispatch ~path:"" ~args:[]
              else Lwt.return (Error (Xhr_lwt.Str_err "Add new event action failed"))
           ) in
-    set_in_main_page [Admin.add_new_event_form action]; finish ()
+    Request.categories (fun categories ->
+        set_in_main_page [Admin.add_new_event_form categories action];
+        finish ()
+      )
   | None | Some "edit" ->
     begin
       match List.assoc_opt "id" args with
@@ -76,28 +79,29 @@ let admin_page ~args =
         begin
           try
             let i = int_of_string i in
-            Request.event i (
-              fun e ->
-                let form =
-                  Admin.event_form e i (
-                    fun new_event ->
-                      Js_utils.log "Update...";
-                      Request.update_event i new_event (
-                        fun b ->
-                          Js_utils.log "Update OK";
-                          if b then begin
-                          Js_utils.log "Going back to main page";
-                            dispatch ~path:"admin" ~args:["action", "edit"]
-                          end else begin
-                            Js_utils.log "Update failed";
-                            Lwt.return
-                              (Error (Xhr_lwt.Str_err "Update event action failed"))
-                          end
+            Request.categories (fun categories ->
+                Request.event i (fun e ->
+                    let form =
+                      Admin.event_form e i categories (
+                        fun new_event ->
+                          Js_utils.log "Update...";
+                          Request.update_event i new_event (
+                            fun b ->
+                              Js_utils.log "Update OK";
+                              if b then begin
+                                Js_utils.log "Going back to main page";
+                                dispatch ~path:"admin" ~args:["action", "edit"]
+                              end else begin
+                                Js_utils.log "Update failed";
+                                Lwt.return
+                                  (Error (Xhr_lwt.Str_err "Update event action failed"))
+                              end
+                          )
                       )
-                  )
-                in
-                set_in_main_page [form];
-                finish ())
+                    in
+                    set_in_main_page [form];
+                    finish ())
+              )
           with
             Invalid_argument _ ->
             let msg = Format.sprintf "Invalid event id %s" i in
