@@ -73,3 +73,9 @@ let timeline_data : (Data_types.event list) service0 =
     ~name:"timeline_data"
     ~output:(Json_encoding.list Data_encoding.event_encoding)
     Path.(root // "timeline_data")
+
+let remove_event : (int, unit) service1 =
+  service
+    ~name:"remove_event"
+    ~output:Json_encoding.unit
+    Path.(root // "remove_event" /: (arg_default "event_key"))

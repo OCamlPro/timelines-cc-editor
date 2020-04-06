@@ -150,7 +150,7 @@ let group       i = "group-"       ^ i
 let text        i = "text-"        ^ i
 let valid       i = "button-"      ^ i
 
-let event_form (e: event) (id_line: int) categories action =
+let event_form (e: event) (id_line: int) categories update_action remove_action =
   let idl = string_of_int id_line in
   let start_date, get_start_date =
     let str_date =
@@ -255,12 +255,24 @@ let event_form (e: event) (id_line: int) categories action =
         a_class ["btn";"btn-primary"; row];
         a_onclick
           (fun _ ->
-             action (get_event ());
+             update_action (get_event ());
+             ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
              true
           )
       ] [txt "Update timeline"];
     br ();
-    Ui_utils.a_link ~path:"admin" ~classes:["btn"; "btn-primary"; row] [txt "Back"]
+    Ui_utils.a_link ~path:"admin" ~classes:["btn"; "btn-primary"; row] [txt "Back"];
+    br ();
+    div
+      ~a:[
+        a_class ["btn";"btn-primary"; row];
+        a_onclick
+          (fun _ ->
+             remove_action id_line;
+             ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+             true
+          )
+      ] [txt "Remove element"];
   ]
 
 let empty_event_form id action =

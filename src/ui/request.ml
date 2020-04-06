@@ -60,3 +60,6 @@ let update_event id event cont =
     Json_encoding.bool cont
 
 let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)
+
+let remove_event id cont =
+  get (Format.sprintf "remove_event/%i" id) cont

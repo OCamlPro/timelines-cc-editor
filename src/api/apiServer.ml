@@ -12,6 +12,7 @@ let start () =
     |> EzAPIServerUtils.register S.update_event H.update_event
     |> EzAPIServerUtils.register S.categories H.categories
     |> EzAPIServerUtils.register S.timeline_data H.timeline_data
+    |> EzAPIServerUtils.register S.remove_event H.remove_event
   in
   let servers = [ Config.api_port, EzAPIServerUtils.API dir ] in
   Lwt_main.run (

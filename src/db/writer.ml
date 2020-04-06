@@ -56,3 +56,7 @@ let update_event (i: int) (e : event) =
       | None -> ()
       | Some group -> add_category group in
     true
+
+let remove_event id =
+  let id = Int32.of_int id in
+  PGSQL(dbh) "DELETE from events_ where id_ = $id"
