@@ -2,14 +2,14 @@ open Data_types
 open Utils
 
 (* Format évènement:
-   * Debut
+   * Debut année
    * Debut mois
-   * Fin
+   * Fin année
    * Fin mois
-   * Type (logiciel, personne, client)
+   * Type (logiciel, personne, client, + OCaml, blockchain, partenariat/écosystème, etc.)
    * Type 2 (à déterminer)
-   * Pondération (important ou pas)
-   * Image ou lien video ou github
+   * Pondération (0 = confidentiel à masquer)
+   * Lien (blogpost, github, lien video etc.)
    * Titre
    * Narration (optionnel)   *)
 
