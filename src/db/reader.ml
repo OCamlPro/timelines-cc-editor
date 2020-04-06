@@ -83,6 +83,17 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     function
     | [] -> return None
     | (_,_,_,headline, text,_,_) :: _ -> return (Some {headline; text})
+
+  let category_exists group =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT * FROM groups_ WHERE group_ = $group" >>=
+    function
+    | [] -> return false
+    | _  -> return true
+
+  let get_categories () =
+    with_dbh >>> fun dbh -> PGSQL(dbh) "SELECT * FROM groups_"
+
 end
 
 module Self = Reader_generic(Db_intf.Default_monad)

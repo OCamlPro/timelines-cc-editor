@@ -10,8 +10,19 @@ let add_event (e : event) =
   let text = e.text.text in
   let media = opt (fun m -> m.url) e.media in
   let group = e.group in
-  PGSQL(dbh) "INSERT INTO events_(start_date_, end_date_, headline_, text_, media_, group_) \
-              VALUES($start_date, $?end_date, $headline,$text,$?media,$?group)"
+
+  let open Db_intf.Default_monad in
+  let () =
+      PGSQL(dbh) "INSERT INTO events_(start_date_, end_date_, headline_, text_, media_, group_) \
+                  VALUES($start_date, $?end_date, $headline,$text,$?media,$?group)" in
+  match group with
+    None -> ()
+  | Some group -> begin
+      Reader.category_exists group >>= (fun group_exists ->
+          if not group_exists
+          then PGSQL(dbh) "INSERT INTO groups_(group_) VALUES ($group)"
+        )
+    end
 
 let add_title (t : title) =
   let headline = t.headline in

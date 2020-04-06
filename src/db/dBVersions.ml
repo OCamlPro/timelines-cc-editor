@@ -13,14 +13,14 @@ let sql_downgrade_1_to_0 = [
 
 let sql_upgrade_0_to_1 =
   [
-    {|ALTER ROLE SESSION_USER SET search_path TO db,public|};
-    {|CREATE TABLE users_ (
+    {| ALTER ROLE SESSION_USER SET search_path TO db,public|};
+    {| CREATE TABLE users_ (
       id_     SERIAL PRIMARY KEY NOT NULL,
       email_  VARCHAR(100) UNIQUE NOT NULL,
       name_   VARCHAR(100) NOT NULL,
       pwhash_ BYTEA NOT NULL
       )|};
-    {|CREATE TABLE sessions_ (
+    {| CREATE TABLE sessions_ (
       user_id_   integer REFERENCES users_(id_) NOT NULL,
       cookie_    VARCHAR(30) PRIMARY KEY,
       last_      FLOAT NOT NULL)|};
@@ -31,7 +31,7 @@ let sql_downgrade_2_to_1 = [
   {| DROP TABLE events_ |}
 ]
 let sql_upgrade_1_to_2 = [
-  {|CREATE TABLE events_ (
+  {| CREATE TABLE events_ (
     id_          SERIAL PRIMARY KEY NOT NULL,
     start_date_  DATE,
     end_date_    DATE,
@@ -40,6 +40,16 @@ let sql_upgrade_1_to_2 = [
     media_       TEXT,
     group_       VARCHAR(100)
     )|};
+]
+
+let sql_downgrade_3_to_2 = [
+  {| DROP TABLE groups_ |}
+]
+
+let sql_upgrade_2_to_3 =  [
+  {| CREATE TABLE groups_ (
+     group_ VARCHAR(100)
+  )|}
 ]
 
 let ( upgrades, downgrades ) =
@@ -52,6 +62,7 @@ let ( upgrades, downgrades ) =
       [
         sql_upgrade_0_to_1, sql_downgrade_1_to_0;
         sql_upgrade_1_to_2, sql_downgrade_2_to_1;
+        sql_upgrade_2_to_3, sql_downgrade_3_to_2;
       ]
   in
   (versions, !rev_versions)
