@@ -9,6 +9,7 @@ let () =
   match option with
   | Some "--db" ->
     let {title; events} = Data_encoding.file_to_events file in
+    let () = Writer.remove_events () in
     let () = Writer.add_title title in
     let () =
       List.iter

@@ -48,7 +48,7 @@ let () = Dispatcher.dispatch := dispatch
 
 let main_page ~args =
   set_in_main_page @@ [Home.form args];
-  Request.timeline_data ~args (fun json -> Home.display_timeline json; finish ())
+  Request.timeline_data ~args (fun events -> Home.display_timeline events; finish ())
 
 let admin_page ~args =
   match List.assoc_opt "action" args with

@@ -40,3 +40,8 @@ let timeline_data req () =
     () >>= EzAPIServerUtils.return
 
 let remove_event (_, id) () = Writer.remove_event id |> EzAPIServerUtils.return
+
+let reinitialize _ events =
+  Writer.remove_events ();
+  List.iter Writer.add_event events;
+  EzAPIServerUtils.return true

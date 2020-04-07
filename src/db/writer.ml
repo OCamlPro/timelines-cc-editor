@@ -69,3 +69,7 @@ let update_event (i: int) (e : event) =
 let remove_event id =
   let id = Int32.of_int id in
   PGSQL(dbh) "DELETE from events_ where id_ = $id"
+
+let remove_events () =
+  PGSQL(dbh) "DELETE from events_";
+  PGSQL(dbh) "DELETE from groups_"

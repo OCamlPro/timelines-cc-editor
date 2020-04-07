@@ -48,7 +48,9 @@ let cook encoding cont =
      let elt = Json_encoding.destruct encoding json in
      cont elt)
 
-let timeline_data ~args cont = get ~args "timeline_data" cont
+let timeline_data ~args cont =
+  get ~args "timeline_data" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
+
 let events cont =
   get "events" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 

@@ -95,10 +95,10 @@ let categories : (string list) service0 =
     ~output:(Json_encoding.(list string))
     Path.(root // "categories")
 
-let timeline_data : (Data_types.event list) service0 =
+let timeline_data : ((int * Data_types.event) list) service0 =
   service
     ~name:"timeline_data"
-    ~output:(Json_encoding.list Data_encoding.event_encoding)
+    ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
     ~params:[
       date_param "start_date";
       date_param "end_date";

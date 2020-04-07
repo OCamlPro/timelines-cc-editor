@@ -127,7 +127,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
              ORDER BY id_ DESC"
     in
-    req >>= fun l -> return @@ List.map (fun l -> snd @@ line_to_event l) l
+    req >>= fun l -> return @@ List.map (fun l -> line_to_event l) l
 
 end
 

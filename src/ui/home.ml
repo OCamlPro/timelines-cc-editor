@@ -1,11 +1,38 @@
 open Js_of_ocaml_tyxml.Tyxml_js.Html
+open Js_utils
+open Bootstrap_helpers
+open Grid
+
+open Data_types
 
 let page_name = ""
 
-let display_timeline json : unit =
-  let json = Format.sprintf "{\"events\":%s}" json in
+let add_button_to_event i event =
+  let button = (* todo: not a string html element *)
+    Format.sprintf
+      "<a href='admin?action=edit&id=%i' class=\"btn btn-light row\"> Edit </a>" i in
+  let new_text =
+    let text = event.text.text in
+    Format.asprintf "<div>%s</div>\n<div>%s</div>"
+      text
+      button
+  in
+  {event with text = {headline = event.text.headline; text = new_text}}
+
+let process_events events =
+  List.map
+    (fun (i, event) -> add_button_to_event i event)
+    events
+
+let display_timeline (events : (int * event) list) : unit =
+  let events = process_events events in
   let cmd =
-    Format.asprintf "window.timeline = new TL.Timeline('timeline-embed',%s)" json in
+    let json = Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events in
+    let yoj = Json_repr.to_yojson json in
+    Format.asprintf
+      "window.timeline = new TL.Timeline('timeline-embed',{\"events\":%s})"
+      (Yojson.Safe.to_string yoj) in
+  Js_utils.log "Cmd = %s" cmd;
   Js_of_ocaml.Js.Unsafe.js_expr cmd
 
 let form args =
