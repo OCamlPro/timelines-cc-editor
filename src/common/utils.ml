@@ -96,3 +96,11 @@ end
 
 let pp_event fmt (e : event) =
   Format.fprintf fmt "{Event '%s' starting on %a}" e.text.headline (CalendarLib.Printer.Date.fprint "%D") e.start_date
+
+let hd_opt = function
+    [] -> None
+  | hd :: _ -> Some hd
+
+let fopt f = function
+    None -> None
+  | Some e -> f e

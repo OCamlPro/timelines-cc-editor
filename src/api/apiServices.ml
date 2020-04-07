@@ -31,6 +31,33 @@ let arg_mmsi = arg_string "mmsi" ""
 
 let arg_name = arg_string "name" "" *)
 
+let group_param = {
+  param_value = "group";
+  param_name  = Some "group";
+  param_descr = Some "Category";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["OCaml"; "Software"]
+}
+
+let date_param name = {
+  param_value = "date";
+  param_name  = Some name;
+  param_descr = Some "Date";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["01-01-1111"; "05-12-1991"]
+}
+
+let ponderation_param name = {
+  param_value = "ponderation";
+  param_name  = Some name;
+  param_descr = Some "Ponderation";
+  param_type = PARAM_INT;
+  param_required = false;
+  param_examples = ["0"; "9"]
+}
+
 let param_number =
   Param.int ~name:"page_size" ~descr:"Number of replies" "n"
 let param_page =
@@ -72,6 +99,12 @@ let timeline_data : (Data_types.event list) service0 =
   service
     ~name:"timeline_data"
     ~output:(Json_encoding.list Data_encoding.event_encoding)
+    ~params:[
+      date_param "start_date";
+      date_param "end_date";
+      group_param;
+      ponderation_param "min_level";
+      ponderation_param "max_level"]
     Path.(root // "timeline_data")
 
 let remove_event : (int, unit) service1 =

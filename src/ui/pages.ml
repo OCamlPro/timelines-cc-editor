@@ -34,7 +34,10 @@ let dispatch ~path ~args =
   try
     match Hashtbl.find pages path with
     | exception Not_found -> set_in_main_page [error_404 ~path ~args ()]; finish ()
-    | f -> f ~args
+    | f ->
+      let url = Ui_utils.url path args in
+      Ui_utils.push url;
+      f ~args
   with exn ->
     Js_utils.log "Exception in dispatch of %s: %s"
       path
@@ -44,14 +47,8 @@ let dispatch ~path ~args =
 let () = Dispatcher.dispatch := dispatch
 
 let main_page ~args =
-  Request.timeline_data
-    (fun json ->
-       let json = Format.sprintf "{\"events\":%s}" json in
-       let cmd =
-         Format.asprintf "window.timeline = new TL.Timeline('timeline-embed',%s)" json in
-       let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
-       finish ()
-    )
+  set_in_main_page @@ [Home.form args];
+  Request.timeline_data ~args (fun json -> Home.display_timeline json; finish ())
 
 let admin_page ~args =
   match List.assoc_opt "action" args with
@@ -92,7 +89,7 @@ let admin_page ~args =
                             Js_utils.log "Update OK";
                             if b then begin
                               Js_utils.log "Going back to main page";
-                              dispatch ~path:"admin" ~args:["action", "edit"]
+                              dispatch ~path:Admin.page_name ~args:["action", "edit"]
                             end else begin
                               Js_utils.log "Update failed";
                               Lwt.return
@@ -109,11 +106,11 @@ let admin_page ~args =
           with
             Invalid_argument _ ->
             let msg = Format.sprintf "Invalid event id %s" i in
-            set_in_main_page [error_404 ~msg ~path:"admin" ~args ()]; finish ()
+            set_in_main_page [error_404 ~msg ~path:Admin.page_name ~args ()]; finish ()
         end
     end
-  | Some _ -> set_in_main_page [error_404 ~path:"admin" ~args ()]; finish ()
+  | Some _ -> set_in_main_page [error_404 ~path:Admin.page_name ~args ()]; finish ()
 
 let () =
-  add_page ""      main_page;
-  add_page "admin" admin_page
+  add_page Home.page_name  main_page;
+  add_page Admin.page_name admin_page

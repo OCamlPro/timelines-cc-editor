@@ -11,10 +11,17 @@ let api () =
     hu_fragment = ""
   }
 
-let get ?args apifun cont =
+let get ?(args = []) apifun cont =
   let url = api () in
-  let () = Js_utils.log "GET %s from %s" apifun (Js_of_ocaml.Url.string_of_url url) in
-  Xhr_lwt.get ?args ~base:url apifun >>=
+  let () =
+    Js_utils.log "GET %s from %s with args [%a]"
+      apifun
+      (Js_of_ocaml.Url.string_of_url url)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt _ -> Format.fprintf fmt "; ")
+         (fun fmt (arg, value) -> Format.fprintf fmt "%s = %s" arg value)) args
+  in
+  Xhr_lwt.get ~args ~base:url apifun >>=
   function
     Ok elt -> cont elt
   | Error e ->
@@ -41,7 +48,7 @@ let cook encoding cont =
      let elt = Json_encoding.destruct encoding json in
      cont elt)
 
-let timeline_data cont = get "timeline_data" cont
+let timeline_data ~args cont = get ~args "timeline_data" cont
 let events cont =
   get "events" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
