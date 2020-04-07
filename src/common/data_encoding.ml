@@ -16,14 +16,15 @@ open Utils
 exception NewLine of string
 
 let to_event
-    start_date
-    end_date
-    typ
-    typ2
-    importance
-    media
-    title
-    text =
+    ~start_date
+    ~end_date
+    ~typ
+    ~typ2
+    ~ponderation
+    ~confidential
+    ~media
+    ~title
+    ~text =
 
   let text =
     let title =
@@ -48,7 +49,9 @@ let to_event
     end_date;
     text;
     group = typ;
-    media
+    media;
+    ponderation;
+    confidential
   }
 
 let line_to_event (header : Header.t) line =
@@ -85,21 +88,28 @@ let line_to_event (header : Header.t) line =
         Failure _ ->
         failwith ("Error trying to parse end year year " ^ end_year)
   in
+  let ponderation =
+    match Header.importance header data with
+      None -> 0
+    | Some str ->
+      try int_of_string str with
+      | _ -> 0
+  in
   let typ         = Header.typ         header data in
   let typ2        = Header.typ2        header data in
-  let importance  = Header.importance  header data in
   let media       = Header.media       header data in
   let title       = Header.title       header data in
   let text        = Header.text        header data in
   to_event
-    start_date
-    end_date
-    typ
-    typ2
-    importance
-    media
-    title
-    text
+    ~start_date
+    ~end_date
+    ~typ
+    ~typ2
+    ~ponderation
+    ~media
+    ~title
+    ~text
+    ~confidential:false
 
 let to_title line =
   match String.split_on_char '\t' line with
@@ -138,16 +148,18 @@ let group_encoding = Json_encoding.string
 let event_encoding =
   Json_encoding.(
     conv
-      (fun {start_date; end_date; text; group; media} ->
-           (start_date, end_date, text, group, media))
-      (fun (start_date, end_date, text, group, media) ->
-           {start_date; end_date; text; group; media})
-      (obj5
-         (req "start_date" date_encoding)
-         (opt "end_date"   date_encoding)
-         (req "text"       text_encoding)
-         (opt "group"      group_encoding)
-         (opt "media"      media_encoding)
+      (fun {start_date; end_date; text; group; media; ponderation; confidential} ->
+           (start_date, end_date, text, group, media, ponderation, confidential))
+      (fun (start_date, end_date, text, group, media, ponderation, confidential) ->
+           {start_date; end_date; text; group; media; ponderation; confidential})
+      (obj7
+         (req "start_date"   date_encoding)
+         (opt "end_date"     date_encoding)
+         (req "text"         text_encoding)
+         (opt "group"        group_encoding)
+         (opt "media"        media_encoding)
+         (req "ponderation"  int)
+         (req "confidential" bool)
       )
   )
 

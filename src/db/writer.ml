@@ -18,10 +18,15 @@ let add_event (e : event) =
   let text = e.text.text in
   let media = opt (fun m -> m.url) e.media in
   let group = e.group in
-
+  let ponderation = Int32.of_int e.ponderation in
+  let confidential = e.confidential in
   let () =
-      PGSQL(dbh) "INSERT INTO events_(start_date_, end_date_, headline_, text_, media_, group_) \
-                  VALUES($start_date, $?end_date, $headline,$text,$?media,$?group)" in
+    PGSQL(dbh)
+      "INSERT INTO \
+       events_(start_date_, end_date_, headline_, text_, \
+       media_, group_, confidential_, ponderation_) \
+       VALUES($start_date, $?end_date, $headline,$text,\
+       $?media,$?group, $confidential, $ponderation)" in
   match group with
   | None -> ()
   | Some group -> add_category group
@@ -36,8 +41,9 @@ let add_title (t : title) =
       PGSQL(dbh) "DELETE FROM events_ where id_ = 0"
   in
   let rows =
-    PGSQL(dbh) "INSERT INTO events_(id_, headline_, text_) \
-                VALUES(0, $headline, $text)"
+    PGSQL(dbh)
+      "INSERT INTO events_(id_, headline_, text_, confidential_, ponderation_) \
+       VALUES(0, $headline, $text, false, 0)"
   in rows
 
 let update_event (i: int) (e : event) =
@@ -50,8 +56,11 @@ let update_event (i: int) (e : event) =
     let text = e.text.text in
     let media = opt (fun m -> m.url) e.media in
     let group = e.group in
+    let ponderation = Int32.of_int e.ponderation in
+    let confidential = e.confidential in
     let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
-                headline_=$headline, text_=$text, media_=$?media, group_=$?group WHERE id_=$i";
+                headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
+                         confidential_=$confidential, ponderation_=$ponderation WHERE id_=$i";
       match group with
       | None -> ()
       | Some group -> add_category group in

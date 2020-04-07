@@ -32,6 +32,8 @@ type event = {
   text: text;
   media: media option;
   group: main_event_type option;
+  confidential: bool;
+  ponderation: int;
 }
 
 type title = text (* An event in Timeline.js, we only use the text here *)

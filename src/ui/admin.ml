@@ -9,6 +9,8 @@ open Form
 type 'a input_type =
     Radio of string * string list
   | TextArea
+  | Checkbox of bool (* true if checked *)
+  | Number of int option * int option
   | Other of 'a
 
 let placeholder
@@ -92,6 +94,34 @@ let placeholder
       in
       html_elt, getter
     end
+  | Checkbox checked -> begin
+      let html_elt =
+        let a =
+          let default =  [
+            a_id id;
+            a_class (["placeholder"; clg9] @ classes);
+            a_value content;
+            a_input_type `Checkbox;
+            a_style style;
+          ] in
+          if checked then
+            a_checked () :: default
+          else default in
+        row (
+          to_form [input ~a ()]
+        )
+      in
+      let getter () =
+        try
+          let elt = find_component id in
+          let with_check = Js.Unsafe.coerce @@ Html.toelt elt in
+          if with_check##.checked then
+            Some "true"
+          else Some "false"
+        with
+        | _ -> None in
+      html_elt, getter
+    end
   | TextArea -> begin
       let html_elt =
         row (
@@ -103,6 +133,32 @@ let placeholder
                  ] (txt content)
           ]
         ) in
+      let getter =
+        fun () ->
+          match Manip.by_id id with
+          | None -> Js_utils.log "Error: placeholder %s not found" id; None
+          | Some e -> Some (Manip.value e) in
+      html_elt, getter
+    end
+  | Number (min, max) -> begin
+      let a =
+        let min =
+          match min with
+          | None -> []
+          | Some i -> [a_input_min @@ `Number i] in
+        let max =
+          match max with
+          | None -> []
+          | Some i -> [a_input_max @@ `Number i] in
+        min @ max @ [
+          a_id id;
+          a_class (["placeholder"; clg9] @ classes);
+          a_value content;
+          a_input_type `Number;
+          a_style style;
+        ]
+      in
+      let html_elt = row (to_form [input ~a ()]) in
       let getter =
         fun () ->
           match Manip.by_id id with
@@ -142,13 +198,15 @@ let get_value id =
     None -> ""
   | Some elt -> Manip.value elt
 
-let start_date  i = "start-date-"  ^ i
-let end_date    i = "end-date-"    ^ i
-let title       i = "title-"       ^ i
-let media       i = "media-"       ^ i
-let group       i = "group-"       ^ i
-let text        i = "text-"        ^ i
-let valid       i = "button-"      ^ i
+let start_date   i = "start-date-"  ^ i
+let end_date     i = "end-date-"    ^ i
+let title        i = "title-"       ^ i
+let media        i = "media-"       ^ i
+let group        i = "group-"       ^ i
+let text         i = "text-"        ^ i
+let confidential i = "confid-"      ^ i
+let ponderation  i = "ponderation-" ^ i
+let valid        i = "button-"      ^ i
 
 let event_form (e: event) (id_line: int) categories update_action remove_action =
   let idl = string_of_int id_line in
@@ -213,6 +271,23 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
       ~input_type:TextArea
       ~style:"width: 300px; height: 200px; resize: both"
       () in
+
+  let confidential, get_confidential =
+    placeholder
+      ~id:(confidential idl)
+      ~title:"Confidential"
+      ~name:"confidential"
+      ~input_type:(Checkbox e.confidential)
+      () in
+
+  let ponderation, get_ponderation =
+    placeholder
+      ~id:(ponderation idl)
+      ~title:"Ponderation"
+      ~name:"ponderation"
+      ~content:(string_of_int e.ponderation)
+      ~input_type:(Number (Some 0, None))
+      () in
   let get_event () =
     let start_date =
       match get_start_date () with
@@ -229,15 +304,30 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
       match get_start_date () with
       | None -> None
       | Some d -> Utils.string_to_date d in
+
+    let confidential =
+      match get_confidential () with
+      | None | Some "false" -> false
+      | Some "true" -> true
+      | Some thingelse -> failwith ("bool_of_str " ^ thingelse) in
+
+    let ponderation =
+      match get_ponderation () with
+      | None -> 0
+      | Some i -> try int_of_string i with _ -> failwith ("Bad ponderation in UI:" ^ i) in
+
     Data_encoding.to_event
-      start_date
-      end_date
-      (get_group ())
-      None
-      None
-      (get_media ())
-      (get_headline ())
-      (get_text ())
+      ~start_date
+      ~end_date
+      ~typ:(get_group ())
+      ~confidential
+      ~ponderation
+      ~media:(get_media ())
+      ~title:(get_headline ())
+      ~text:(get_text ())
+
+      ~typ2:None
+
   in
   form
     ~a:[
@@ -250,6 +340,8 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
     headline;
     group;
     text;
+    ponderation;
+    confidential;
     div
       ~a:[
         a_class ["btn";"btn-primary"; row];
@@ -281,7 +373,9 @@ let empty_event_form id action =
     end_date = None;
     text = {text = ""; headline = ""};
     media = None;
-    group = None
+    group = None;
+    confidential = false;
+    ponderation = 0
   }
   in
   event_form empty_event id action

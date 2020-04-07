@@ -50,7 +50,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let line_to_event line =
     match line with
-      (id, Some start_date, end_date, headline, text, url, group) ->
+      (id, Some start_date, end_date, headline, text, url, group, confidential, ponderation) ->
       Int32.to_int id, {
         start_date;
         end_date;
@@ -58,7 +58,9 @@ module Reader_generic (M : Db_intf.MONAD) = struct
           text;
           headline};
         media = opt (fun url -> {url}) url;
-        group
+        group;
+        confidential;
+        ponderation = Int32.to_int ponderation
       }
 
     | _ -> assert false
@@ -83,7 +85,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     PGSQL(dbh) "SELECT * FROM events_ WHERE id_ = 0" >>=
     function
     | [] -> return None
-    | (_,_,_,headline, text,_,_) :: _ -> return (Some {headline; text})
+    | (_,_,_,headline, text,_,_,_,_) :: _ -> return (Some {headline; text})
 
   let category_exists group =
     with_dbh >>> fun dbh ->
