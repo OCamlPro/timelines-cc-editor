@@ -4,6 +4,7 @@ OCaml.program("ocptimeline-js", ocaml + {
    files = [
    	 "dispatcher.ml";
    	 "ui_utils.ml", pp_js;
+	 "panel.ml", pp_js;
    	 "request.ml";
 	 "admin.ml", pp_js;
 	 "home.ml", pp_js;

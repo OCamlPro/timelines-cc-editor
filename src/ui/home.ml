@@ -1,7 +1,6 @@
 open Js_of_ocaml_tyxml.Tyxml_js.Html
 open Js_utils
-open Bootstrap_helpers
-open Grid
+open Bootstrap_helpers.Grid
 
 open Data_types
 
@@ -63,4 +62,49 @@ let form args =
       ] [txt "Filter"];
     in form [start_date; end_date; button]
 
+module EventPanel = Panel.MakePageTable(
+  struct
+    let title_span _ = span []
+    let table_class = "default-table"
+    let page_size = 20
+    let name = "events"
+    let theads () =
+      tr [
+        th [txt "Date"];
+        th [txt "Headline"];
+      ]
+  end
+  )
 
+let make_panel_lines events =
+  match events with
+  | [] -> [ tr [ td ~a: [ a_colspan 9 ] [ txt "No event" ]]]
+  | _ ->
+    List.map
+      (fun {start_date; text = {headline; _}} ->
+         tr [
+           td [txt @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") start_date];
+           td [txt headline];
+         ]
+      )
+      events
+
+let page args events =
+  let page =
+    div ~a:[a_class [row]] [
+      div ~a:[a_class [clg3]] [form args];
+      div ~a:[a_class [clg9]] [EventPanel.make ~footer:true ()];
+    ]
+  in
+  let table_elts =
+    let events = snd @@ List.split events in
+    make_panel_lines events |> Array.of_list in
+  let init () =
+    display_timeline events;
+    EventPanel.paginate_all
+      ~urlarg_page:"" ~urlarg_size:"" table_elts;
+    ignore (Js_of_ocaml.Js.Unsafe.eval_string
+              "jQuery('[data-toggle=\"popover\"]').popover();")
+    (* Initalize table *)
+  in
+  page, init

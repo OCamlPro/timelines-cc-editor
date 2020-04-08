@@ -104,3 +104,11 @@ let hd_opt = function
 let fopt f = function
     None -> None
   | Some e -> f e
+
+let list_init n f =
+  let rec aux n acc =
+    if n < 0 then raise (Invalid_argument "Utils.list_init")
+    else if n = 0 then acc
+    else aux (n - 1) (f (n - 1) :: acc)
+  in
+  aux n []

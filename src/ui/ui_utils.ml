@@ -231,3 +231,56 @@ let url path args =
 let push url =
     let url' = Js.string url in
     Dom_html.window##.history##pushState Js.null url' (Js.some url')
+
+let make_id prefix suffix = Printf.sprintf "%s-%s" prefix suffix
+
+let make_loading_gif classes =
+  div ~a:[ a_class classes ] [
+    img
+      ~alt:"loading"
+      ~src:(uri_of_string "/images/loading.gif") ()
+  ]
+
+let span_loading_gif classes =
+  span ~a:[ a_class classes ] [
+    img
+      ~alt:"loading"
+      ~src:(uri_of_string "/images/loading.gif") ()
+  ]
+
+(* Pagination utilities *)
+
+let set_url_arg ?(default = "1") arg value =
+  let args = Jsloc.args () in
+  let replaced = ref false in
+  let args = List.fold_right (fun (k, v) newargs ->
+                 if k = arg then begin
+                     replaced := true;
+                     if value = default then
+                       newargs
+                     else
+                       (k, value) :: newargs
+                   end
+                 else (k, v) :: newargs
+               ) args [] in
+  let args = if !replaced || value = default then args else
+      (arg, value) :: args in
+  Jsloc.set_args args
+
+let select_page_from_list page page_size l =
+  let rec remove i l =
+    match i, l with
+    | 0, _ | _, [] -> l
+    | _, _hd :: tl -> remove (i - 1) tl in
+
+  let rec select acc i l =
+    match i, l with
+    | 0, _ | _, [] -> List.rev acc
+    | _, hd :: tl  -> select (hd :: acc) (i - 1) tl in
+
+  let rec go_to_page page l =
+    if page = 0 then l
+    else go_to_page (page - 1) (remove page_size l)
+  in
+
+  select [] page_size (go_to_page page l)

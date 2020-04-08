@@ -1,3 +1,13 @@
+html {
+    --panel-bg-color: transparent;
+    --main-bg-color: #eaeaea;
+    --main-panel-title-font-family: Lato, sans-serif;
+    --page-size-text-color: #337ab7;
+    --main-text-color: black;
+    --active-bg-color: #fafafa;
+    --disable-text-color: #aaaaaa;
+}
+
 .tl-timegroup{
     background-color:#FFB040
 }
@@ -20,4 +30,115 @@
 
 .tl-text p {
     color: black !important
+}
+
+
+
+/* panel */
+
+table {
+    background-color: transparent;
+}
+
+.panel table {
+    margin-bottom: 0px;
+}
+
+.panel {
+    background-color: var(--panel-bg-color);
+}
+.panel-primary {
+    border: unset;
+}
+.panel-primary .panel-heading {
+    border: unset;
+}
+.panel-primary .panel-title {
+    color: var(--main-text-color) ;
+}
+.panel-primary .panel-footer {
+    background-color: var(--body-bg-color) !important;
+}
+.panel h4 {
+    text-align: center;
+    font-weight: bold;
+}
+.panel table {
+    margin-bottom: 0px;
+}
+.panel-heading {
+    background-color: var(--body-bg-color) !important;
+    font-family: var(--main-panel-title-font-family) !important;
+}
+.panel .paginate {
+    text-align: right;
+}
+.page-size {
+    vertical-align: baseline !important;
+    margin-right: 10px;
+    color: var(--page-size-text-color);
+}
+.page-size .btn {
+    color: var(--page-size-text-color);
+    background-color: transparent;
+}
+.panel-body {
+    padding : 0px;
+    text-align: center;
+}
+.pagination {
+    margin: 0;
+}
+.page-input {
+    min-width: 45px;
+    max-width: 70px;
+}
+.tab-content .panel {
+    border:unset;
+    padding: 0;
+}
+.tab-content .panel .panel-body {
+    border:unset;
+    padding: 0;
+}
+
+/* table */
+
+.default-table {
+    font-size: 13px;
+    border-collapse: separate;
+}
+.defaukt-table th {
+    color: var(--main-text-color);
+}
+.default-table td {
+    overflow: hidden ;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--main-text-color);
+}
+.default-table th.arrow {
+    width: 25px;
+}
+
+.panel li a {
+    display: block;
+    padding: 5px;
+    margin: 3px;
+    cursor: pointer
+}
+
+.panel li.disabled a {
+    color: var(--disable-text-color)
+}
+
+.panel li.active a {
+    color: var(--disable-text-color);
+    background-color: var(--active-bg-color);
+}
+
+/* Temporary */
+
+.fade {
+    opacity: 1 !important
 }
