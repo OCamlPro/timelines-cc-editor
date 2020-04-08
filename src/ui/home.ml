@@ -77,6 +77,22 @@ module EventPanel = Panel.MakePageTable(
   )
 
 let make_panel_lines events =
+  let events =
+    List.sort
+      (fun
+        {start_date = s1; end_date = e1; _}
+        {start_date = s2; end_date = e2; _} ->
+        let cmp = CalendarLib.Date.compare s2 s1 in
+        if cmp = 0 then
+          match e1, e2 with
+          | None, None -> 0
+          | Some _, None -> 1
+          | None, Some _ -> -1
+          | Some d1, Some d2 -> CalendarLib.Date.compare d2 d1
+        else cmp
+      )
+      events
+  in
   match events with
   | [] -> [ tr [ td ~a: [ a_colspan 9 ] [ txt "No event" ]]]
   | _ ->
