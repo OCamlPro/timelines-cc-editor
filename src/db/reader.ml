@@ -65,18 +65,20 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
     | _ -> assert false
 
-  let event id =
+  let event auth id =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
     PGSQL(dbh)
       "SELECT * FROM events_ \
-       WHERE (id_ = $id)" >>= function
-    | res :: _ -> return (Some (snd @@ line_to_event res))
+       WHERE (id_ = $id) AND ($auth OR NOT confidential_)" >>= function
+    | res :: _ ->
+      let (_, event) = line_to_event res in
+      return (Some event)
     | _ -> return None
 
-  let events () =
+  let events auth =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 ORDER BY id_ DESC" >>=
+    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 AND ($auth OR NOT confidential_) ORDER BY id_ DESC" >>=
     fun l ->
     return @@ List.map line_to_event l
 
@@ -103,6 +105,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       ?(min_ponderation = 0)
       ?(max_ponderation = 100)
       ?group
+      auth
       () =
     let min_ponderation = Int32.of_int min_ponderation in
     let max_ponderation = Int32.of_int max_ponderation in
@@ -116,6 +119,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              ((start_date_ BETWEEN $start_date AND $end_date) OR \
              (end_date_ BETWEEN $start_date AND $end_date)) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
+             AND ($auth OR NOT confidential_) \
              ORDER BY id_ DESC" end
       | Some group ->
         PGSQL(dbh)
@@ -125,6 +129,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              ((start_date_ BETWEEN $start_date AND $end_date) OR \
              (end_date_ BETWEEN $start_date AND $end_date)) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
+             AND ($auth OR NOT confidential_) \
              ORDER BY id_ DESC"
     in
     req >>= fun l -> return @@ List.map (fun l -> line_to_event l) l

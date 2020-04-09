@@ -5,13 +5,33 @@ module StringMap = StringCompat.StringMap
 
 module Reader = Reader.Reader_generic (Monad_lwt)
 
-let event (_, id) () = Reader.event id >>= EzAPIServerUtils.return
+let is_auth req =
+  let trustworthy =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "trustworthy" req.req_params in
+  match trustworthy with
+    Some "y" | Some "yes" -> true
+  | _ -> false
 
-let events _ () = Reader.events () >>= EzAPIServerUtils.return
+let if_is_auth req f =
+  if is_auth req then
+    f ()
+  else EzAPIServerUtils.return (Error "403")
 
-let add_event _ event = Writer.add_event event; EzAPIServerUtils.return true
+let event (req, id) () = Reader.event (is_auth req) id >>= EzAPIServerUtils.return
 
-let update_event _ (id, event) = Writer.update_event id event |> EzAPIServerUtils.return
+let events req () = Reader.events (is_auth req) >>= EzAPIServerUtils.return
+
+let add_event req event =
+  if_is_auth req (fun () ->
+      Writer.add_event event; EzAPIServerUtils.return (Ok ())
+    )
+
+let update_event req (id, event) =
+  if_is_auth
+    req
+    (fun () ->
+       Writer.update_event id event |> EzAPIServerUtils.return
+    )
 
 let categories _ () = Reader.categories () >>= EzAPIServerUtils.return
 
@@ -37,9 +57,15 @@ let timeline_data req () =
     ?group
     ?min_ponderation
     ?max_ponderation
+    (is_auth req)
     () >>= EzAPIServerUtils.return
 
-let remove_event (_, id) () = Writer.remove_event id |> EzAPIServerUtils.return
+let remove_event (req, id) () =
+  if_is_auth req
+    (fun () ->
+       let () = Writer.remove_event id in
+       (EzAPIServerUtils.return (Ok ()))
+    )
 
 let reinitialize _ events =
   Writer.remove_events ();

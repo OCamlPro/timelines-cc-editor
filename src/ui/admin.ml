@@ -210,8 +210,10 @@ let event_short_row (i, event) =
 let events_list events =
   let add_link =
     div ~a:[a_class [row]] [
-      a ~a:[a_href (Ui_utils.link ~args:["action", "add"] "admin");
-            a_class ["btn"; "btn-primary"]] [txt "Create event"]] in
+      Ui_utils.a_link
+        ~path:"admin"
+        ~args:["action", "add"]
+        ~classes:["btn"; "btn-primary"] [txt "Create event"]] in
   add_link :: List.map event_short_row events
 
 let add_new_event_form action = empty_event_form 0 action

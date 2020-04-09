@@ -7,9 +7,17 @@ open Data_types
 let page_name = ""
 
 let add_button_to_event i event =
+  let trustworthy =
+    if Ui_utils.is_trustworthy () then
+      "&trustworthy=yes"
+    else ""
+  in
   let button = (* todo: not a string html element *)
     Format.sprintf
-      "<a href='admin?action=edit&id=%i' class=\"btn btn-light row\"> Edit </a>" i in
+      "<a href='admin?action=edit&id=%i%s' class=\"btn btn-light row\"> Edit </a>"
+      i
+      trustworthy
+  in
   let new_text =
     let text = event.text.text in
     Format.asprintf "<div>%s</div>\n<div>%s</div>"

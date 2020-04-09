@@ -30,7 +30,7 @@ let error_404 ?(msg="Unknown page") ~path ~args () =
 let finish () = Lwt.return (Ok ())
 
 let dispatch ~path ~args =
-  (*Misc_js.UpdateOnFocus.incr_page ();*)
+  let args = Ui_utils.args_if_trustworthy args in
   try
     match Hashtbl.find pages path with
     | exception Not_found -> set_in_main_page [error_404 ~path ~args ()]; finish ()
@@ -61,12 +61,11 @@ let admin_page ~args =
       fun event ->
         Js_utils.log "Adding event %a" Utils.pp_event event;
         ignore @@
-        Request.add_event
+        Request.add_event ~args
           event
-          (fun b ->
-             if b then
-               dispatch ~path:"" ~args:[]
-             else Lwt.return (Error (Xhr_lwt.Str_err "Add new event action failed"))
+          (function
+            | Ok () -> dispatch ~path:"" ~args
+            | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
           ) in
     let remove_action = fun _ -> () in
     Request.categories (fun categories ->
@@ -77,31 +76,38 @@ let admin_page ~args =
     begin
       match List.assoc_opt "id" args with
       | None ->
-        Request.events
+        Request.events ~args:(Ui_utils.arg_if_trustworthy ())
           (fun events -> set_in_main_page (Admin.events_list events); finish ())
       | Some i ->
         begin
           try
             let i = int_of_string i in
             Request.categories (fun categories ->
-                Request.event i (fun e ->
+                Request.event ~args:(Ui_utils.arg_if_trustworthy ()) i (fun e ->
                     let update_action = (
                       fun new_event ->
                         Js_utils.log "Update...";
-                        Request.update_event i new_event (
-                          fun b ->
-                            Js_utils.log "Update OK";
-                            if b then begin
+                        Request.update_event ~args:(Ui_utils.arg_if_trustworthy ()) i new_event (
+                          function
+                          | Ok () -> begin
                               Js_utils.log "Going back to main page";
-                              dispatch ~path:Admin.page_name ~args:["action", "edit"]
-                            end else begin
-                              Js_utils.log "Update failed";
+                              dispatch
+                                ~path:Admin.page_name
+                                ~args:(("action", "edit") :: (Ui_utils.arg_if_trustworthy ()))
+                            end
+                          | Error s -> begin
+                              Js_utils.log "Update failed: %s" s;
                               Lwt.return
-                                (Error (Xhr_lwt.Str_err "Update event action failed"))
+                                (Error (Xhr_lwt.Str_err ("Update event action failed: " ^ s)))
                             end
                         )
                     ) in
-                    let remove_action i = ignore @@ Request.remove_event i (fun _ -> finish ()) in
+                    let remove_action i =
+                      ignore @@
+                      Request.remove_event
+                        ~args
+                        i
+                        (fun _ -> finish ()) in
                     let form = Admin.event_form e i categories update_action remove_action
                     in
                     set_in_main_page [form];

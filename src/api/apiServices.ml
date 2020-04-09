@@ -1,4 +1,6 @@
 open EzAPI
+open Data_types
+open Data_encoding
 
 let tup1_int = EzEncoding.tup1_int
 
@@ -75,18 +77,18 @@ let events : ((int * Data_types.event) list) service0 =
     ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
     Path.(root // "events")
 
-let add_event : (Data_types.event, bool) post_service0 =
+let add_event : (Data_types.event, api_result) post_service0 =
   post_service
     ~name:"add_event"
     ~input:Data_encoding.event_encoding
-    ~output:Json_encoding.bool
+    ~output:api_result_encoding
     Path.(root // "add_event")
 
-let update_event : (int * Data_types.event, bool) post_service0 =
+let update_event : (int * Data_types.event, api_result) post_service0 =
   post_service
     ~name:"update_event"
     ~input:(Json_encoding.tup2 tup1_int Data_encoding.event_encoding)
-    ~output:Json_encoding.bool
+    ~output:api_result_encoding
     Path.(root // "update_event")
 
 let categories : (string list) service0 =
@@ -107,8 +109,8 @@ let timeline_data : ((int * Data_types.event) list) service0 =
       ponderation_param "max_level"]
     Path.(root // "timeline_data")
 
-let remove_event : (int, unit) service1 =
+let remove_event : (int, api_result) service1 =
   service
     ~name:"remove_event"
-    ~output:Json_encoding.unit
+    ~output:api_result_encoding
     Path.(root // "remove_event" /: (arg_default "event_key"))

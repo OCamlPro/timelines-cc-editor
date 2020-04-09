@@ -8,7 +8,7 @@ let add_category str =
   if not (str = "") then
     Reader.category_exists str >>= (fun group_exists ->
         if not group_exists
-        then PGSQL(dbh) "INSERT INTO groups_(group_) VALUES ($str)"
+        then PGSQL(dbh) "INSERT INTO groups_(group_) VALUES ($str)";
       )
 
 let add_event (e : event) =
@@ -29,7 +29,7 @@ let add_event (e : event) =
        $?media,$?group, $confidential, $ponderation)" in
   match group with
   | None -> ()
-  | Some group -> add_category group
+  | Some group -> add_category group; ()
 
 let add_title (t : title) =
   let headline = t.headline in
@@ -40,14 +40,15 @@ let add_title (t : title) =
     | Some _ ->
       PGSQL(dbh) "DELETE FROM events_ where id_ = 0"
   in
-  let rows =
+  let () =
     PGSQL(dbh)
       "INSERT INTO events_(id_, headline_, text_, confidential_, ponderation_) \
        VALUES(0, $headline, $text, false, 0)"
-  in rows
+  in Ok ()
 
 let update_event (i: int) (e : event) =
-  if i = 0 then false
+  if i = 0 then
+    Error "Id 0 is reserved for the title"
   else
     let i = Int32.of_int i in
     let start_date = e.start_date in
@@ -64,7 +65,7 @@ let update_event (i: int) (e : event) =
       match group with
       | None -> ()
       | Some group -> add_category group in
-    true
+    Ok ()
 
 let remove_event id =
   let id = Int32.of_int id in

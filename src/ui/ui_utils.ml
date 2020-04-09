@@ -19,7 +19,29 @@ let link ?(args=[]) path =
     else
       Printf.sprintf "%s?%s" path args
 
+let is_trustworthy () =
+  let args =
+    match Jsloc.url () with
+      Http h | Https h -> h.hu_arguments
+    | File _ -> []
+  in
+  match List.find_opt (fun (s, b) -> s = "trustworthy") args with
+  | Some (_,"yes") -> true
+  | _ -> false
+
+let arg_if_trustworthy () =
+  if is_trustworthy () then
+    ["trustworthy", "yes"]
+  else ["trustworthy", "no"]
+
+let args_if_trustworthy args =
+  match List.find_opt (fun (s, b) -> s = "trustworthy") args with
+  | Some _ -> args
+  | None -> (arg_if_trustworthy ()) @ args
+
 let a_link ?(args=[]) ?(classes=[]) ~path content =
+  (* remove when sessions are on *)
+  let args = (arg_if_trustworthy ()) @ args in
   a ~a:[a_href (link ~args path); a_class classes] content
 
 type 'a input_type =
@@ -131,9 +153,13 @@ let placeholder
         try
           let elt = find_component id in
           let with_check = Js.Unsafe.coerce @@ Html.toelt elt in
-          if with_check##.checked then
+          if with_check##.checked then begin
+            Js_utils.log "This element will be set as confidential";
             Some "true"
-          else Some "false"
+          end else begin
+            Js_utils.log "This element will be set as non confidential";
+            Some "false"
+          end
         with
         | _ -> None in
       html_elt, getter
