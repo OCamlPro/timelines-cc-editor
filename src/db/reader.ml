@@ -48,12 +48,12 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let (>>>) f g = f g
 
-  let line_to_event line =
+  let line_to_event ?(with_end_date=true) line =
     match line with
       (id, Some start_date, end_date, headline, text, url, group, confidential, ponderation) ->
       Int32.to_int id, {
         start_date;
-        end_date;
+        end_date = if with_end_date then end_date else None;
         text = {
           text;
           headline};
@@ -116,8 +116,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
           PGSQL(dbh)
             "SELECT * FROM events_ WHERE \
              id_ > 0 AND \
-             ((start_date_ BETWEEN $start_date AND $end_date) OR \
-             (end_date_ BETWEEN $start_date AND $end_date)) AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
              AND ($auth OR NOT confidential_) \
              ORDER BY id_ DESC" end
@@ -126,13 +125,13 @@ module Reader_generic (M : Db_intf.MONAD) = struct
             "SELECT * FROM events_ WHERE \
              id_ > 0 AND \
              group_ = $group AND \
-             ((start_date_ BETWEEN $start_date AND $end_date) OR \
-             (end_date_ BETWEEN $start_date AND $end_date)) AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
              AND ($auth OR NOT confidential_) \
              ORDER BY id_ DESC"
     in
-    req >>= fun l -> return @@ List.map (fun l -> line_to_event l) l
+    req >>= fun l ->
+    return @@ List.map (fun l -> (line_to_event ~with_end_date:false l)) l
 
 end
 
