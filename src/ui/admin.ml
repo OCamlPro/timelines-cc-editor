@@ -217,3 +217,36 @@ let events_list events =
   add_link :: List.map event_short_row events
 
 let add_new_event_form action = empty_event_form 0 action
+
+let admin_page_login ~login_action =
+  let login, _get_login =
+    placeholder
+      ~id:"login"
+      ~title:"Login"
+      ~name:"login"
+      () in
+
+  let pwd, _get_pwd =
+    placeholder
+      ~id:"pwd"
+      ~title:"Password"
+      ~name:"password"
+      ~input_type:(Other `Password)
+      () in
+
+  let button =
+    div
+      ~a:[
+        a_class ["btn";"btn-primary"; row];
+        a_onclick
+          (fun _ ->
+             login_action ();
+             ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+             true
+          )
+      ] [txt "Login"] in
+  form [
+    login;
+    pwd;
+    button
+  ]

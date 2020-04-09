@@ -19,29 +19,9 @@ let link ?(args=[]) path =
     else
       Printf.sprintf "%s?%s" path args
 
-let is_trustworthy () =
-  let args =
-    match Jsloc.url () with
-      Http h | Https h -> h.hu_arguments
-    | File _ -> []
-  in
-  match List.find_opt (fun (s, b) -> s = "trustworthy") args with
-  | Some (_,"yes") -> true
-  | _ -> false
-
-let arg_if_trustworthy () =
-  if is_trustworthy () then
-    ["trustworthy", "yes"]
-  else ["trustworthy", "no"]
-
-let args_if_trustworthy args =
-  match List.find_opt (fun (s, b) -> s = "trustworthy") args with
-  | Some _ -> args
-  | None -> (arg_if_trustworthy ()) @ args
 
 let a_link ?(args=[]) ?(classes=[]) ~path content =
   (* remove when sessions are on *)
-  let args = (arg_if_trustworthy ()) @ args in
   a ~a:[a_href (link ~args path); a_class classes] content
 
 type 'a input_type =
@@ -310,3 +290,38 @@ let select_page_from_list page page_size l =
   in
 
   select [] page_size (go_to_page page l)
+
+module Session = struct
+  let get_session () = Js.Optdef.to_option (Dom_html.window##.sessionStorage)
+
+  let get_value key =
+    let key' = Js.string key in
+    match get_session () with
+    | None ->
+      Js_utils.log "Session found while getting value";
+      None
+    | Some session -> begin
+        Js_utils.log "Session found!";
+        match Js.Opt.to_option (session##getItem key') with
+        | None -> None
+        | Some s ->
+          let result = Js.to_string s in
+          Some result
+      end
+
+  let set_value key value =
+    match get_session () with
+    | None -> Js_utils.log "Session not found while setting value"
+    | Some session ->
+      let key   = Js.string key   in
+      let value = Js.string value in
+      session##setItem key value
+end
+
+let is_trustworthy () =
+  match Session.get_value "trustworthy" with
+  | Some "yes" -> true
+  | _ -> false
+
+let set_as_trustworthy () =
+  Session.set_value "trustworthy" "yes"

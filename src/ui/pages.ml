@@ -30,7 +30,6 @@ let error_404 ?(msg="Unknown page") ~path ~args () =
 let finish () = Lwt.return (Ok ())
 
 let dispatch ~path ~args =
-  let args = Ui_utils.args_if_trustworthy args in
   try
     match Hashtbl.find pages path with
     | exception Not_found -> set_in_main_page [error_404 ~path ~args ()]; finish ()
@@ -54,7 +53,7 @@ let main_page ~args =
       finish ()
     )
 
-let admin_page ~args =
+let admin_page_if_trustworthy ~args =
   match List.assoc_opt "action" args with
   | Some "add" ->
     let update_action =
@@ -76,24 +75,24 @@ let admin_page ~args =
     begin
       match List.assoc_opt "id" args with
       | None ->
-        Request.events ~args:(Ui_utils.arg_if_trustworthy ())
+        Request.events ~args
           (fun events -> set_in_main_page (Admin.events_list events); finish ())
       | Some i ->
         begin
           try
             let i = int_of_string i in
             Request.categories (fun categories ->
-                Request.event ~args:(Ui_utils.arg_if_trustworthy ()) i (fun e ->
+                Request.event ~args i (fun e ->
                     let update_action = (
                       fun new_event ->
                         Js_utils.log "Update...";
-                        Request.update_event ~args:(Ui_utils.arg_if_trustworthy ()) i new_event (
+                        Request.update_event ~args i new_event (
                           function
                           | Ok () -> begin
                               Js_utils.log "Going back to main page";
                               dispatch
                                 ~path:Admin.page_name
-                                ~args:(("action", "edit") :: (Ui_utils.arg_if_trustworthy ()))
+                                ~args:(["action", "edit"])
                             end
                           | Error s -> begin
                               Js_utils.log "Update failed: %s" s;
@@ -120,6 +119,16 @@ let admin_page ~args =
         end
     end
   | Some _ -> set_in_main_page [error_404 ~path:Admin.page_name ~args ()]; finish ()
+
+let admin_page_if_not_trustworthy () =
+  set_in_main_page [Admin.admin_page_login ~login_action:Ui_utils.set_as_trustworthy];
+  finish ()
+
+let admin_page ~args =
+  if Ui_utils.is_trustworthy () then
+    admin_page_if_trustworthy ~args
+  else
+    admin_page_if_not_trustworthy ()
 
 let () =
   add_page Home.page_name  main_page;

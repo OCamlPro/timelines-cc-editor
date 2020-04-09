@@ -48,22 +48,32 @@ let cook encoding cont =
      let elt = Json_encoding.destruct encoding json in
      cont elt)
 
+let trust_arg args =
+  if Ui_utils.is_trustworthy () then
+    ("trustworthy", "yes") :: args
+  else args
+
 let timeline_data ~args cont =
+  let args = trust_arg args in
   get ~args "timeline_data" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
 let events ~args cont =
+  let args = trust_arg args in
   get ~args "events" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
 let event ~args id cont =
+  let args = trust_arg args in
   get ~args (Format.sprintf "event/%i" id)  (cook Data_encoding.event_encoding cont)
 
 let add_event ~args (event : Data_types.event) cont =
+  let args = trust_arg args in
   post ~args
     "add_event"
     Data_encoding.event_encoding event
     Data_encoding.api_result_encoding cont
 
 let update_event ~args id event cont =
+  let args = trust_arg args in
   post ~args
     "update_event"
     Json_encoding.(tup2 (tup1 int) Data_encoding.event_encoding) (id, event)
@@ -72,4 +82,5 @@ let update_event ~args id event cont =
 let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)
 
 let remove_event ~args id cont =
+  let args = trust_arg args in
   get ~args (Format.sprintf "remove_event/%i" id) cont
