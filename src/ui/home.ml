@@ -7,16 +7,10 @@ open Data_types
 let page_name = ""
 
 let add_button_to_event i event =
-  let trustworthy =
-    if Ui_utils.is_trustworthy () then
-      "&trustworthy=yes"
-    else ""
-  in
   let button = (* todo: not a string html element *)
     Format.sprintf
-      "<a href='admin?action=edit&id=%i%s' class=\"btn btn-light row\"> Edit </a>"
+      "<a href='admin?action=edit&id=%i' class=\"btn btn-light row\"> Edit </a>"
       i
-      trustworthy
   in
   let new_text =
     let text = event.text.text in
@@ -49,6 +43,14 @@ let form args =
   in
   let start_date, get_start_date = form_with_content "From" "start-date" (Other `Date) in
   let end_date,   get_end_date   = form_with_content "To"   "end-date"   (Other `Date) in
+  let user_view, get_user_view =
+    let test_user_view =
+      match Ui_utils.Session.get_value "user-view" with
+        None -> false
+      | Some _ -> true
+    in
+    form_with_content "User view" "user-view" (Checkbox test_user_view)
+  in
   let button =
     let action _ =
       let args =
@@ -60,7 +62,12 @@ let form args =
           match get_end_date () with
           | None -> []
           | Some d -> ["end_date", d] in
-        start_date @ end_date
+        let confidential =
+          match get_user_view () with
+          | Some "true" -> ["confidential", "false"]
+          | Some "false" -> ["confidential", "true"]
+          | _ -> [] in
+        start_date @ end_date @ confidential
       in
       ignore @@ !Dispatcher.dispatch ~path:page_name ~args; true in
     div
@@ -68,7 +75,7 @@ let form args =
         a_class ["btn";"btn-primary"];
         a_onclick action
       ] [txt "Filter"];
-    in form [start_date; end_date; button]
+    in form [start_date; end_date; user_view; button]
 
 module EventPanel = Panel.MakePageTable(
   struct

@@ -46,18 +46,24 @@ let timeline_data req () =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
   let max_ponderation =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "max_level"  req.req_params in
+  let confidential =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "confidential"  req.req_params in
 
   let start_date = Utils.fopt Utils.string_to_date start_date in
   let end_date = Utils.fopt Utils.string_to_date end_date in
   let min_ponderation = Utils.fopt int_of_string_opt min_ponderation in
   let max_ponderation = Utils.fopt int_of_string_opt max_ponderation in
+  let confidential =
+    match confidential with
+    | Some "false" -> false
+    | _ -> is_auth req in
   Reader.timeline_data
     ?start_date
     ?end_date
     ?group
     ?min_ponderation
     ?max_ponderation
-    (is_auth req)
+    confidential
     () >>= EzAPIServerUtils.return
 
 let remove_event (req, id) () =

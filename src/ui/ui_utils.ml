@@ -134,10 +134,8 @@ let placeholder
           let elt = find_component id in
           let with_check = Js.Unsafe.coerce @@ Html.toelt elt in
           if with_check##.checked then begin
-            Js_utils.log "This element will be set as confidential";
             Some "true"
           end else begin
-            Js_utils.log "This element will be set as non confidential";
             Some "false"
           end
         with

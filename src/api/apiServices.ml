@@ -60,6 +60,15 @@ let ponderation_param name = {
   param_examples = ["0"; "9"]
 }
 
+let confidential_param = {
+  param_value = "confidential";
+  param_name  = Some "confidential";
+  param_descr = Some "Confidential";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["true"; "false"]
+}
+
 let param_number =
   Param.int ~name:"page_size" ~descr:"Number of replies" "n"
 let param_page =
@@ -106,7 +115,9 @@ let timeline_data : ((int * Data_types.event) list) service0 =
       date_param "end_date";
       group_param;
       ponderation_param "min_level";
-      ponderation_param "max_level"]
+      ponderation_param "max_level";
+      confidential_param;
+    ]
     Path.(root // "timeline_data")
 
 let remove_event : (int, api_result) service1 =
