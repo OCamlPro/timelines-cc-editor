@@ -6,18 +6,28 @@ html {
     --main-text-color: black;
     --active-bg-color: #fafafa;
     --disable-text-color: #aaaaaa;
+    --tl-bg-color: transparent;
+}
+
+@font-face{
+    font-family: fontin-reg;
+    src: url(/css/fonts/Fontin-Regular.ttf);
+}
+
+div{
+    font-family: fontin-reg !important
 }
 
 .tl-timegroup{
-    background-color:#FFB040
-}
-
-.tl-timegroup-alternate{
-    background-color:#FFBA59 !important
+    background-color:var(--tl-bg-color)
 }
 
 .tl-timenav{
-    background-color:#FFB040
+    background-color:var(--tl-bg-color)
+}
+
+.tl-timegroup-alternate{
+    background-color:var(--tl-bg-color)
 }
 
 .tl-timegroup-message{
