@@ -8,6 +8,10 @@ let verbose_counter = ref 0
 
 let search_limit = 20
 
+let hash str = Sha512.(to_hex (string str))
+
+let salted_hash i str = hash ((Int32.to_string i) ^ str)
+
 module Reader_generic (M : Db_intf.MONAD) = struct
   module Monad = M
   open M
@@ -133,6 +137,29 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     req >>= fun l ->
     return @@ List.map (fun l -> (line_to_event ~with_end_date:false l)) l
 
+  let user_exists email =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
+    function
+    | []      -> return None
+    | id :: _ -> return (Some id)
+
+  let login email pwdhash =
+    Format.printf "Login %s with %s@." email pwdhash;
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
+    function
+    | [] ->
+      return false
+    | (id, saved_hash) :: _ ->
+      let challenger_hash = salted_hash id pwdhash in
+      Format.printf "New login attempt@.";
+      let res = String.equal challenger_hash saved_hash in
+      if res then
+        Format.printf "New login from %s@." email
+      else
+        Format.printf "Failed login on %s@." email;
+      return res
 end
 
 module Self = Reader_generic(Db_intf.Default_monad)

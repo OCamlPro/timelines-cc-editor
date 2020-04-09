@@ -209,24 +209,29 @@ let event_short_row (i, event) =
 
 let events_list events =
   let add_link =
-    div ~a:[a_class [row]] [
       Ui_utils.a_link
         ~path:"admin"
         ~args:["action", "add"]
-        ~classes:["btn"; "btn-primary"] [txt "Create event"]] in
-  add_link :: List.map event_short_row events
+        ~classes:["btn"; "btn-primary"] [txt "Create event"] in
+  let logout =
+    div ~a:[a_class ["btn"; "btn-primary"];
+            a_onclick (fun _ -> Ui_utils.unset_as_trustworthy (); Js_utils.reload (); true)]
+      [txt "Logout"] in
+  (div ~a:[a_class [row]] [add_link; logout]) :: List.map event_short_row events
 
 let add_new_event_form action = empty_event_form 0 action
 
-let admin_page_login ~login_action =
-  let login, _get_login =
+let admin_page_login
+    ~(login_action : string -> string -> unit)
+    ~(register_action : string -> string -> unit) =
+  let login, get_login =
     placeholder
       ~id:"login"
       ~title:"Login"
       ~name:"login"
       () in
 
-  let pwd, _get_pwd =
+  let pwd, get_pwd =
     placeholder
       ~id:"pwd"
       ~title:"Password"
@@ -234,19 +239,41 @@ let admin_page_login ~login_action =
       ~input_type:(Other `Password)
       () in
 
-  let button =
+  let login_button =
     div
       ~a:[
-        a_class ["btn";"btn-primary"; row];
+        a_class ["btn";"btn-primary"];
         a_onclick
           (fun _ ->
-             login_action ();
-             ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
-             true
+             match get_login (), get_pwd () with
+             | Some login, Some pwd ->
+               login_action login pwd;
+               ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+               true
+             | _ -> false
           )
       ] [txt "Login"] in
+
+  let register_button =
+    div
+      ~a:[
+        a_class ["btn";"btn-primary"];
+        a_onclick
+          (fun _ ->
+             match get_login (), get_pwd () with
+             | Some login, Some pwd ->
+               Js_utils.log "Registering account@.";
+               ignore @@ register_action login pwd;
+               ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+               true
+             | _ ->
+               Js_utils.log "Missing data@.";
+               false
+          )
+      ] [txt "Register"] in
   form [
     login;
     pwd;
-    button
+    login_button;
+    register_button
   ]

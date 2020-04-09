@@ -74,3 +74,28 @@ let remove_event id =
 let remove_events () =
   PGSQL(dbh) "DELETE from events_";
   PGSQL(dbh) "DELETE from groups_"
+
+let update_pwd email pwdhash =
+  match Reader.user_exists email with
+  | None -> Error ("User " ^ email ^ " does not exist")
+  | Some i ->
+    let real_pwdhash =
+      Reader.salted_hash
+        i
+        pwdhash
+    in
+    let () =
+      PGSQL(dbh) "UPDATE users_ SET pwhash_=$real_pwdhash WHERE email_=$email"
+    in
+    Ok ()
+
+let register_user email pwdhash =
+  match Reader.user_exists email with
+  | Some _ ->
+    Error ("User " ^ email ^ " already exists")
+  | None -> begin
+      let () =
+        PGSQL(dbh) "INSERT INTO users_(email_, name_, pwhash_) VALUES ($email, $email, '')"
+      in (* Now we get the id of the user *)
+      update_pwd email pwdhash
+    end

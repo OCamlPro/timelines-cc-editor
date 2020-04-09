@@ -46,7 +46,8 @@ OCPTimeline
 	camlp4 \
 	pgocaml.3.2 \
 	sexplib \
-	omd
+	omd \
+	sha
 
 3. Compile.
 make init

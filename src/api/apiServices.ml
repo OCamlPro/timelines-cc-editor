@@ -114,3 +114,17 @@ let remove_event : (int, api_result) service1 =
     ~name:"remove_event"
     ~output:api_result_encoding
     Path.(root // "remove_event" /: (arg_default "event_key"))
+
+let register_user : (string * string, api_result) post_service0 =
+  post_service
+    ~name:"register_user"
+    ~input:(Json_encoding.(tup2 string string))
+    ~output:api_result_encoding
+    Path.(root // "register_user")
+
+let login : (string * string, bool) post_service0 =
+  post_service
+    ~name:"login"
+    ~input:(Json_encoding.(tup2 string string))
+    ~output:Json_encoding.bool
+    Path.(root // "login")

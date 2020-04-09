@@ -76,7 +76,7 @@ OCaml.library("database-writer-lib",
      "database-interface";
      "ez-pgocaml";
      "config";
-     "database-reader-lib"
+     "database-reader-lib";
     ];
 });
 

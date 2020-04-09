@@ -21,6 +21,7 @@ OCaml.library("timeline-data", ocaml + {
    	 "utils.ml";];
   requires = [
     "calendar";
+    "sha"
   ] ;
 });
 

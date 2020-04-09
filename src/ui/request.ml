@@ -84,3 +84,18 @@ let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)
 let remove_event ~args id cont =
   let args = trust_arg args in
   get ~args (Format.sprintf "remove_event/%i" id) cont
+
+let register_user email password cont =
+  Js_utils.log "Request register_user@.";
+  let hash = Ui_utils.hash password (* todo: change this *) in
+  Js_utils.log "Hash: %s@." hash;
+  post ~args:[] "register_user"
+    Json_encoding.(tup2 string string) (email, hash)
+    Data_encoding.api_result_encoding cont
+
+let login email password cont =
+  let hash = Ui_utils.hash password (* todo: change this *) in
+  Js_utils.log "Hash: %s@." hash;
+  post ~args:[] "login"
+    Json_encoding.(tup2 string string) (email, hash)
+    Json_encoding.(tup1 bool) cont

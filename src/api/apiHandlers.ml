@@ -67,6 +67,12 @@ let remove_event (req, id) () =
        (EzAPIServerUtils.return (Ok ()))
     )
 
+let register_user _ (email, pwdhash) =
+  EzAPIServerUtils.return (Writer.register_user email pwdhash)
+
+let login _ (email, pwdhash) =
+  Reader.login email pwdhash >>= EzAPIServerUtils.return
+
 let reinitialize _ events =
   Writer.remove_events ();
   List.iter Writer.add_event events;

@@ -121,7 +121,21 @@ let admin_page_if_trustworthy ~args =
   | Some _ -> set_in_main_page [error_404 ~path:Admin.page_name ~args ()]; finish ()
 
 let admin_page_if_not_trustworthy () =
-  set_in_main_page [Admin.admin_page_login ~login_action:Ui_utils.set_as_trustworthy];
+  set_in_main_page [
+    Admin.admin_page_login
+      ~login_action:(fun log pwd ->
+          ignore @@ Request.login log pwd (fun b ->
+              if b then begin
+                Js_utils.log "Login OK!@.";
+                Ui_utils.(set_as_trustworthy @@ hash pwd);
+                Js_utils.reload ()
+              end else
+                Js_utils.alert "Wrong login/password@.";
+              finish ())
+        )
+      ~register_action:(fun log pwd ->
+          ignore @@ Request.register_user log pwd (fun _ -> finish ()))
+  ];
   finish ()
 
 let admin_page ~args =

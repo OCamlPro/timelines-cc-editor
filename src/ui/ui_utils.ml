@@ -298,10 +298,9 @@ module Session = struct
     let key' = Js.string key in
     match get_session () with
     | None ->
-      Js_utils.log "Session found while getting value";
+      Js_utils.log "Session not found while getting value";
       None
     | Some session -> begin
-        Js_utils.log "Session found!";
         match Js.Opt.to_option (session##getItem key') with
         | None -> None
         | Some s ->
@@ -316,12 +315,28 @@ module Session = struct
       let key   = Js.string key   in
       let value = Js.string value in
       session##setItem key value
+
+  let remove_value key =
+    let key' = Js.string key in
+    match get_session () with
+    | None ->
+      Js_utils.log "Session not found while removing value"
+    | Some session -> begin
+        match Js.Opt.to_option (session##getItem key') with
+        | None -> ()
+        | Some _ -> session##removeItem key'
+      end
 end
 
 let is_trustworthy () =
   match Session.get_value "trustworthy" with
-  | Some "yes" -> true
+  | Some _ -> true (* TODO: test trustworthiness *)
   | _ -> false
 
-let set_as_trustworthy () =
-  Session.set_value "trustworthy" "yes"
+let set_as_trustworthy phash =
+  Session.set_value "trustworthy" phash
+
+let unset_as_trustworthy () =
+  Session.remove_value "trustworthy"
+
+let hash s = string_of_int @@ Hashtbl.hash s
