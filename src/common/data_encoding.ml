@@ -88,13 +88,13 @@ let line_to_event (header : Header.t) line =
         Failure _ ->
         failwith ("Error trying to parse end year year " ^ end_year)
   in
-  let ponderation =
+  let ponderation, confidential =
     match Header.importance header data with
-      None -> 0
+      None -> 0, false
+    | Some "0" -> 0, true
     | Some str ->
-      try int_of_string str with
-      | _ -> 0
-  in
+      try int_of_string str, false with
+      | _ -> 0, false in
   let typ         = Header.typ         header data in
   let typ2        = Header.typ2        header data in
   let media       = Header.media       header data in
@@ -109,7 +109,7 @@ let line_to_event (header : Header.t) line =
     ~media
     ~title
     ~text
-    ~confidential:false
+    ~confidential
 
 let to_title line =
   match String.split_on_char '\t' line with
