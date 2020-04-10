@@ -14,8 +14,15 @@ html {
     src: url(/css/fonts/Fontin-Regular.ttf);
 }
 
-div{
-    font-family: fontin-reg !important
+.tl-timeline h1, .tl-timeline h2, .tl-timeline h3 {
+    font-size: 28px;
+    line-height: 28px;
+    font-family: Fontin;
+}
+
+
+.tl-slidenav-next .tl-slidenav-icon, .tl-slidenav-previous .tl-slidenav-icon {
+    font-family: tl-icons;
 }
 
 .tl-timegroup{
