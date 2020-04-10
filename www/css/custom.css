@@ -17,7 +17,8 @@ html {
 .tl-timeline h1, .tl-timeline h2, .tl-timeline h3 {
     font-size: 28px;
     line-height: 28px;
-    font-family: Fontin;
+    font-family: fontin-reg;
+    color: black
 }
 
 
