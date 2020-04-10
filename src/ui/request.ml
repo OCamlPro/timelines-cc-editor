@@ -71,14 +71,18 @@ let add_event ~args (event : Data_types.event) cont =
   post ~args
     "add_event"
     Data_encoding.event_encoding event
-    Data_encoding.api_result_encoding cont
+    ApiData.api_result_encoding cont
 
-let update_event ~args id event cont =
+let update_event ~args id ~old_event ~new_event cont =
   let args = args_from_session args in
   post ~args
     "update_event"
-    Json_encoding.(tup2 (tup1 int) Data_encoding.event_encoding) (id, event)
-    Data_encoding.api_result_encoding cont
+    Json_encoding.(
+      tup3
+        (tup1 int)
+        Data_encoding.event_encoding Data_encoding.event_encoding)
+    (id, old_event, new_event)
+    ApiData.update_event_res_encoding cont
 
 let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)
 
@@ -92,7 +96,7 @@ let register_user email password cont =
   Js_utils.log "Hash: %s@." hash;
   post ~args:[] "register_user"
     Json_encoding.(tup2 string string) (email, hash)
-    Data_encoding.api_result_encoding cont
+    Json_encoding.(tup1 ApiData.api_result_encoding) cont
 
 let login email password cont =
   let hash = Ui_utils.hash password (* todo: change this *) in

@@ -1,5 +1,6 @@
 open Lwt
 open EzAPI.TYPES
+open ApiData
 
 module StringMap = StringCompat.StringMap
 
@@ -36,12 +37,33 @@ let add_event req event =
       EzAPIServerUtils.return (Ok ())
     )
 
-let update_event req (id, event) =
-  if_is_auth
-    req
-    (fun () ->
-       Writer.update_event id event |> EzAPIServerUtils.return
-    )
+let update_event req (id, old_event, event) =
+  is_auth req >>=
+  (fun auth ->
+     if not auth then EzAPIServerUtils.return (Failed "Error 403")
+     else begin
+       (* Check if the old event has been modified *)
+       Reader.event true id >>=
+       (function
+         | None ->
+           Format.printf "Deleted element while editing@.";
+           EzAPIServerUtils.return (Modified None)
+         | Some should_be_old_event ->
+           if old_event = should_be_old_event then begin
+             Format.printf "Event in the db: %a@. Expected event: %a@."
+               Utils.pp_event should_be_old_event
+               Utils.pp_event old_event
+             ;
+             match Writer.update_event id event with
+             | Ok () ->   EzAPIServerUtils.return Success
+             | Error s -> EzAPIServerUtils.return (Failed s)
+           end else begin
+             Format.printf "Modified element while editing@.";
+             EzAPIServerUtils.return (Modified (Some should_be_old_event))
+           end
+       )
+     end
+  )
 
 let categories _ () = Reader.categories () >>= EzAPIServerUtils.return
 

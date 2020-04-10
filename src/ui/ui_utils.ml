@@ -32,6 +32,7 @@ type 'a input_type =
   | Other of 'a
 
 let placeholder
+    ?(readonly = false)
     ?(classes=[])
     ?(content="")
     ?(input_type= Other `Text)
@@ -45,8 +46,7 @@ let placeholder
       None -> form
     | Some elt -> div ~a:[a_class [clg3]] [txt elt] :: form
   in
-  let row = div ~a:[a_class [row]]
-  in
+  let row ?(a = []) = div ~a:(a @ [a_class [row]]) in
   match input_type with
   | Radio (value, l) -> begin
       let html_elt =
@@ -62,10 +62,16 @@ let placeholder
           List.map
             (fun str ->
                let a =
-                 let default = a str in
-                 if String.(equal (lowercase_ascii str) value) then
-                   a_checked () :: default
-                 else default in
+                 let checked =
+                   if String.(equal (lowercase_ascii str) value) then
+                     [a_checked ()]
+                   else [] in
+                 let readonly =
+                   if readonly then
+                     [a_readonly ()]
+                   else [] in
+                 checked @ readonly @ a str
+               in
                row [
                  input ~a ();
                  label [txt str];
@@ -73,15 +79,20 @@ let placeholder
             )
             l in
         let other =
-          row [input ~a:(a "__other__") ();
-           input
-             ~a:[
-               a_id "__other_value";
-               a_class (["placeholder"] @ classes);
-               a_style style;
-               a_input_type `Text
-             ] ()
-          ]
+          let hidden =
+            if readonly then
+              [a_style "visibility: hidden"]
+            else [] in
+          row ~a:hidden
+            [input ~a:(a "__other__") ();
+             input
+               ~a:([
+                   a_id "__other_value";
+                   a_class (["placeholder"] @ classes);
+                   a_style style;
+                   a_input_type `Text;
+                 ]) ()
+            ]
         in
         row (to_form @@ [div ~a:[a_class [clg9]; a_id id] (form_list @ [other])])
       in
@@ -122,9 +133,17 @@ let placeholder
             a_input_type `Checkbox;
             a_style style;
           ] in
-          if checked then
-            a_checked () :: default
-          else default in
+          let default =
+            if checked then
+              a_checked () :: default
+            else default
+          in
+          let default =
+            if readonly then
+              a_readonly () :: default
+            else default
+          in default
+        in
         row (
           to_form [input ~a ()]
         )
@@ -143,16 +162,16 @@ let placeholder
       html_elt, getter
     end
   | TextArea -> begin
-      let html_elt =
-        row (
-          to_form @@ [
-            textarea
-              ~a:[a_id id;
-                  a_class (["placeholder"; clg9] @ classes);
-                  a_style style;
-                 ] (txt content)
-          ]
-        ) in
+      let a =
+        let default =
+          [a_id id;
+           a_class (["placeholder"; clg9] @ classes);
+           a_style style;
+          ] in
+        if readonly then
+          (a_readonly ()) :: default
+        else default in
+      let html_elt = row (to_form [textarea ~a (txt content)]) in
       let getter =
         fun () ->
           match Manip.by_id id with
@@ -170,7 +189,9 @@ let placeholder
           match max with
           | None -> []
           | Some i -> [a_input_max @@ `Number i] in
-        min @ max @ [
+        let readonly =
+          if readonly then [a_readonly ()] else [] in
+        min @ max @ readonly @ [
           a_id id;
           a_class (["placeholder"; clg9] @ classes);
           a_value content;
@@ -187,16 +208,19 @@ let placeholder
       html_elt, getter
     end
   | Other t -> begin
+      let readonly =
+        if readonly then [a_readonly ()] else [] in
       let html_elt =
         row (
           to_form @@ [
             input
-              ~a:[a_id id;
+              ~a:(readonly @ [
+                  a_id id;
                   a_class (["placeholder"; clg9] @ classes);
                   a_value content;
                   a_input_type t;
                   a_style style;
-                 ] ()
+                ]) ()
           ]
         )
       in

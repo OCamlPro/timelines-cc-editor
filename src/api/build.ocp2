@@ -1,3 +1,11 @@
+OCaml.library("api-data",
+        ocaml + {
+              files = [ "apiData.ml" ];
+              requires = '[
+	      	timeline-data
+	        data-encoding ];
+              });
+
 OCaml.library("api-lib",
         ocaml + {
               files = [
@@ -9,6 +17,7 @@ OCaml.library("api-lib",
 	      	       config
                        ez-api
                        ez-api-server
+		       api-data
 		       database-reader-lib
 		       database-writer-lib
 		       timeline-data

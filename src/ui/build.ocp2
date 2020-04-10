@@ -20,7 +20,8 @@ OCaml.program("ocptimeline-js", ocaml + {
     "xhr-lwt";
     "config";
     "timeline-data";
-    "data-encoding"
+    "data-encoding";
+    "api-data"
     ];
    bytecomp = ["-g" ;"-annot"];
    build_rules = [

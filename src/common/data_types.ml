@@ -42,5 +42,3 @@ type timeline = {
   events: event list;
   title: title
 }
-
-type api_result = (unit, string) result

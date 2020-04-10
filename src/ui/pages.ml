@@ -56,21 +56,66 @@ let main_page ~args =
     )
 
 let admin_page_if_trustworthy ~args =
+  let add_action =
+    fun event ->
+      Js_utils.log "Adding event %a" Utils.pp_event event;
+      ignore @@
+      Request.add_event ~args
+        event
+        (function
+          | Ok () -> dispatch ~path:"" ~args
+          | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
+        );
+      ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+  in
+  let remove_action i =
+    ignore @@
+    Request.remove_event
+      ~args
+      i
+      (fun _ ->
+         ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+         finish ()) in
+  let rec update_action i old_event categories = (
+    fun new_event ->
+      Js_utils.log "Update...";
+      ignore @@
+      Request.update_event ~args i ~old_event ~new_event (
+        function
+        | Success -> begin
+            Js_utils.log "Going back to main page";
+            dispatch
+              ~path:Admin.page_name
+              ~args:(["action", "edit"])
+          end
+        | Failed s -> begin
+            Js_utils.log "Update failed: %s" s;
+            Lwt.return
+              (Error (Xhr_lwt.Str_err ("Update event action failed: " ^ s)))
+          end
+        | Modified event_opt ->
+          Js_utils.log "Event has been modified while editing";
+          set_in_main_page [
+            Admin.compare
+              i
+              event_opt
+              new_event
+              categories
+              ~add_action
+              ~update_action:(fun e -> update_action i e categories)
+              ~remove_action
+          ];
+          finish ()
+      )
+  ) in
   match List.assoc_opt "action" args with
   | Some "add" ->
-    let update_action =
-      fun event ->
-        Js_utils.log "Adding event %a" Utils.pp_event event;
-        ignore @@
-        Request.add_event ~args
-          event
-          (function
-            | Ok () -> dispatch ~path:"" ~args
-            | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
-          ) in
-    let remove_action = fun _ -> () in
     Request.categories (fun categories ->
-        set_in_main_page [Admin.add_new_event_form categories update_action remove_action];
+        set_in_main_page [
+          Admin.add_new_event_form
+            categories
+            ~update_action:(Some add_action)
+            ~remove_action:None];
         finish ()
       )
   | None | Some "edit" ->
@@ -84,32 +129,14 @@ let admin_page_if_trustworthy ~args =
           try
             let i = int_of_string i in
             Request.categories (fun categories ->
-                Request.event ~args i (fun e ->
-                    let update_action = (
-                      fun new_event ->
-                        Js_utils.log "Update...";
-                        Request.update_event ~args i new_event (
-                          function
-                          | Ok () -> begin
-                              Js_utils.log "Going back to main page";
-                              dispatch
-                                ~path:Admin.page_name
-                                ~args:(["action", "edit"])
-                            end
-                          | Error s -> begin
-                              Js_utils.log "Update failed: %s" s;
-                              Lwt.return
-                                (Error (Xhr_lwt.Str_err ("Update event action failed: " ^ s)))
-                            end
-                        )
-                    ) in
-                    let remove_action i =
-                      ignore @@
-                      Request.remove_event
-                        ~args
+                Request.event ~args i (fun old_event ->
+                    let form =
+                      Admin.event_form
+                        old_event
                         i
-                        (fun _ -> finish ()) in
-                    let form = Admin.event_form e i categories update_action remove_action
+                        categories
+                        ~update_action:(Some (update_action i old_event categories))
+                        ~remove_action:(Some remove_action)
                     in
                     set_in_main_page [form];
                     finish ())

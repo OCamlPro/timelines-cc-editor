@@ -175,15 +175,6 @@ let timeline_encoding =
          (req "title" title_encoding))
   )
 
-let api_result_encoding : api_result Json_encoding.encoding =
-  Json_encoding.(
-    union
-      [
-        case unit (fun _ -> Some ()) (fun () -> Ok ());
-        case string (function Error s -> Some s | _ -> None) (fun s -> Error s)
-      ]
-  )
-
 let file_to_events f =
   let chan = open_in f in
   let title = to_title @@ input_line chan in

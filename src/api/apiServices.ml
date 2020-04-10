@@ -1,6 +1,7 @@
 open EzAPI
 open Data_types
 open Data_encoding
+open ApiData
 
 let tup1_int = EzEncoding.tup1_int
 
@@ -103,12 +104,12 @@ let add_event : (Data_types.event, api_result) post_service0 =
     ~output:api_result_encoding
     Path.(root // "add_event")
 
-let update_event : (int * Data_types.event, api_result) post_service0 =
+let update_event : (int * Data_types.event * Data_types.event, update_event_res) post_service0 =
   post_service
     ~params:auth_params
     ~name:"update_event"
-    ~input:(Json_encoding.tup2 tup1_int Data_encoding.event_encoding)
-    ~output:api_result_encoding
+    ~input:(Json_encoding.tup3 tup1_int Data_encoding.event_encoding Data_encoding.event_encoding)
+    ~output:update_event_res_encoding
     Path.(root // "update_event")
 
 let categories : (string list) service0 =

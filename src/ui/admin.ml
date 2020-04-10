@@ -18,13 +18,21 @@ let confidential i = "confid-"      ^ i
 let ponderation  i = "ponderation-" ^ i
 let valid        i = "button-"      ^ i
 
-let event_form (e: event) (id_line: int) categories update_action remove_action =
-  let idl = string_of_int id_line in
+let event_form
+    ?(readonly = false)
+    ?(back_button = true)
+    ~update_action ~remove_action (e: event) (id_line: int) categories =
+  let idl =
+    let num = string_of_int id_line in
+    if readonly then
+      num ^ "--readonly"
+    else num in
   let start_date, get_start_date =
     let str_date =
       Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%F") e.start_date
     in
     placeholder
+      ~readonly
       ~id:(start_date idl)
       ~content:str_date
       ~title:"From"
@@ -39,6 +47,7 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
        | Some d ->
          Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%F") d in
     placeholder
+      ~readonly
       ~id:(end_date idl)
       ~content
       ~title:"To"
@@ -48,6 +57,7 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
 
   let headline, get_headline =
     placeholder
+      ~readonly
       ~id:(title idl)
       ~content:e.text.headline
       ~title:"Headline"
@@ -57,6 +67,7 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
   let media, get_media =
     let content = match e.media with None -> "" | Some e -> e.url in
     placeholder
+      ~readonly
       ~id:(media idl)
       ~content
       ~title:"Media"
@@ -66,6 +77,7 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
   let group, get_group =
     let str_group = match e.group with None -> "" | Some g -> g in
     placeholder
+      ~readonly
       ~id:(group idl)
       ~title:"Group"
       ~name:"group"
@@ -74,6 +86,7 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
 
   let text, get_text =
     placeholder
+      ~readonly
       ~id:(text idl)
       ~content:e.text.text
       ~title:"Text"
@@ -84,6 +97,7 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
 
   let confidential, get_confidential =
     placeholder
+      ~readonly
       ~id:(confidential idl)
       ~title:"Confidential"
       ~name:"confidential"
@@ -92,6 +106,7 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
 
   let ponderation, get_ponderation =
     placeholder
+      ~readonly
       ~id:(ponderation idl)
       ~title:"Ponderation"
       ~name:"ponderation"
@@ -139,43 +154,60 @@ let event_form (e: event) (id_line: int) categories update_action remove_action 
       ~typ2:None
 
   in
+  let update_button =
+    match update_action with
+    | None -> []
+    | Some f -> [
+      div
+        ~a:[
+          a_class ["btn";"btn-primary"; row];
+          a_onclick
+            (fun _ ->
+               f (get_event ());
+               true
+            )
+        ] [txt "Update timeline"];
+      br ()
+    ]
+  in
+  let remove_button =
+    match remove_action with
+    | None -> []
+    | Some f -> [
+        div
+          ~a:[
+            a_class ["btn";"btn-primary"; row];
+            a_onclick
+              (fun _ ->
+                 f id_line;
+                 true
+              )
+          ] [txt "Remove element"];
+        br ()
+      ]
+  in
+  let back_button =
+    if back_button then [
+      Ui_utils.a_link ~path:"admin" ~classes:["btn"; "btn-primary"; row] [txt "Back"];
+      br ();
+    ]
+    else [] in
   form
     ~a:[
       a_id ("line-" ^ idl);
       a_class ["line"];
-    ] [
-    start_date;
-    end_date;
-    media;
-    headline;
-    group;
-    text;
-    ponderation;
-    confidential;
-    div
-      ~a:[
-        a_class ["btn";"btn-primary"; row];
-        a_onclick
-          (fun _ ->
-             update_action (get_event ());
-             ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
-             true
-          )
-      ] [txt "Update timeline"];
-    br ();
-    Ui_utils.a_link ~path:"admin" ~classes:["btn"; "btn-primary"; row] [txt "Back"];
-    br ();
-    div
-      ~a:[
-        a_class ["btn";"btn-primary"; row];
-        a_onclick
-          (fun _ ->
-             remove_action id_line;
-             ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
-             true
-          )
-      ] [txt "Remove element"];
-  ]
+    ] (
+    [
+      start_date;
+      end_date;
+      media;
+      headline;
+      group;
+      text;
+      ponderation;
+      confidential;
+    ] @ update_button @ remove_button @ back_button
+  )
 
 let empty_event_form id action =
   let empty_event = {
@@ -220,6 +252,45 @@ let events_list events =
   (div ~a:[a_class [row]] [add_link; logout]) :: List.map event_short_row events
 
 let add_new_event_form action = empty_event_form 0 action
+
+let compare id old_event new_event categories ~add_action ~update_action ~remove_action =
+  let prefix, old_event, new_event =
+    match old_event with
+    | Some event -> (* The event has been modified *)
+      let prefix =
+        txt "The event has been modified while you were editing it. \
+             Please check for conflicts before resubmitting" in
+      let old_event = [
+        event_form ~readonly:true ~update_action:None ~remove_action:None ~back_button:false
+          event id categories
+      ] in
+      let new_event = [
+        event_form
+          ~update_action:(Some (update_action event))
+          ~remove_action:(Some remove_action)
+          new_event id categories
+      ] in prefix, old_event, new_event
+    | None -> (* The event has been deleted *)
+      let prefix =
+        txt "The event has been modified while you were editing it. \
+             Chech again your event before resubmitting it." in
+      let old_event = [] in
+      let new_event = [
+        event_form
+          ~update_action:(Some add_action)
+          ~remove_action:None
+          new_event id categories
+      ] in
+      prefix, old_event, new_event
+  in
+  div [prefix;
+       div ~a:[a_class [row]] [
+         div ~a:[a_class [clg6]] old_event;
+         div ~a:[a_class [clg6]] new_event
+       ]
+      ]
+
+(* Login utilities *)
 
 let admin_page_login
     ~(login_action : string -> string -> unit)
