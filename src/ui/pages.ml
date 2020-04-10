@@ -47,10 +47,12 @@ let () = Dispatcher.dispatch := dispatch
 
 let main_page ~args =
   Request.timeline_data ~args (fun events ->
-      let page, init = Home.page args events in
-      set_in_main_page [page];
-      init ();
-      finish ()
+      Request.is_auth (fun is_auth ->
+          let page, init = Home.page is_auth args events in
+          set_in_main_page [page];
+          init ();
+          finish ()
+        )
     )
 
 let admin_page_if_trustworthy ~args =

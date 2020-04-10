@@ -20,13 +20,16 @@ let add_button_to_event i event =
   in
   {event with text = {headline = event.text.headline; text = new_text}}
 
-let process_events events =
-  List.map
-    (fun (i, event) -> add_button_to_event i event)
+let process_events is_auth events =
+  List.map (fun (i, event) ->
+      if is_auth then
+        add_button_to_event i event
+      else event
+    )
     events
 
-let display_timeline (events : (int * event) list) : unit =
-  let events = process_events events in
+let display_timeline is_auth (events : (int * event) list) : unit =
+  let events = process_events is_auth events in
   let cmd =
     let json = Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events in
     let yoj = Json_repr.to_yojson json in
@@ -120,7 +123,7 @@ let make_panel_lines events =
       )
       events
 
-let page args events =
+let page is_auth args events =
   let page =
     div ~a:[a_class [row]] [
       div ~a:[a_class [clg3]] [form args];
@@ -131,7 +134,7 @@ let page args events =
     let events = snd @@ List.split events in
     make_panel_lines events |> Array.of_list in
   let init () =
-    display_timeline events;
+    display_timeline is_auth events;
     EventPanel.paginate_all
       ~urlarg_page:"" ~urlarg_size:"" table_elts;
     ignore (Js_of_ocaml.Js.Unsafe.eval_string
