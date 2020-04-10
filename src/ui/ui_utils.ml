@@ -326,15 +326,17 @@ module Session = struct
       end
 end
 
-let is_trustworthy () =
-  match Session.get_value "trustworthy" with
-  | Some _ -> true (* TODO: test trustworthiness *)
-  | _ -> false
+let auth_session email auth_data =
+  Session.set_value "email" email;
+  Session.set_value "auth_data" auth_data
 
-let set_as_trustworthy phash =
-  Session.set_value "trustworthy" phash
+let get_auth_data () =
+  match Session.get_value "email", Session.get_value "auth_data" with
+    Some e, Some a -> Some (e, a)
+  | _ -> None
 
-let unset_as_trustworthy () =
-  Session.remove_value "trustworthy"
+let logout_session () =
+  Session.remove_value "auth_data";
+  Session.remove_value "email"
 
 let hash s = string_of_int @@ Hashtbl.hash s

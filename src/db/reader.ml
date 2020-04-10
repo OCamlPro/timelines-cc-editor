@@ -69,6 +69,38 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
     | _ -> assert false
 
+  let is_auth email salted_pwhash =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
+    function
+    | [] -> return false
+    | (id, saved_hash) :: _ -> return @@ String.equal salted_pwhash saved_hash
+
+
+  let user_exists email =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
+    function
+    | []      -> return None
+    | id :: _ -> return (Some id)
+
+  let login email pwdhash =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
+    function
+    | [] ->
+      return None
+    | (id, saved_hash) :: _ ->
+      let challenger_hash = salted_hash id pwdhash in
+      let res = String.equal challenger_hash saved_hash in
+      if res then begin
+        Format.printf "New login from %s@." email;
+        return (Some challenger_hash)
+      end else begin
+        Format.printf "Failed login on %s@." email;
+        return None
+      end
+
   let event auth id =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
@@ -137,29 +169,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     req >>= fun l ->
     return @@ List.map (fun l -> (line_to_event ~with_end_date:false l)) l
 
-  let user_exists email =
-    with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
-    function
-    | []      -> return None
-    | id :: _ -> return (Some id)
-
-  let login email pwdhash =
-    Format.printf "Login %s with %s@." email pwdhash;
-    with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
-    function
-    | [] ->
-      return false
-    | (id, saved_hash) :: _ ->
-      let challenger_hash = salted_hash id pwdhash in
-      Format.printf "New login attempt@.";
-      let res = String.equal challenger_hash saved_hash in
-      if res then
-        Format.printf "New login from %s@." email
-      else
-        Format.printf "Failed login on %s@." email;
-      return res
 end
 
 module Self = Reader_generic(Db_intf.Default_monad)

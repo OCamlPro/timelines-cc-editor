@@ -215,7 +215,7 @@ let events_list events =
         ~classes:["btn"; "btn-primary"] [txt "Create event"] in
   let logout =
     div ~a:[a_class ["btn"; "btn-primary"];
-            a_onclick (fun _ -> Ui_utils.unset_as_trustworthy (); Js_utils.reload (); true)]
+            a_onclick (fun _ -> Ui_utils.logout_session (); Js_utils.reload (); true)]
       [txt "Logout"] in
   (div ~a:[a_class [row]] [add_link; logout]) :: List.map event_short_row events
 

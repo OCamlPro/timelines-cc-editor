@@ -60,14 +60,21 @@ let ponderation_param name = {
   param_examples = ["0"; "9"]
 }
 
-let confidential_param = {
-  param_value = "confidential";
-  param_name  = Some "confidential";
-  param_descr = Some "Confidential";
+let auth_params = {
+  param_value = "auth_email";
+  param_name  = Some "auth_email";
+  param_descr = Some "Email";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["true"; "false"]
-}
+  param_examples = ["my-email@provider.com"]
+} :: {
+  param_value = "auth_data";
+  param_name  = Some "auth_data";
+  param_descr = Some "Key";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = []
+} :: []
 
 let param_number =
   Param.int ~name:"page_size" ~descr:"Number of replies" "n"
@@ -76,18 +83,21 @@ let param_page =
 
 let event : (int, Data_types.event option) service1 =
   service
+    ~params:auth_params
     ~name:"event"
     ~output:(Json_encoding.option Data_encoding.event_encoding)
     Path.(root // "event" /: (arg_default "event_key"))
 
 let events : ((int * Data_types.event) list) service0 =
   service
+    ~params:auth_params
     ~name:"events"
     ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
     Path.(root // "events")
 
 let add_event : (Data_types.event, api_result) post_service0 =
   post_service
+    ~params:auth_params
     ~name:"add_event"
     ~input:Data_encoding.event_encoding
     ~output:api_result_encoding
@@ -95,6 +105,7 @@ let add_event : (Data_types.event, api_result) post_service0 =
 
 let update_event : (int * Data_types.event, api_result) post_service0 =
   post_service
+    ~params:auth_params
     ~name:"update_event"
     ~input:(Json_encoding.tup2 tup1_int Data_encoding.event_encoding)
     ~output:api_result_encoding
@@ -110,18 +121,18 @@ let timeline_data : ((int * Data_types.event) list) service0 =
   service
     ~name:"timeline_data"
     ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
-    ~params:[
+    ~params:(auth_params @ [
       date_param "start_date";
       date_param "end_date";
       group_param;
       ponderation_param "min_level";
       ponderation_param "max_level";
-      confidential_param;
-    ]
+    ])
     Path.(root // "timeline_data")
 
 let remove_event : (int, api_result) service1 =
   service
+    ~params:auth_params
     ~name:"remove_event"
     ~output:api_result_encoding
     Path.(root // "remove_event" /: (arg_default "event_key"))
@@ -133,9 +144,16 @@ let register_user : (string * string, api_result) post_service0 =
     ~output:api_result_encoding
     Path.(root // "register_user")
 
-let login : (string * string, bool) post_service0 =
+let login : (string * string, string option) post_service0 =
   post_service
     ~name:"login"
     ~input:(Json_encoding.(tup2 string string))
-    ~output:Json_encoding.bool
+    ~output:Json_encoding.(option string)
     Path.(root // "login")
+
+let is_auth : (unit, bool) post_service0 =
+  post_service
+    ~name:"is_auth"
+    ~input:(Json_encoding.unit)
+    ~output:(Json_encoding.bool)
+    Path.(root // "is_auth")

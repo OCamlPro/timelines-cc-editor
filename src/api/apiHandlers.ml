@@ -6,24 +6,34 @@ module StringMap = StringCompat.StringMap
 module Reader = Reader.Reader_generic (Monad_lwt)
 
 let is_auth req =
-  let trustworthy =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "trustworthy" req.req_params in
-  match trustworthy with
-    Some "y" | Some "yes" -> true
-  | _ -> false
+  let email =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params in
+  let salted_pwd =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_data" req.req_params in
+  match email, salted_pwd with
+  | Some email, Some pwd -> Reader.is_auth email pwd
+  | _ -> Monad_lwt.return false
 
-let if_is_auth req f =
-  if is_auth req then
-    f ()
-  else EzAPIServerUtils.return (Error "403")
+let if_is_auth req cont =
+  is_auth req >>= (fun auth ->
+      if auth then
+        cont ()
+      else
+        EzAPIServerUtils.return (Error "Error 403")
+    )
 
-let event (req, id) () = Reader.event (is_auth req) id >>= EzAPIServerUtils.return
+let event (req, id) () =
+  is_auth req >>=
+  fun auth -> Reader.event auth id >>= EzAPIServerUtils.return
 
-let events req () = Reader.events (is_auth req) >>= EzAPIServerUtils.return
+let events req () =
+  is_auth req >>= fun auth ->
+  Reader.events auth >>= EzAPIServerUtils.return
 
 let add_event req event =
   if_is_auth req (fun () ->
-      Writer.add_event event; EzAPIServerUtils.return (Ok ())
+      Writer.add_event event;
+      EzAPIServerUtils.return (Ok ())
     )
 
 let update_event req (id, event) =
@@ -53,10 +63,11 @@ let timeline_data req () =
   let end_date = Utils.fopt Utils.string_to_date end_date in
   let min_ponderation = Utils.fopt int_of_string_opt min_ponderation in
   let max_ponderation = Utils.fopt int_of_string_opt max_ponderation in
-  let confidential =
+  begin
     match confidential with
-    | Some "false" -> false
-    | _ -> is_auth req in
+    | Some "false" -> Monad_lwt.return false
+    | _ -> is_auth req
+  end >>= fun confidential ->
   Reader.timeline_data
     ?start_date
     ?end_date
@@ -78,6 +89,8 @@ let register_user _ (email, pwdhash) =
 
 let login _ (email, pwdhash) =
   Reader.login email pwdhash >>= EzAPIServerUtils.return
+
+let is_auth req () = is_auth req >>= EzAPIServerUtils.return 
 
 let reinitialize _ events =
   Writer.remove_events ();

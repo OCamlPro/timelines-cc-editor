@@ -124,14 +124,17 @@ let admin_page_if_not_trustworthy () =
   set_in_main_page [
     Admin.admin_page_login
       ~login_action:(fun log pwd ->
-          ignore @@ Request.login log pwd (fun b ->
-              if b then begin
-                Js_utils.log "Login OK!@.";
-                Ui_utils.(set_as_trustworthy @@ hash pwd);
-                Js_utils.reload ()
-              end else
-                Js_utils.alert "Wrong login/password@.";
-              finish ())
+          ignore @@ Request.login log pwd (function
+              | Some auth_data -> begin
+                  Js_utils.log "Login OK!@.";
+                  Ui_utils.auth_session log auth_data;
+                  Js_utils.reload ();
+                  finish ()
+                end
+              | None -> begin
+                  Js_utils.alert "Wrong login/password@.";
+                  finish ()
+                end)
         )
       ~register_action:(fun log pwd ->
           ignore @@ Request.register_user log pwd (fun _ -> finish ()))
@@ -139,10 +142,13 @@ let admin_page_if_not_trustworthy () =
   finish ()
 
 let admin_page ~args =
-  if Ui_utils.is_trustworthy () then
-    admin_page_if_trustworthy ~args
-  else
-    admin_page_if_not_trustworthy ()
+  Request.is_auth (fun logged ->
+      Js_utils.log "Logged ? %b" logged;
+      if logged then
+        admin_page_if_trustworthy ~args
+      else
+        admin_page_if_not_trustworthy ()
+    )
 
 let () =
   add_page Home.page_name  main_page;
