@@ -25,23 +25,23 @@ html {
     font-family: tl-icons;
 }
 
-.tl-timegroup{
+.tl-timegroup {
     background-color:var(--tl-bg-color)
 }
 
-.tl-timenav{
+.tl-timenav {
     background-color:var(--tl-bg-color)
 }
 
-.tl-timegroup-alternate{
+.tl-timegroup-alternate {
     background-color:var(--tl-bg-color)
 }
 
-.tl-timegroup-message{
+.tl-timegroup-message {
     color: black !important;
 }
 
-.tl-slide{
+.tl-slide {
     background-color: #0971B3
 }
 
@@ -49,10 +49,13 @@ html {
     color: black
 }
 
-.tl-timegroup-message{
+.tl-timegroup-message {
     z-index: 100
 }
 
+.tl-text-content p {
+    color: black
+}
 
 /* panel */
 
