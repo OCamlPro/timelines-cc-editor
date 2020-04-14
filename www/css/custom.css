@@ -49,6 +49,9 @@ html {
     color: black
 }
 
+.tl-timegroup-message{
+    z-index: 100
+}
 
 
 /* panel */

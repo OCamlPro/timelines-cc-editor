@@ -38,7 +38,26 @@ let display_timeline is_auth (events : (int * event) list) : unit =
       "window.timeline = new TL.Timeline('timeline-embed',{\"events\":%s})"
       (Yojson.Safe.to_string yoj) in
   Js_utils.log "Cmd = %s" cmd;
-  Js_of_ocaml.Js.Unsafe.js_expr cmd
+  let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
+  (* Now, adding links *)
+  let future_links = Manip.by_class "tl-timegroup-message" in
+  let () =
+    List.iter
+      (fun future_link ->
+         let children = Manip.children future_link in
+         match children with
+         | [] -> ()
+         | elt :: _ -> (* There should only be 1 element *)
+           let node = Ocp_js.Html.toelt elt in
+           match Ocp_js.Js.Opt.to_option node##.nodeValue with
+           | None -> ()
+           | Some name ->
+             let name = Ocp_js.Js.to_string name in
+             let link = Ui_utils.a_link ~args:["group", name] ~path:page_name [txt name] in
+             Manip.replaceChildren future_link [link]
+      )
+      future_links
+  in ()
 
 let form is_auth args =
   let form_with_content title key input_type =
