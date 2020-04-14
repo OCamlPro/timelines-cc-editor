@@ -31,6 +31,8 @@ let events req () =
   is_auth req >>= fun auth ->
   Reader.events auth >>= EzAPIServerUtils.return
 
+let title _ () = Reader.title () >>= EzAPIServerUtils.return
+
 let add_event req event =
   if_is_auth req (fun () ->
       Writer.add_event event;

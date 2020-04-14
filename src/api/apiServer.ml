@@ -8,6 +8,7 @@ let start () =
     EzAPIServerUtils.empty
     |> EzAPIServerUtils.register S.event  H.event
     |> EzAPIServerUtils.register S.events H.events
+    |> EzAPIServerUtils.register S.title H.title
     |> EzAPIServerUtils.register S.add_event H.add_event
     |> EzAPIServerUtils.register S.update_event H.update_event
     |> EzAPIServerUtils.register S.categories H.categories

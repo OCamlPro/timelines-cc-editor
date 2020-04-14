@@ -96,6 +96,13 @@ let events : ((int * Data_types.event) list) service0 =
     ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
     Path.(root // "events")
 
+let title : Data_types.text option service0 =
+  service
+    ~params:auth_params
+    ~name:"title"
+    ~output:(Json_encoding.option Data_encoding.title_encoding)
+    Path.(root // "title")
+
 let add_event : (Data_types.event, api_result) post_service0 =
   post_service
     ~params:auth_params

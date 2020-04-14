@@ -131,18 +131,22 @@ let admin_page_if_trustworthy ~args =
              set_in_main_page
                (Admin.events_list
                   ~export_action:(fun () ->
-                      Request.events
-                        ~args
-                        (fun events ->
-                           let str =
-                             let json =
-                               Json_encoding.construct
-                                 (Json_encoding.(list @@ tup2 int @@ Data_encoding.event_encoding))
-                                 events in
-                             let yoj = Json_repr.to_yojson json in
-                             Format.asprintf "%a" (Json_repr.pp (module Json_repr.Yojson)) yoj
-                           in
-                           Ui_utils.download "database.json" str; finish ()))
+                      Request.events ~args (fun events ->
+                          Request.title ~args (fun title ->
+                              let sep = "%2C" in
+                              let title =
+                                match title with
+                                | None -> sep
+                                | Some title -> Data_encoding.title_to_csv ~sep title in
+                              let header = Data_encoding.header ~sep in
+                              let events =
+                                List.fold_left
+                                  (fun acc event ->
+                                     acc ^ Data_encoding.event_to_csv ~sep event ^ ";%0A")
+                                  ""
+                                  (snd @@ List.split events) in
+                              let str =  (title ^ ";%0A" ^ header ^ ";%0A" ^ events) in
+                              Ui_utils.download "database.csv" str; finish ())))
                   ~logout_action:(fun () ->
                       ignore @@
                       Request.logout

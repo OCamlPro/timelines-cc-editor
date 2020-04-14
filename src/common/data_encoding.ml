@@ -89,17 +89,23 @@ let line_to_event (header : Header.t) line =
         failwith ("Error trying to parse end year year " ^ end_year)
   in
   let ponderation, confidential =
-    match Header.importance header data with
-      None -> 0, false
-    | Some "0" -> 0, true
-    | Some str ->
+    match Header.confidentiel header data, Header.importance header data with
+    | Some b, None ->
+        0, (try bool_of_string b with _ -> true)
+    | Some b, Some i -> begin
+        try int_of_string i, bool_of_string b with
+        | _ -> 0, true
+      end
+    | None, None -> 0, false
+    | None, Some "0" -> 0, true
+    | None, Some str ->
       try int_of_string str, false with
       | _ -> 0, false in
-  let typ         = Header.typ         header data in
-  let typ2        = Header.typ2        header data in
-  let media       = Header.media       header data in
-  let title       = Header.title       header data in
-  let text        = Header.text        header data in
+  let typ          = Header.typ         header data in
+  let typ2         = Header.typ2        header data in
+  let media        = Header.media       header data in
+  let title        = Header.title       header data in
+  let text         = Header.text        header data in
   to_event
     ~start_date
     ~end_date
@@ -259,3 +265,34 @@ let write_json json f =
   let str = Format.asprintf "%a" (Json_repr.pp (module Json_repr.Yojson)) yojson in
   output_string chan str;
   close_out chan
+
+let title_to_csv ~sep (title : title) =
+  Format.asprintf
+    "%s%s%s"
+    title.headline
+    sep
+    title.text
+
+let header ~sep =
+  Format.asprintf
+    "Start%sEnd%sMedia%sGroup%sConfidential%sPonderation%sTitle%sText"
+    sep sep sep sep sep sep sep
+
+let event_to_csv ~sep (event : event) =
+  Format.asprintf (* start date, end_date, media, group, confidential, ponderation, title, text *)
+    "%a%s\
+     %a%s\
+     %a%s\
+     %a%s\
+     %b%s\
+     %i%s\
+     \"%s\"%s\
+     \"%s\""
+    (CalendarLib.Printer.Date.fprint "%F") event.start_date sep
+    (Utils.pp_opt (CalendarLib.Printer.Date.fprint "%F")) event.end_date sep
+    (Utils.pp_opt (fun fmt {url} -> Format.fprintf fmt "%s" url)) event.media sep
+    (Utils.pp_opt (fun fmt -> Format.fprintf fmt "%s")) event.group sep
+    event.confidential sep
+    event.ponderation sep
+    event.text.headline sep
+    event.text.text

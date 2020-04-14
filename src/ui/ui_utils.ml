@@ -368,7 +368,7 @@ let hash s = string_of_int @@ Hashtbl.hash s
 let download filename filecontent =
   let filelink =
     a ~a:[
-      a_href ("data:text/plain;charset=utf-8," ^filecontent);
+      a_href ("data:text/csv;charset=us-ascii," ^filecontent);
       a_download (Some filename);
       a_style "display: none";
     ][txt ""]

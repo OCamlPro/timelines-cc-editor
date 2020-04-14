@@ -75,16 +75,17 @@ module Header = struct
       None -> None
     | Some i -> try Some (data.(i)) with Invalid_argument _ -> None
 
-  let start_year  : t -> string array -> string option = get_elt "Debut"
-  let start_month : t -> string array -> string option = get_elt "Debut mois"
-  let end_year    : t -> string array -> string option = get_elt "Fin"
-  let end_month   : t -> string array -> string option = get_elt "Fin mois"
-  let typ         : t -> string array -> string option = get_elt "Type"
-  let typ2        : t -> string array -> string option = get_elt "Type 2"
-  let importance  : t -> string array -> string option = get_elt "Ponderation"
-  let media       : t -> string array -> string option = get_elt "Media"
-  let title       : t -> string array -> string option = get_elt "Titre"
-  let text        : t -> string array -> string option = get_elt "Narration"
+  let start_year   : t -> string array -> string option = get_elt "Debut"
+  let start_month  : t -> string array -> string option = get_elt "Debut mois"
+  let end_year     : t -> string array -> string option = get_elt "Fin"
+  let end_month    : t -> string array -> string option = get_elt "Fin mois"
+  let typ          : t -> string array -> string option = get_elt "Type"
+  let typ2         : t -> string array -> string option = get_elt "Type 2"
+  let importance   : t -> string array -> string option = get_elt "Ponderation"
+  let media        : t -> string array -> string option = get_elt "Media"
+  let confidentiel : t -> string array -> string option = get_elt "Confidentiel"
+  let title        : t -> string array -> string option = get_elt "Titre"
+  let text         : t -> string array -> string option = get_elt "Narration"
 
   let pp fmt header =
     Format.fprintf fmt
@@ -112,3 +113,7 @@ let list_init n f =
     else aux (n - 1) (f (n - 1) :: acc)
   in
   aux n []
+
+let pp_opt pp fmt = function
+    None -> ()
+  | Some e -> Format.fprintf fmt "%a" pp e

@@ -23,7 +23,9 @@ let get ?(args = []) apifun cont =
   in
   Xhr_lwt.get ~args ~base:url apifun >>=
   function
-    Ok elt -> cont elt
+    Ok elt ->
+    Js_utils.log "GET %s OK" apifun;
+    cont elt
   | Error e ->
     let code, msg = Xhr_lwt.error_content e in
     Js_utils.log "Error %i while getting to api: %s" code msg;
@@ -43,10 +45,17 @@ let post ~args apifun input_encoding input output_encoding cont =
 
 let cook encoding cont =
   (fun str ->
+     Js_utils.log "Cooking";
      let yoj = Yojson.Safe.from_string str in
      let json = Json_repr.from_yojson yoj in
-     let elt = Json_encoding.destruct encoding json in
-     cont elt)
+     try
+       let elt = Json_encoding.destruct encoding json in
+       Js_utils.log "Cooking OK";
+       cont elt
+     with e ->
+       Js_utils.log "Error while cooking %s" str;
+       raise e
+  )
 
 let args_from_session args =
   match Ui_utils.get_auth_data () with
@@ -64,6 +73,9 @@ let raw_events ~args cont =
 
 let events ~args cont =
   raw_events ~args (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
+
+let title ~args cont =
+  get ~args "title" (cook (Json_encoding.(option (Data_encoding.title_encoding))) cont)
 
 let event ~args id cont =
   let args = args_from_session args in
