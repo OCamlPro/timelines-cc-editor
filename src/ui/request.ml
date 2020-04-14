@@ -126,5 +126,10 @@ let is_auth cont =
     Json_encoding.(tup1 bool) cont
 
 let logout ~args cont =
-  let args = args_from_session args in
-  get ~args "logout" cont
+  match Ui_utils.get_auth_data () with
+  | None -> Lwt.return @@ Error (Xhr_lwt.Str_err "Error: not logged in")
+  | Some (email, auth_data) ->
+    let args = args_from_session args in
+    post ~args "logout"
+      (Json_encoding.(tup2 string string)) (email, auth_data)
+      (Json_encoding.unit) cont

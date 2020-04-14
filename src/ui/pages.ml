@@ -151,7 +151,10 @@ let admin_page_if_trustworthy ~args =
                       ignore @@
                       Request.logout
                         ~args
-                        (fun _ -> Ui_utils.logout_session (); Js_utils.reload (); finish ()))
+                        (fun _ ->
+                           Ui_utils.logout_session ();
+                           Js_utils.reload ();
+                           finish ()))
                   events); finish ())
       | Some i ->
         begin

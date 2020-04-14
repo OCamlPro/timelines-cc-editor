@@ -22,7 +22,7 @@ let sql_upgrade_0_to_1 =
       )|};
     {| CREATE TABLE sessions_ (
       user_id_   integer REFERENCES users_(id_) PRIMARY KEY NOT NULL,
-      cookie_    VARCHAR(100) NOT NULL)|};
+      cookie_    VARCHAR NOT NULL)|};
   ]
 
 
