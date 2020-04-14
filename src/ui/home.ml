@@ -1,6 +1,7 @@
 open Js_of_ocaml_tyxml.Tyxml_js.Html
 open Js_utils
 open Bootstrap_helpers.Grid
+open Utils
 
 open Data_types
 
@@ -39,20 +40,20 @@ let display_timeline is_auth (events : (int * event) list) : unit =
   Js_utils.log "Cmd = %s" cmd;
   Js_of_ocaml.Js.Unsafe.js_expr cmd
 
-let form args =
+let form is_auth args =
   let form_with_content title key input_type =
     let content = List.assoc_opt key args in
     Ui_utils.placeholder ~id:key ?content ~title ~name:key ~input_type ()
   in
   let start_date, get_start_date = form_with_content "From" "start-date" (Other `Date) in
   let end_date,   get_end_date   = form_with_content "To"   "end-date"   (Other `Date) in
-  let user_view, get_user_view =
+  let user_view,  get_user_view =
     let test_user_view =
       match Ui_utils.Session.get_value "user-view" with
         None -> false
       | Some _ -> true
     in
-    form_with_content "User view" "user-view" (Checkbox test_user_view)
+    form_with_content "User view" "user-view" (Checkbox test_user_view) 
   in
   let button =
     let action _ =
@@ -78,7 +79,11 @@ let form args =
         a_class ["btn";"btn-primary"];
         a_onclick action
       ] [txt "Filter"];
-    in form [start_date; end_date; user_view; button]
+  in form (
+    [start_date] @ [end_date] @
+    (if is_auth then [user_view] else [])@
+    [button]
+  )
 
 module EventPanel = Panel.MakePageTable(
   struct
@@ -126,7 +131,7 @@ let make_panel_lines events =
 let page is_auth args events =
   let page =
     div ~a:[a_class [row]] [
-      div ~a:[a_class [clg3]] [form args];
+      div ~a:[a_class [clg3]] [form is_auth args];
       div ~a:[a_class [clg9]] [EventPanel.make ~footer:true ()];
     ]
   in

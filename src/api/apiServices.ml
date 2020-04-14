@@ -152,9 +152,24 @@ let login : (string * string, string option) post_service0 =
     ~output:Json_encoding.(option string)
     Path.(root // "login")
 
+let logout : (string * string, unit) post_service0 =
+  post_service
+    ~name:"login"
+    ~input:(Json_encoding.(tup2 string string))
+    ~output:Json_encoding.unit
+    Path.(root // "logout")
+
+
 let is_auth : (unit, bool) post_service0 =
   post_service
     ~name:"is_auth"
     ~input:(Json_encoding.unit)
     ~output:(Json_encoding.bool)
     Path.(root // "is_auth")
+
+let export_database : api_result service0 =
+  service
+    ~params:auth_params
+    ~name:"export_database"
+    ~output:ApiData.api_result_encoding
+    Path.(root // "export_database")

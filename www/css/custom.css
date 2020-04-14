@@ -18,7 +18,6 @@ html {
     font-size: 28px;
     line-height: 28px;
     font-family: fontin-reg;
-    color: black
 }
 
 
@@ -46,8 +45,8 @@ html {
     background-color: #0971B3
 }
 
-.tl-text p {
-    color: black !important
+.tl-text {
+    color: black
 }
 
 

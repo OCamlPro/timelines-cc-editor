@@ -69,13 +69,24 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
     | _ -> assert false
 
-  let is_auth email salted_pwhash =
+  let is_auth email cookie =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
+    PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
     function
     | [] -> return false
-    | (id, saved_hash) :: _ -> return @@ String.equal salted_pwhash saved_hash
+    | id :: _ ->
+      PGSQL(dbh) "SELECT cookie_ FROM sessions_ WHERE user_id_=$id" >>=
+      function
+      | [] -> return false
+      | saved_cookie :: _ ->
+      return @@ String.equal cookie saved_cookie
 
+  let get_session user_id =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT cookie_ from sessions_ WHERE user_id_=$user_id" >>=
+    function
+    | [] -> return None
+    | sess :: _ -> return (Some sess)
 
   let user_exists email =
     with_dbh >>> fun dbh ->
@@ -83,23 +94,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     function
     | []      -> return None
     | id :: _ -> return (Some id)
-
-  let login email pwdhash =
-    with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
-    function
-    | [] ->
-      return None
-    | (id, saved_hash) :: _ ->
-      let challenger_hash = salted_hash id pwdhash in
-      let res = String.equal challenger_hash saved_hash in
-      if res then begin
-        Format.printf "New login from %s@." email;
-        return (Some challenger_hash)
-      end else begin
-        Format.printf "Failed login on %s@." email;
-        return None
-      end
 
   let event auth id =
     let id = Int32.of_int id in
@@ -169,6 +163,48 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     req >>= fun l ->
     return @@ List.map (fun l -> (line_to_event ~with_end_date:false l)) l
 
+  module Login = struct
+    let remove_session id =
+      with_dbh >>> fun dbh ->
+      PGSQL(dbh) "DELETE from sessions_ where user_id_=$id"
+
+    let login email pwdhash =
+      with_dbh >>> fun dbh ->
+      PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
+      function
+      | [] ->
+        return None
+      | (id, saved_hash) :: _ ->
+        let challenger_hash = salted_hash id pwdhash in
+        let res = String.equal challenger_hash saved_hash in
+        if res then begin
+          Format.printf "New login from %s@." email;
+          let insert () =
+            let today = CalendarLib.Date.today () in
+            let today_str = CalendarLib.Printer.DatePrinter.sprint "%d" today in
+            let cookie = hash (today_str ^ challenger_hash) in
+            PGSQL(dbh) "INSERT INTO sessions_(user_id_, cookie_) VALUES($id, $cookie)" >>=
+            fun _ -> return cookie in
+          get_session id >>= (function
+              | None -> insert ()
+              | Some i -> remove_session id >>= fun _ -> insert ()
+            ) >>= fun cookie ->
+          return (Some cookie)
+        end else begin
+          Format.printf "Failed login on %s@." email;
+          return None
+        end
+
+    let logout email cookie =
+      is_auth email cookie >>= (fun is_auth ->
+          if is_auth then
+            user_exists email >>= (function
+                | None -> return ()
+                | Some id -> remove_session id
+              )
+          else return ()
+        )
+  end
 end
 
 module Self = Reader_generic(Db_intf.Default_monad)

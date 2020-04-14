@@ -239,7 +239,7 @@ let event_short_row (i, event) =
     div ~a:[a_class [clg2]] [edit_link]
   ]
 
-let events_list events =
+let events_list ~export_action ~logout_action events =
   let add_link =
       Ui_utils.a_link
         ~path:"admin"
@@ -247,9 +247,14 @@ let events_list events =
         ~classes:["btn"; "btn-primary"] [txt "Create event"] in
   let logout =
     div ~a:[a_class ["btn"; "btn-primary"];
-            a_onclick (fun _ -> Ui_utils.logout_session (); Js_utils.reload (); true)]
+            a_onclick (fun _ -> logout_action (); true (*Ui_utils.logout_session (); Js_utils.reload (); true *))]
       [txt "Logout"] in
-  (div ~a:[a_class [row]] [add_link; logout]) :: List.map event_short_row events
+  let export =
+    div ~a:[a_class ["btn"; "btn-primary"];
+            a_onclick (fun _ -> export_action (); true)]
+      [txt "Export database"] in
+
+  (div ~a:[a_class [row]] [add_link; logout; export]) :: List.map event_short_row events
 
 let add_new_event_form action = empty_event_form 0 action
 
@@ -334,7 +339,7 @@ let admin_page_login
              match get_login (), get_pwd () with
              | Some login, Some pwd ->
                Js_utils.log "Registering account@.";
-               ignore @@ register_action login pwd;
+               register_action login pwd;
                ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
                true
              | _ ->

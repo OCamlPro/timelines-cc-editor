@@ -110,10 +110,27 @@ let register_user _ (email, pwdhash) =
   EzAPIServerUtils.return (Writer.register_user email pwdhash)
 
 let login _ (email, pwdhash) =
-  Reader.login email pwdhash >>= EzAPIServerUtils.return
+  Reader.Login.login email pwdhash >>= EzAPIServerUtils.return
 
-let is_auth req () = is_auth req >>= EzAPIServerUtils.return 
+let logout _ (email, cookie) =
+  Reader.Login.logout email cookie >>= EzAPIServerUtils.return
 
+let is_auth req () = is_auth req >>= EzAPIServerUtils.return
+
+let export_database req () =
+  if_is_auth req (fun () ->
+      Reader.title () >>= function
+      | None ->
+        EzAPIServerUtils.return (Error "No title in database")
+      | Some title ->
+        Reader.events true >>= fun events ->
+        try
+          let events = List.map snd events in
+          let json =
+            Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
+          EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
+        with Failure s -> EzAPIServerUtils.return (Error s)
+    )
 let reinitialize _ events =
   Writer.remove_events ();
   List.iter Writer.add_event events;

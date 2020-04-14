@@ -58,9 +58,12 @@ let timeline_data ~args cont =
   let args = args_from_session args in
   get ~args "timeline_data" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
-let events ~args cont =
+let raw_events ~args cont =
   let args = args_from_session args in
-  get ~args "events" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
+  get ~args "events" cont
+
+let events ~args cont =
+  raw_events ~args (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
 let event ~args id cont =
   let args = args_from_session args in
@@ -109,3 +112,7 @@ let is_auth cont =
   post ~args:(args_from_session []) "is_auth"
     Json_encoding.unit ()
     Json_encoding.(tup1 bool) cont
+
+let logout ~args cont =
+  let args = args_from_session args in
+  get ~args "logout" cont

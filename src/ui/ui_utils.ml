@@ -364,3 +364,15 @@ let logout_session () =
   Session.remove_value "email"
 
 let hash s = string_of_int @@ Hashtbl.hash s
+
+let download filename filecontent =
+  let filelink =
+    a ~a:[
+      a_href ("data:text/plain;charset=utf-8," ^filecontent);
+      a_download (Some filename);
+      a_style "display: none";
+    ][txt ""]
+  in
+  let body = Of_dom.of_body Dom_html.document##.body in
+  Js_utils.Manip.appendChild body filelink;
+  (Js_utils.Manip.get_elt "click" filelink)##click

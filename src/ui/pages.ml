@@ -69,13 +69,17 @@ let admin_page_if_trustworthy ~args =
       ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
   in
   let remove_action i =
-    ignore @@
-    Request.remove_event
-      ~args
-      i
-      (fun _ ->
-         ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
-         finish ()) in
+    let c = Js_utils.confirm "Are you sure you want to remove this event ? This is irreversible." in
+    if c then
+      ignore @@
+      Request.remove_event
+        ~args
+        i
+        (fun _ ->
+           ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+           finish ())
+    else ()
+  in
   let rec update_action i old_event categories = (
     fun new_event ->
       Js_utils.log "Update...";
@@ -123,7 +127,28 @@ let admin_page_if_trustworthy ~args =
       match List.assoc_opt "id" args with
       | None ->
         Request.events ~args
-          (fun events -> set_in_main_page (Admin.events_list events); finish ())
+          (fun events ->
+             set_in_main_page
+               (Admin.events_list
+                  ~export_action:(fun () ->
+                      Request.events
+                        ~args
+                        (fun events ->
+                           let str =
+                             let json =
+                               Json_encoding.construct
+                                 (Json_encoding.(list @@ tup2 int @@ Data_encoding.event_encoding))
+                                 events in
+                             let yoj = Json_repr.to_yojson json in
+                             Format.asprintf "%a" (Json_repr.pp (module Json_repr.Yojson)) yoj
+                           in
+                           Ui_utils.download "database.json" str; finish ()))
+                  ~logout_action:(fun () ->
+                      ignore @@
+                      Request.logout
+                        ~args
+                        (fun _ -> Ui_utils.logout_session (); Js_utils.reload (); finish ()))
+                  events); finish ())
       | Some i ->
         begin
           try

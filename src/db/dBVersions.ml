@@ -21,9 +21,8 @@ let sql_upgrade_0_to_1 =
       pwhash_ BYTEA NOT NULL
       )|};
     {| CREATE TABLE sessions_ (
-      user_id_   integer REFERENCES users_(id_) NOT NULL,
-      cookie_    VARCHAR(30) PRIMARY KEY,
-      last_      FLOAT NOT NULL)|};
+      user_id_   integer REFERENCES users_(id_) PRIMARY KEY NOT NULL,
+      cookie_    VARCHAR(100) NOT NULL)|};
   ]
 
 

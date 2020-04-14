@@ -60,7 +60,7 @@ let update_event (i: int) (e : event) =
     let ponderation = Int32.of_int e.ponderation in
     let confidential = e.confidential in
     let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
-                headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
+                         headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
                          confidential_=$confidential, ponderation_=$ponderation WHERE id_=$i";
       match group with
       | None -> ()
