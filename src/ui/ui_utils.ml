@@ -376,3 +376,41 @@ let download filename filecontent =
   let body = Of_dom.of_body Dom_html.document##.body in
   Js_utils.Manip.appendChild body filelink;
   (Js_utils.Manip.get_elt "click" filelink)##click
+
+type slide_change = Next | Prev
+
+let slide_changer slide_change =
+  let slide_div =
+    let cls =
+    match slide_change with
+    | Next -> "tl-slidenav-next"
+    | Prev -> "tl-slidenav-previous"
+    in Manip.by_class cls
+  in
+  match slide_div with
+  | [] -> Js_utils.log "Slide div has not been initialialized"; assert false
+  | next :: _ -> next
+
+let slide_event slide_change i = (* Clicks i times on next or prev *)
+  let toclick = slide_changer slide_change in
+  let rec loop i =
+    if i <> 0 then begin
+      (Js_utils.Manip.get_elt "click" toclick)##click;
+      loop (i - 1)
+    end
+  in loop i
+
+let get_args () =
+  match Jsloc.url () with
+      Http h | Https h -> h.hu_arguments
+    | File _ -> []
+
+let assoc_add key elt l =
+  let rec loop acc = function
+    | [] -> (key, elt) :: l
+    | ((hd_key, hd_elt) as hd) :: tl ->
+      if key = hd_key then
+        (List.rev acc) @ ((hd_key, elt) :: tl)
+      else loop (hd :: acc) tl
+  in
+  loop [] l

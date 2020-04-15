@@ -160,6 +160,10 @@ table {
     background-color: var(--active-bg-color);
 }
 
+tr:hover.clickable {
+    text-decoration: underline
+}
+
 /* Temporary */
 
 .fade {

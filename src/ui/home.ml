@@ -29,7 +29,13 @@ let process_events is_auth events =
     )
     events
 
-let display_timeline is_auth (events : (int * event) list) : unit =
+let id_current_event () =
+  let args = Ui_utils.get_args () in
+  match List.assoc_opt "id" args with
+  | None -> 0
+  | Some i -> try int_of_string i with _ -> 0
+
+let display_timeline is_auth args (events : (int * event) list) : unit =
   let events = process_events is_auth events in
   let cmd =
     let json = Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events in
@@ -40,8 +46,8 @@ let display_timeline is_auth (events : (int * event) list) : unit =
   Js_utils.log "Cmd = %s" cmd;
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
   (* Now, adding links *)
-  let future_links = Manip.by_class "tl-timegroup-message" in
   let () =
+    let future_links = Manip.by_class "tl-timegroup-message" in
     List.iter
       (fun future_link ->
          let children = Manip.children future_link in
@@ -57,8 +63,44 @@ let display_timeline is_auth (events : (int * event) list) : unit =
              Manip.replaceChildren future_link [link]
       )
       future_links
-  in ()
-
+  in
+  (* Going on the correct event *)
+  let () =
+    let goto_id =
+      match List.assoc_opt "id" args with
+      | None -> 0
+      | Some i -> try int_of_string i with _ -> 0
+    in
+    Ui_utils.slide_event Next goto_id in
+  (* Adding page change in URL *)
+  let () = begin
+    let event_action add_or_sub =
+      let current_id = id_current_event () in
+      let new_id = add_or_sub current_id 1 in
+      let new_args = Ui_utils.assoc_add "id" (string_of_int new_id) args in
+      let new_url = Ui_utils.url page_name new_args in
+      Ui_utils.push new_url
+    in
+    let () =
+      let next = Ui_utils.slide_changer Next in
+      Ocp_js.Dom.addEventListener
+        (Manip.get_elt "click" next)
+        (Ocp_js.Dom.Event.make "click")
+        (Ocp_js.Dom.handler (fun e ->
+             event_action (+);
+             Ocp_js.Js._true))
+        Ocp_js.Js._true |> ignore in
+    let () =
+      let prev = Ui_utils.slide_changer Prev in
+      Ocp_js.Dom.addEventListener
+        (Manip.get_elt "click" prev)
+        (Ocp_js.Dom.Event.make "click")
+        (Ocp_js.Dom.handler (fun e ->
+             event_action (-);
+             Ocp_js.Js._true))
+        Ocp_js.Js._true |> ignore
+    in ()
+  end in ()
 let form is_auth args =
   let form_with_content title key input_type =
     let content = List.assoc_opt key args in
@@ -72,7 +114,7 @@ let form is_auth args =
         None -> false
       | Some _ -> true
     in
-    form_with_content "User view" "user-view" (Checkbox test_user_view) 
+    form_with_content "User view" "user-view" (Checkbox test_user_view)
   in
   let button =
     let action _ =
@@ -135,12 +177,34 @@ let make_panel_lines events =
       )
       events
   in
+  let events = (* Requires a second reordering *)
+    let rec loop all_acc local_start_date local_end_date local_acc = function
+      | [] -> (local_acc :: all_acc) |> List.rev |> List.flatten
+      | hd :: tl -> begin
+          if (Some hd.start_date) = local_start_date && hd.end_date = local_end_date then
+            loop all_acc local_start_date local_end_date (hd :: local_acc) tl
+          else
+            loop (local_acc :: all_acc) (Some hd.start_date) hd.end_date [hd] tl
+        end
+    in
+    loop [] None None [] events
+  in
   match events with
   | [] -> [ tr [ td ~a: [ a_colspan 9 ] [ txt "No event" ]]]
   | _ ->
-    List.map
-      (fun {start_date; text = {headline; _}} ->
-         tr [
+    let size = List.length events in
+    List.mapi
+      (fun i {start_date; text = {headline; _}} ->
+         let id = size - i in
+         let onclick () =
+           let current_id = id_current_event () in
+           let diff = id - current_id in
+           if diff < 0 then
+             Ui_utils.slide_event Prev ((-1) * diff)
+           else
+             Ui_utils.slide_event Next diff
+         in
+         tr ~a:[a_onclick (fun _ -> onclick (); true); a_class ["clickable"]] [
            td [txt @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") start_date];
            td [txt headline];
          ]
@@ -158,7 +222,7 @@ let page is_auth args events =
     let events = snd @@ List.split events in
     make_panel_lines events |> Array.of_list in
   let init () =
-    display_timeline is_auth events;
+    display_timeline is_auth args events;
     EventPanel.paginate_all
       ~urlarg_page:"" ~urlarg_size:"" table_elts;
     ignore (Js_of_ocaml.Js.Unsafe.eval_string
