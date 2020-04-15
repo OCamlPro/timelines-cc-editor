@@ -45,10 +45,43 @@ let dispatch ~path ~args =
 
 let () = Dispatcher.dispatch := dispatch
 
+(* Controllers *)
+
+let login_action log pwd =
+  ignore @@
+  Request.login log pwd (function
+      | Some auth_data -> begin
+          Js_utils.log "Login OK!@.";
+          Ui_utils.auth_session log auth_data;
+          Js_utils.reload ();
+          finish ()
+        end
+      | None -> begin
+          Js_utils.alert "Wrong login/password@.";
+          finish ()
+        end)
+
+let logout_action args =
+  ignore @@
+  Request.logout
+    ~args
+    (fun _ ->
+       Ui_utils.logout_session ();
+       Js_utils.reload ();
+       finish ())
+
+let register_action log pwd =
+  ignore @@ Request.register_user log pwd (fun _ -> finish ())
+
 let main_page ~args =
   Request.timeline_data ~args (fun events ->
       Request.is_auth (fun is_auth ->
-          let page, init = Home.page is_auth args events in
+          let page, init =
+            Home.page
+              ~login_action
+              ~register_action
+              ~logout_action
+              is_auth args events in
           set_in_main_page [page];
           init ();
           finish ()
@@ -129,7 +162,7 @@ let admin_page_if_trustworthy ~args =
         Request.events ~args
           (fun events ->
              set_in_main_page
-               (Admin.events_list
+               (Admin.events_list args
                   ~export_action:(fun () ->
                       Request.events ~args (fun events ->
                           Request.title ~args (fun title ->
@@ -147,14 +180,7 @@ let admin_page_if_trustworthy ~args =
                                   (snd @@ List.split events) in
                               let str =  (title ^ ";%0A" ^ header ^ ";%0A" ^ events) in
                               Ui_utils.download "database.csv" str; finish ())))
-                  ~logout_action:(fun () ->
-                      ignore @@
-                      Request.logout
-                        ~args
-                        (fun _ ->
-                           Ui_utils.logout_session ();
-                           Js_utils.reload ();
-                           finish ()))
+                  ~logout_action
                   events); finish ())
       | Some i ->
         begin
@@ -184,21 +210,8 @@ let admin_page_if_trustworthy ~args =
 let admin_page_if_not_trustworthy () =
   set_in_main_page [
     Admin.admin_page_login
-      ~login_action:(fun log pwd ->
-          ignore @@ Request.login log pwd (function
-              | Some auth_data -> begin
-                  Js_utils.log "Login OK!@.";
-                  Ui_utils.auth_session log auth_data;
-                  Js_utils.reload ();
-                  finish ()
-                end
-              | None -> begin
-                  Js_utils.alert "Wrong login/password@.";
-                  finish ()
-                end)
-        )
-      ~register_action:(fun log pwd ->
-          ignore @@ Request.register_user log pwd (fun _ -> finish ()))
+      ~login_action
+      ~register_action
   ];
   finish ()
 
@@ -212,5 +225,6 @@ let admin_page ~args =
     )
 
 let () =
+  add_page ""              main_page;
   add_page Home.page_name  main_page;
   add_page Admin.page_name admin_page

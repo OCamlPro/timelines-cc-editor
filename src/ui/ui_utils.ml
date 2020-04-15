@@ -38,13 +38,22 @@ let placeholder
     ?(input_type= Other `Text)
     ?title
     ?(style="")
+    ?(newline=false)
     ~id
     ~name
     () : [> Html_types.div ] Js_of_ocaml_tyxml.Tyxml_js.Html.elt * (unit -> string option) =
   let to_form form =
     match title with
-      None -> form
-    | Some elt -> div ~a:[a_class [clg3]] [txt elt] :: form
+      None -> div form
+    | Some elt ->
+      if newline then
+        div [
+          (div ~a:[a_class [row]] [txt elt]);
+          (div ~a:[a_class [row]] form)]
+      else
+        div ~a:[a_class [row]] [
+          div ~a:[a_class [clg3]] [txt elt];
+          div ~a:[a_class [clg9]] form]
   in
   let row ?(a = []) = div ~a:(a @ [a_class [row]]) in
   match input_type with
@@ -93,8 +102,7 @@ let placeholder
                    a_input_type `Text;
                  ]) ()
             ]
-        in
-        row (to_form @@ [div ~a:[a_class [clg9]; a_id id] (form_list @ [other])])
+        in to_form @@ [div ~a:[a_id id] (form_list @ [other])]
       in
       let getter () =
         let form = Js_utils.find_component id in
@@ -128,7 +136,7 @@ let placeholder
         let a =
           let default =  [
             a_id id;
-            a_class (["placeholder"; clg9] @ classes);
+            a_class (["placeholder"] @ classes);
             a_value content;
             a_input_type `Checkbox;
             a_style style;
@@ -143,10 +151,7 @@ let placeholder
               a_readonly () :: default
             else default
           in default
-        in
-        row (
-          to_form [input ~a ()]
-        )
+        in to_form [input ~a ()]
       in
       let getter () =
         try
@@ -165,13 +170,13 @@ let placeholder
       let a =
         let default =
           [a_id id;
-           a_class (["placeholder"; clg9] @ classes);
+           a_class (["placeholder"] @ classes);
            a_style style;
           ] in
         if readonly then
           (a_readonly ()) :: default
         else default in
-      let html_elt = row (to_form [textarea ~a (txt content)]) in
+      let html_elt = to_form [textarea ~a (txt content)] in
       let getter =
         fun () ->
           match Manip.by_id id with
@@ -193,13 +198,13 @@ let placeholder
           if readonly then [a_readonly ()] else [] in
         min @ max @ readonly @ [
           a_id id;
-          a_class (["placeholder"; clg9] @ classes);
+          a_class (["placeholder"] @ classes);
           a_value content;
           a_input_type `Number;
           a_style style;
         ]
       in
-      let html_elt = row (to_form [input ~a ()]) in
+      let html_elt = to_form [input ~a ()] in
       let getter =
         fun () ->
           match Manip.by_id id with
@@ -211,18 +216,16 @@ let placeholder
       let readonly =
         if readonly then [a_readonly ()] else [] in
       let html_elt =
-        row (
-          to_form @@ [
-            input
-              ~a:(readonly @ [
-                  a_id id;
-                  a_class (["placeholder"; clg9] @ classes);
-                  a_value content;
-                  a_input_type t;
-                  a_style style;
-                ]) ()
-          ]
-        )
+        to_form @@ [
+          input
+            ~a:(readonly @ [
+                a_id id;
+                a_class (["placeholder"] @ classes);
+                a_value content;
+                a_input_type t;
+                a_style style;
+              ]) ()
+        ]
       in
       let getter =
         fun () ->

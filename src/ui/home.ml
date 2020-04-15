@@ -5,7 +5,7 @@ open Utils
 
 open Data_types
 
-let page_name = ""
+let page_name = "home"
 
 let add_button_to_event i event =
   let button = (* todo: not a string html element *)
@@ -211,11 +211,34 @@ let make_panel_lines events =
       )
       events
 
-let page is_auth args events =
+let page
+    ~(login_action : string -> string -> unit)
+    ~(logout_action : (string * string) list -> unit)
+    ~(register_action : string -> string -> unit)
+    is_auth args events =
   let page =
+    let admin_link =
+      if is_auth then
+        let user =
+          match Ui_utils.Session.get_value "email" with
+          | None -> ""
+          | Some name -> name in
+        div [
+          div [txt ("Hello " ^ user)];
+          div ~a:[a_class ["btn"; "btn-primary"];
+                  a_onclick (fun _ ->
+                      ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[]; true)
+                 ] [txt "Admin page"];
+          div ~a:[a_class ["btn"; "btn-primary"];
+                  a_onclick (fun _ -> logout_action args; true)
+                 ] [txt "Logout"]
+        ]
+      else
+        Admin.admin_page_login ~login_action ~register_action in
     div ~a:[a_class [row]] [
+      div ~a:[a_class [clg3]] [admin_link];
       div ~a:[a_class [clg3]] [form is_auth args];
-      div ~a:[a_class [clg9]] [EventPanel.make ~footer:true ()];
+      div ~a:[a_class [clg6]] [EventPanel.make ~footer:true ()];
     ]
   in
   let table_elts =
