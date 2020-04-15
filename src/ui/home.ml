@@ -101,7 +101,7 @@ let display_timeline is_auth args (events : (int * event) list) : unit =
         Ocp_js.Js._true |> ignore
     in ()
   end in ()
-let form is_auth args =
+let form is_auth args categories =
   let form_with_content title key input_type =
     let content = List.assoc_opt key args in
     Ui_utils.placeholder ~id:key ?content ~title ~name:key ~input_type ()
@@ -110,12 +110,21 @@ let form is_auth args =
   let end_date,   get_end_date   = form_with_content "To"   "end-date"   (Other `Date) in
   let user_view,  get_user_view =
     let test_user_view =
-      match Ui_utils.Session.get_value "user-view" with
-        None -> false
-      | Some _ -> true
+      match List.assoc_opt "confidential" args with
+      | Some "false" -> true
+      | _ -> false
     in
     form_with_content "User view" "user-view" (Checkbox test_user_view)
   in
+  let category_html, category_getters =
+    let actual_categories = Ui_utils.assoc_list "group" args in
+    List.split @@
+    List.map
+      (fun category ->
+         let checked = List.mem category actual_categories in
+         form_with_content category category (Checkbox checked)
+      )
+      categories in
   let button =
     let action _ =
       let args =
@@ -132,7 +141,18 @@ let form is_auth args =
           | Some "true" -> ["confidential", "false"]
           | Some "false" -> ["confidential", "true"]
           | _ -> [] in
-        start_date @ end_date @ confidential
+        let categories =
+          List.flatten @@
+          List.map2
+            (fun category get ->
+               match get () with
+               | Some "true" -> ["group", category]
+               | _ -> []
+            )
+            categories
+            category_getters
+        in
+        start_date @ end_date @ confidential @ categories
       in
       ignore @@ !Dispatcher.dispatch ~path:page_name ~args; true in
     div
@@ -143,6 +163,7 @@ let form is_auth args =
   in form (
     [start_date] @ [end_date] @
     (if is_auth then [user_view] else [])@
+    category_html @
     [button]
   )
 
@@ -215,7 +236,7 @@ let page
     ~(login_action : string -> string -> unit)
     ~(logout_action : (string * string) list -> unit)
     ~(register_action : string -> string -> unit)
-    is_auth args events =
+    is_auth args categories events =
   let page =
     let admin_link =
       if is_auth then
@@ -237,7 +258,7 @@ let page
         Admin.admin_page_login ~login_action ~register_action in
     div ~a:[a_class [row]] [
       div ~a:[a_class [clg3]] [admin_link];
-      div ~a:[a_class [clg3]] [form is_auth args];
+      div ~a:[a_class [clg3]] [form is_auth args categories];
       div ~a:[a_class [clg6]] [EventPanel.make ~footer:true ()];
     ]
   in

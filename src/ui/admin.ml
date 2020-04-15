@@ -331,7 +331,7 @@ let admin_page_login
              match get_login (), get_pwd () with
              | Some login, Some pwd ->
                login_action login pwd;
-               ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+               Js_utils.reload ();
                true
              | _ -> false
           )

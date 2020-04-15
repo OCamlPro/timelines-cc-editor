@@ -74,8 +74,7 @@ let timeline_data req () =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
   let end_date =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
-  let group =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "group"      req.req_params in
+  let groups = StringMap.find_opt "group" req.req_params in
   let min_ponderation =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
   let max_ponderation =
@@ -95,7 +94,7 @@ let timeline_data req () =
   Reader.timeline_data
     ?start_date
     ?end_date
-    ?group
+    ?groups
     ?min_ponderation
     ?max_ponderation
     confidential

@@ -134,15 +134,15 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       ?(end_date        = CalendarLib.Date.mardi_gras 3000)
       ?(min_ponderation = 0)
       ?(max_ponderation = 100)
-      ?group
+      ?(groups=[])
       auth
       () =
     let min_ponderation = Int32.of_int min_ponderation in
     let max_ponderation = Int32.of_int max_ponderation in
     with_dbh >>> fun dbh ->
     let req =
-      match group with
-        None -> begin
+      match groups with
+        [] -> begin
           PGSQL(dbh)
             "SELECT * FROM events_ WHERE \
              id_ > 0 AND \
@@ -150,11 +150,11 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
              AND ($auth OR NOT confidential_) \
              ORDER BY id_ DESC" end
-      | Some group ->
+      | _ ->
         PGSQL(dbh)
             "SELECT * FROM events_ WHERE \
              id_ > 0 AND \
-             group_ = $group AND \
+             group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
              AND ($auth OR NOT confidential_) \

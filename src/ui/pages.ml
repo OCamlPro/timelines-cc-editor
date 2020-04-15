@@ -76,15 +76,17 @@ let register_action log pwd =
 let main_page ~args =
   Request.timeline_data ~args (fun events ->
       Request.is_auth (fun is_auth ->
-          let page, init =
-            Home.page
-              ~login_action
-              ~register_action
-              ~logout_action
-              is_auth args events in
-          set_in_main_page [page];
-          init ();
-          finish ()
+          Request.categories (fun categories ->
+              let page, init =
+                Home.page
+                  ~login_action
+                  ~register_action
+                  ~logout_action
+                  is_auth args categories events in
+              set_in_main_page [page];
+              init ();
+              finish ()
+            )
         )
     )
 

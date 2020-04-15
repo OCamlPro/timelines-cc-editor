@@ -52,8 +52,8 @@ let placeholder
           (div ~a:[a_class [row]] form)]
       else
         div ~a:[a_class [row]] [
-          div ~a:[a_class [clg3]] [txt elt];
-          div ~a:[a_class [clg9]] form]
+          div ~a:[a_class [clg4]] [txt elt];
+          div ~a:[a_class [clg8]] form]
   in
   let row ?(a = []) = div ~a:(a @ [a_class [row]]) in
   match input_type with
@@ -139,7 +139,7 @@ let placeholder
             a_class (["placeholder"] @ classes);
             a_value content;
             a_input_type `Checkbox;
-            a_style style;
+            a_style (style ^ "margin-top:5%");
           ] in
           let default =
             if checked then
@@ -415,5 +415,15 @@ let assoc_add key elt l =
       if key = hd_key then
         (List.rev acc) @ ((hd_key, elt) :: tl)
       else loop (hd :: acc) tl
+  in
+  loop [] l
+
+let assoc_list key l =
+  let rec loop acc = function
+    | [] -> acc
+    | (hd_key, hd_elt) :: tl ->
+      if key = hd_key then
+        loop (hd_elt :: acc) tl
+      else loop acc tl
   in
   loop [] l
