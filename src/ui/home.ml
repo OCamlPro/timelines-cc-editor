@@ -10,12 +10,12 @@ let page_name = "home"
 let add_button_to_event i event =
   let button = (* todo: not a string html element *)
     Format.sprintf
-      "<a href='admin?action=edit&id=%i' class=\"btn btn-light row\"> Edit </a>"
+      "<div class=\"btn btn-light\" id=\"edit-%i\"> Edit </div>"
       i
   in
   let new_text =
     let text = event.text.text in
-    Format.asprintf "<div>%s</div>\n<div>%s</div>"
+    Format.asprintf "<div>%s</div>\n%s"
       text
       button
   in
@@ -256,10 +256,17 @@ let page
         ]
       else
         Admin.admin_page_login ~login_action ~register_action in
-    div ~a:[a_class [row]] [
-      div ~a:[a_class [clg3]] [admin_link];
-      div ~a:[a_class [clg3]] [form is_auth args categories];
-      div ~a:[a_class [clg6]] [EventPanel.make ~footer:true ()];
+    div [
+      div ~a:[a_class [row]] [
+        div ~a:[a_class [clg12];
+                a_id "timeline-embed";
+                a_style" height: 600px"][]
+      ];
+      div ~a:[a_class [row]] [
+        div ~a:[a_class [clg3]] [admin_link];
+        div ~a:[a_class [clg3]] [form is_auth args categories];
+        div ~a:[a_class [clg6]] [EventPanel.make ~footer:true ()];
+      ]
     ]
   in
   let table_elts =
