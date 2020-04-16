@@ -331,9 +331,10 @@ let admin_page_login
              match get_login (), get_pwd () with
              | Some login, Some pwd ->
                login_action login pwd;
-               Js_utils.reload ();
                true
-             | _ -> false
+             | _ ->
+               Js_utils.log "Login or password not found";
+               false
           )
       ] [txt "Login"] in
 
