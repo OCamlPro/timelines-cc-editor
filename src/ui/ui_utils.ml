@@ -394,14 +394,21 @@ let slide_changer slide_change =
   | [] -> Js_utils.log "Slide div has not been initialialized"; assert false
   | next :: _ -> next
 
+let click elt = (Js_utils.Manip.get_elt "click" elt)##click
+
 let slide_event slide_change i = (* Clicks i times on next or prev *)
   let toclick = slide_changer slide_change in
   let rec loop i =
     if i <> 0 then begin
-      (Js_utils.Manip.get_elt "click" toclick)##click;
+      click toclick;
       loop (i - 1)
     end
   in loop i
+
+let get_path () =
+  match Jsloc.url () with
+      Http h | Https h -> h.hu_path_string
+    | File _ -> ""
 
 let get_args () =
   match Jsloc.url () with
@@ -427,3 +434,89 @@ let assoc_list key l =
       else loop acc tl
   in
   loop [] l
+
+let clg = function
+  | 1  -> clg1
+  | 2  -> clg2
+  | 3  -> clg3
+  | 4  -> clg4
+  | 5  -> clg5
+  | 6  -> clg6
+  | 7  -> clg7
+  | 8  -> clg8
+  | 9  -> clg9
+  | 10 -> clg10
+  | 11 -> clg11
+  | 12 -> clg12
+  | _ -> raise (Invalid_argument "clg")
+
+let split_page id_current_page i =
+  match Manip.by_id id_current_page with
+  | None -> Js_utils.log "Page %s not found: aborting split" id_current_page
+  | Some page ->
+    let main_class = clg i in
+    let main_id = id_current_page ^ "-1" in
+    let split_class = clg (12 - i) in
+    let split_id = id_current_page ^ "-2" in
+    let children = Manip.children page in
+    let new_child = div ~a:[a_class [row]] [
+      div ~a:[a_class [main_class ]; a_id  main_id] children;
+      div ~a:[a_class [split_class]; a_id split_id] [];
+    ]
+    in
+    Manip.replaceChildren page [new_child]
+
+let get_main_from_splitted id_splitted =
+  Manip.by_id (id_splitted ^ "-1")
+
+let get_split_from_splitted id_splitted =
+  Manip.by_id (id_splitted ^ "-2")
+
+let unsplit_page id_splitted =
+  match Manip.by_id id_splitted with
+  | None -> Js_utils.log "Page %s not found: aborting unsplit" id_splitted
+  | Some page ->
+    let children = Manip.children page in
+    let row = Manip.children (List.hd children) in
+    let first_page_children = Manip.children (List.hd row) in
+    Manip.replaceChildren page first_page_children
+
+let split_button
+    id
+    i
+    split_button_text
+    unsplit_button_text
+    ~(action_at_split : unit -> bool)
+    ~(action_at_unsplit : unit -> bool) =
+  let split_button_id = id ^ "-split" in
+  let unsplit_button_id = id ^ "-unsplit" in
+  let split_button =
+    div
+      ~a:[
+        a_class ["btn"; "btn-primary"];
+        a_id split_button_id;
+        a_onclick (fun _ ->
+            split_page id i;
+            show (find_component unsplit_button_id);
+            hide (find_component split_button_id);
+            action_at_split ())
+      ] [txt split_button_text] in
+  let unsplit_button =
+    div
+      ~a:[
+        a_class ["btn"; "btn-primary"];
+        a_id unsplit_button_id;
+        a_onclick (fun _ ->
+            unsplit_page id;
+            hide (find_component unsplit_button_id);
+            show (find_component split_button_id);
+            action_at_unsplit ());
+        a_style "display: none"
+      ] [txt unsplit_button_text] in
+  split_button, unsplit_button
+
+let simple_button action t =
+  div
+    ~a:[a_class ["btn"; "btn-primary"];
+        a_onclick (fun _ -> action (); true)]
+    [txt t]

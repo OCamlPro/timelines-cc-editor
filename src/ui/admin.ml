@@ -18,10 +18,15 @@ let confidential i = "confid-"      ^ i
 let ponderation  i = "ponderation-" ^ i
 let valid        i = "button-"      ^ i
 
+let back_button () =
+  Ui_utils.simple_button
+    (fun () -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
+    "Back"
+
 let event_form
     ?(readonly = false)
-    ?(back_button = true)
-    ~update_action ~remove_action (e: event) (id_line: int) categories =
+    (e: event)
+    (id_line: int) categories =
   let idl =
     let num = string_of_int id_line in
     if readonly then
@@ -154,60 +159,24 @@ let event_form
       ~typ2:None
 
   in
-  let update_button =
-    match update_action with
-    | None -> []
-    | Some f -> [
-      div
-        ~a:[
-          a_class ["btn";"btn-primary"; row];
-          a_onclick
-            (fun _ ->
-               f (get_event ());
-               true
-            )
-        ] [txt "Update timeline"];
-      br ()
-    ]
-  in
-  let remove_button =
-    match remove_action with
-    | None -> []
-    | Some f -> [
-        div
-          ~a:[
-            a_class ["btn";"btn-primary"; row];
-            a_onclick
-              (fun _ ->
-                 f id_line;
-                 true
-              )
-          ] [txt "Remove element"];
-        br ()
+  let html =
+    form
+      ~a:[
+        a_id ("line-" ^ idl);
+        a_class ["line"];
+      ] (
+      [
+        start_date;
+        end_date;
+        media;
+        headline;
+        group;
+        text;
+        ponderation;
+        confidential;
       ]
-  in
-  let back_button =
-    if back_button then [
-      Ui_utils.a_link ~path:"admin" ~classes:["btn"; "btn-primary"; row] [txt "Back"];
-      br ();
-    ]
-    else [] in
-  form
-    ~a:[
-      a_id ("line-" ^ idl);
-      a_class ["line"];
-    ] (
-    [
-      start_date;
-      end_date;
-      media;
-      headline;
-      group;
-      text;
-      ponderation;
-      confidential;
-    ] @ update_button @ remove_button @ back_button
-  )
+    ) in
+  html, get_event
 
 let empty_event_form id action =
   let empty_event = {
@@ -261,7 +230,10 @@ let events_list args ~export_action ~logout_action events =
   (div ~a:[a_class [row]] [add_link; logout; export; back_to_home]) ::
   List.map event_short_row events
 
-let add_new_event_form action = empty_event_form 0 action
+let add_new_event_form categories =
+  empty_event_form
+    0
+    categories
 
 let compare id old_event new_event categories ~add_action ~update_action ~remove_action =
   let prefix, old_event, new_event =
@@ -271,26 +243,32 @@ let compare id old_event new_event categories ~add_action ~update_action ~remove
         txt "The event has been modified while you were editing it. \
              Please check for conflicts before resubmitting" in
       let old_event = [
-        event_form ~readonly:true ~update_action:None ~remove_action:None ~back_button:false
-          event id categories
+        fst @@ event_form ~readonly:true event id categories
       ] in
-      let new_event = [
-        event_form
-          ~update_action:(Some (update_action event))
-          ~remove_action:(Some remove_action)
-          new_event id categories
-      ] in prefix, old_event, new_event
+      let new_event =
+        let form, get_new_event = event_form new_event id categories in
+        let update_button =
+          Ui_utils.simple_button
+            (fun () -> update_action id event categories (get_new_event ()))
+            "Update event"
+        in [
+          form;
+          update_button;
+          back_button ()
+        ]
+      in prefix, old_event, new_event
     | None -> (* The event has been deleted *)
       let prefix =
         txt "The event has been modified while you were editing it. \
              Chech again your event before resubmitting it." in
       let old_event = [] in
-      let new_event = [
-        event_form
-          ~update_action:(Some add_action)
-          ~remove_action:None
-          new_event id categories
-      ] in
+      let new_event =
+        let form, get_new_event = event_form new_event id categories in
+        let add_button =
+          Ui_utils.simple_button
+            (fun () -> add_action (get_new_event ()))
+            "Add new event"
+        in [form; add_button; back_button ()] in
       prefix, old_event, new_event
   in
   div [prefix;

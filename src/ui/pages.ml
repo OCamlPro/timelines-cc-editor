@@ -73,6 +73,17 @@ let logout_action args =
 let register_action log pwd =
   ignore @@ Request.register_user log pwd (fun _ -> finish ())
 
+let add_action event =
+  Js_utils.log "Adding event %a" Utils.pp_event event;
+  let args = Ui_utils.get_args () in
+  ignore @@
+  Request.add_event ~args
+    event
+    (function
+      | Ok () -> dispatch ~path:"" ~args
+      | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
+    )
+
 let main_page ~args =
   Request.timeline_data ~args (fun events ->
       Request.is_auth (fun is_auth ->
@@ -82,6 +93,7 @@ let main_page ~args =
                   ~login_action
                   ~register_action
                   ~logout_action
+                  ~add_action
                   is_auth args categories events in
               set_in_main_page [page];
               init ();
@@ -91,18 +103,6 @@ let main_page ~args =
     )
 
 let admin_page_if_trustworthy ~args =
-  let add_action =
-    fun event ->
-      Js_utils.log "Adding event %a" Utils.pp_event event;
-      ignore @@
-      Request.add_event ~args
-        event
-        (function
-          | Ok () -> dispatch ~path:"" ~args
-          | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
-        );
-      ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
-  in
   let remove_action i =
     let c = Js_utils.confirm "Are you sure you want to remove this event ? This is irreversible." in
     if c then
@@ -141,7 +141,7 @@ let admin_page_if_trustworthy ~args =
               new_event
               categories
               ~add_action
-              ~update_action:(fun e -> update_action i e categories)
+              ~update_action
               ~remove_action
           ];
           finish ()
@@ -150,11 +150,15 @@ let admin_page_if_trustworthy ~args =
   match List.assoc_opt "action" args with
   | Some "add" ->
     Request.categories (fun categories ->
-        set_in_main_page [
-          Admin.add_new_event_form
-            categories
-            ~update_action:(Some add_action)
-            ~remove_action:None];
+        let form, get_event =
+          Admin.add_new_event_form categories in
+        let add_button =
+          Ui_utils.simple_button
+            (fun () -> add_action (get_event ()))
+            "Add new event"
+        in
+        let back = Admin.back_button () in
+        set_in_main_page [form; add_button; back];
         finish ()
       )
   | None | Some "edit" ->
@@ -190,15 +194,24 @@ let admin_page_if_trustworthy ~args =
             let i = int_of_string i in
             Request.categories (fun categories ->
                 Request.event ~args i (fun old_event ->
-                    let form =
+                    let form, get_event =
                       Admin.event_form
                         old_event
                         i
                         categories
-                        ~update_action:(Some (update_action i old_event categories))
-                        ~remove_action:(Some remove_action)
                     in
-                    set_in_main_page [form];
+                    let edit_button =
+                      Ui_utils.simple_button
+                        (fun () -> update_action i old_event categories (get_event ()))
+                        "Edit event"
+                    in
+                    let remove_button =
+                      Ui_utils.simple_button
+                        (fun () -> remove_action i)
+                        "Remove event"
+                    in
+                    let back = Admin.back_button () in
+                    set_in_main_page [form; edit_button; remove_button; back];
                     finish ())
               )
           with

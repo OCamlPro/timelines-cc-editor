@@ -7,10 +7,15 @@ open Data_types
 
 let page_name = "home"
 
+let back_button () =
+  Ui_utils.simple_button
+    (fun () -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
+    "Back"
+
 let add_button_to_event i event =
   let button = (* todo: not a string html element *)
     Format.sprintf
-      "<div class=\"btn btn-light\" id=\"edit-%i\"> Edit </div>"
+      "<a href='admin?action=edit&id=%i' class=\"btn btn-light row\"> Edit </a>"
       i
   in
   let new_text =
@@ -236,36 +241,57 @@ let page
     ~(login_action : string -> string -> unit)
     ~(logout_action : (string * string) list -> unit)
     ~(register_action : string -> string -> unit)
+    ~(add_action : event -> unit)
     is_auth args categories events =
-  let page =
-    let admin_link =
-      if is_auth then
-        let user =
-          match Ui_utils.Session.get_value "email" with
-          | None -> ""
-          | Some name -> name in
-        div [
-          div [txt ("Hello " ^ user)];
-          div ~a:[a_class ["btn"; "btn-primary"];
-                  a_onclick (fun _ ->
-                      ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[]; true)
-                 ] [txt "Admin page"];
-          div ~a:[a_class ["btn"; "btn-primary"];
-                  a_onclick (fun _ -> logout_action args; true)
-                 ] [txt "Logout"]
-        ]
-      else
-        Admin.admin_page_login ~login_action ~register_action in
+  let add_button, back_button =
+    Ui_utils.split_button "timeline-page" 8 "Add new event" "Cancel"
+      ~action_at_split:(fun () ->
+          match Ui_utils.get_split_from_splitted "timeline-page" with
+          | None -> false
+          | Some split ->
+            let form, get_event =
+              Admin.add_new_event_form categories in
+            let add_button =
+              Ui_utils.simple_button
+                (fun () -> add_action (get_event ()))
+                "Add new event" in
+            let split_content =
+              [form; add_button; back_button ()] in
+            Manip.replaceChildren split split_content; true)
+      ~action_at_unsplit:(fun () -> true)
+  in
+  let admin_link =
+    if is_auth then
+      let user =
+        match Ui_utils.Session.get_value "email" with
+        | None -> ""
+        | Some name -> name in
+      div [
+        div [txt ("Hello " ^ user)];
+        div ~a:[a_class ["btn"; "btn-primary"];
+                a_onclick (fun _ ->
+                    ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[]; true)
+               ] [txt "Admin page"];
+        div ~a:[a_class ["btn"; "btn-primary"];
+                a_onclick (fun _ -> logout_action args; true)
+               ] [txt "Logout"];
+        add_button; back_button
+      ]
+    else
+      Admin.admin_page_login ~login_action ~register_action in
+  let default_page =
     div [
-      div ~a:[a_class [row]] [
-        div ~a:[a_class [clg12];
-                a_id "timeline-embed";
-                a_style" height: 600px"][]
-      ];
-      div ~a:[a_class [row]] [
-        div ~a:[a_class [clg3]] [admin_link];
-        div ~a:[a_class [clg3]] [form is_auth args categories];
-        div ~a:[a_class [clg6]] [EventPanel.make ~footer:true ()];
+      div ~a:[a_id "timeline-page"][
+        div ~a:[a_class [row]] [
+          div ~a:[a_class [clg12];
+                  a_id "timeline-embed";
+                  a_style" height: 600px"][]
+        ];
+        div ~a:[a_class [row]] [
+          div ~a:[a_class [clg3]] [admin_link];
+          div ~a:[a_class [clg3]] [form is_auth args categories];
+          div ~a:[a_class [clg6]] [EventPanel.make ~footer:true ()];
+        ];
       ]
     ]
   in
@@ -280,4 +306,4 @@ let page
               "jQuery('[data-toggle=\"popover\"]').popover();")
     (* Initalize table *)
   in
-  page, init
+  default_page, init
