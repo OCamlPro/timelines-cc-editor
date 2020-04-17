@@ -210,10 +210,11 @@ let event_short_row (i, event) =
 
 let events_list args ~export_action ~logout_action events =
   let add_link =
-      Ui_utils.a_link
-        ~path:"admin"
-        ~args:["action", "add"]
-        ~classes:["btn"; "btn-primary"] [txt "Create event"] in
+    div ~a:[
+      a_class ["btn"; "btn-primary"];
+      a_onclick (fun _ ->
+          ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:["action", "add"]; true)
+    ] [txt "Create event"] in
   let logout =
     div ~a:[a_class ["btn"; "btn-primary"];
             a_onclick (fun _ -> logout_action args; true (*Ui_utils.logout_session (); Js_utils.reload (); true *))]

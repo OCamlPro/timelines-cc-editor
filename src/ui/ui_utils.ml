@@ -394,6 +394,11 @@ let slide_changer slide_change =
   | [] -> Js_utils.log "Slide div has not been initialialized"; assert false
   | next :: _ -> next
 
+let slide_reinit () =
+  match Manip.by_class "tl-icon-goback" with
+  | [] -> Js_utils.log "Reinit div has not been initialialized"; assert false
+  | elt :: _ -> elt
+
 let click elt = (Js_utils.Manip.get_elt "click" elt)##click
 
 let slide_event slide_change i = (* Clicks i times on next or prev *)
@@ -424,6 +429,15 @@ let assoc_add key elt l =
       else loop (hd :: acc) tl
   in
   loop [] l
+
+let assoc_remove key l =
+  let rec loop acc = function
+    | [] -> List.rev acc
+    | ((hd_key,_) as hd) :: tl ->
+      if hd_key = key then
+        loop acc tl
+      else loop (hd :: acc) tl
+  in loop [] l
 
 let assoc_list key l =
   let rec loop acc = function

@@ -34,16 +34,29 @@ let process_events is_auth events =
     )
     events
 
-let id_current_event () =
+let id_current_event (events : (int * event) list) =
   let args = Ui_utils.get_args () in
   match List.assoc_opt "id" args with
-  | None -> 0
-  | Some i -> try int_of_string i with _ -> 0
+  | None -> begin
+      try
+        let id = fst @@ List.hd @@ List.rev events in
+        Js_utils.log "Id of last event: %i" id;
+        id
+      with
+        _ -> 0
+    end
+  | Some i -> try
+      let res = int_of_string i in
+      Js_utils.log "Current event id: %i" res;
+      res
+    with _ ->
+      Js_utils.log "Error while searching for id, writing 0 instead";
+      0
 
 let display_timeline is_auth args (events : (int * event) list) : unit =
-  let events = process_events is_auth events in
+  let events' = process_events is_auth events in
   let cmd =
-    let json = Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events in
+    let json = Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events' in
     let yoj = Json_repr.to_yojson json in
     Format.asprintf
       "window.timeline = new TL.Timeline('timeline-embed',{\"events\":%s})"
@@ -51,61 +64,7 @@ let display_timeline is_auth args (events : (int * event) list) : unit =
   Js_utils.log "Cmd = %s" cmd;
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
   (* Now, adding links *)
-  let () =
-    let future_links = Manip.by_class "tl-timegroup-message" in
-    List.iter
-      (fun future_link ->
-         let children = Manip.children future_link in
-         match children with
-         | [] -> ()
-         | elt :: _ -> (* There should only be 1 element *)
-           let node = Ocp_js.Html.toelt elt in
-           match Ocp_js.Js.Opt.to_option node##.nodeValue with
-           | None -> ()
-           | Some name ->
-             let name = Ocp_js.Js.to_string name in
-             let link = Ui_utils.a_link ~args:["group", name] ~path:page_name [txt name] in
-             Manip.replaceChildren future_link [link]
-      )
-      future_links
-  in
-  (* Going on the correct event *)
-  let () =
-    let goto_id =
-      match List.assoc_opt "id" args with
-      | None -> 0
-      | Some i -> try int_of_string i with _ -> 0
-    in
-    Ui_utils.slide_event Next goto_id in
-  (* Adding page change in URL *)
-  let () = begin
-    let event_action add_or_sub =
-      let current_id = id_current_event () in
-      let new_id = add_or_sub current_id 1 in
-      let new_args = Ui_utils.assoc_add "id" (string_of_int new_id) args in
-      let new_url = Ui_utils.url page_name new_args in
-      Ui_utils.push new_url
-    in
-    let () =
-      let next = Ui_utils.slide_changer Next in
-      Ocp_js.Dom.addEventListener
-        (Manip.get_elt "click" next)
-        (Ocp_js.Dom.Event.make "click")
-        (Ocp_js.Dom.handler (fun e ->
-             event_action (+);
-             Ocp_js.Js._true))
-        Ocp_js.Js._true |> ignore in
-    let () =
-      let prev = Ui_utils.slide_changer Prev in
-      Ocp_js.Dom.addEventListener
-        (Manip.get_elt "click" prev)
-        (Ocp_js.Dom.Event.make "click")
-        (Ocp_js.Dom.handler (fun e ->
-             event_action (-);
-             Ocp_js.Js._true))
-        Ocp_js.Js._true |> ignore
-    in ()
-  end in ()
+ ()
 let form is_auth args categories =
   let form_with_content title key input_type =
     let content = List.assoc_opt key args in
@@ -186,49 +145,16 @@ module EventPanel = Panel.MakePageTable(
   end
   )
 
-let make_panel_lines events =
-  let events =
-    List.sort
-      (fun
-        {start_date = s1; end_date = e1; _}
-        {start_date = s2; end_date = e2; _} ->
-        let cmp = CalendarLib.Date.compare s2 s1 in
-        if cmp = 0 then
-          match e1, e2 with
-          | None, None -> 0
-          | Some _, None -> 1
-          | None, Some _ -> -1
-          | Some d1, Some d2 -> CalendarLib.Date.compare d2 d1
-        else cmp
-      )
-      events
-  in
-  let events = (* Requires a second reordering *)
-    let rec loop all_acc local_start_date local_end_date local_acc = function
-      | [] -> (local_acc :: all_acc) |> List.rev |> List.flatten
-      | hd :: tl -> begin
-          if (Some hd.start_date) = local_start_date && hd.end_date = local_end_date then
-            loop all_acc local_start_date local_end_date (hd :: local_acc) tl
-          else
-            loop (local_acc :: all_acc) (Some hd.start_date) hd.end_date [hd] tl
-        end
-    in
-    loop [] None None [] events
-  in
+let make_panel_lines (events : (int * event) list) =
   match events with
   | [] -> [ tr [ td ~a: [ a_colspan 9 ] [ txt "No event" ]]]
   | _ ->
-    let size = List.length events in
-    List.mapi
-      (fun i {start_date; text = {headline; _}} ->
-         let id = size - i in
+    List.map
+      (fun (id,{start_date; text = {headline; _}}) ->
          let onclick () =
-           let current_id = id_current_event () in
-           let diff = id - current_id in
-           if diff < 0 then
-             Ui_utils.slide_event Prev ((-1) * diff)
-           else
-             Ui_utils.slide_event Next diff
+           let args = Ui_utils.get_args () in
+           let new_args = Ui_utils.assoc_add "id" (string_of_int id) args in
+           ignore @@ !Dispatcher.dispatch ~path:page_name ~args:new_args
          in
          tr ~a:[a_onclick (fun _ -> onclick (); true); a_class ["clickable"]] [
            td [txt @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") start_date];
@@ -242,7 +168,36 @@ let page
     ~(logout_action : (string * string) list -> unit)
     ~(register_action : string -> string -> unit)
     ~(add_action : event -> unit)
-    is_auth args categories events =
+    is_auth args categories (events : (int * event) list) =
+  let events =
+    List.sort
+      (fun
+        (_,{start_date = s1; end_date = e1; _})
+        (_,{start_date = s2; end_date = e2; _}) ->
+        let cmp = CalendarLib.Date.compare s2 s1 in
+        if cmp = 0 then
+          match e1, e2 with
+          | None, None -> 0
+          | Some _, None -> 1
+          | None, Some _ -> -1
+          | Some d1, Some d2 -> CalendarLib.Date.compare d2 d1
+        else cmp
+      )
+      events
+  in
+  let events_in_timeline_order =
+    (* Requires a second reordering to use for the table and not for the timeline itself. *)
+    let rec loop all_acc local_start_date local_end_date local_acc = function
+      | [] -> (local_acc :: all_acc) |> List.rev |> List.flatten
+      | (i,hd) :: tl -> begin
+          if (Some hd.start_date) = local_start_date && hd.end_date = local_end_date then
+            loop all_acc local_start_date local_end_date ((i,hd) :: local_acc) tl
+          else
+            loop (local_acc :: all_acc) (Some hd.start_date) hd.end_date [i,hd] tl
+        end
+    in
+    loop [] None None [] events
+  in
   let add_button, back_button =
     Ui_utils.split_button "timeline-page" 8 "Add new event" "Cancel"
       ~action_at_split:(fun () ->
@@ -253,7 +208,10 @@ let page
               Admin.add_new_event_form categories in
             let add_button =
               Ui_utils.simple_button
-                (fun () -> add_action (get_event ()))
+                (fun () ->
+                   add_action (get_event ());
+                   ignore @@ !Dispatcher.dispatch ~path:page_name ~args
+                )
                 "Add new event" in
             let split_content =
               [form; add_button; back_button ()] in
@@ -296,10 +254,125 @@ let page
     ]
   in
   let table_elts =
-    let events = snd @@ List.split events in
-    make_panel_lines events |> Array.of_list in
+    make_panel_lines events_in_timeline_order |> Array.of_list in
   let init () =
     display_timeline is_auth args events;
+    (* Now, adding additional events to timeline links. *)
+    let () =
+      let future_links = Manip.by_class "tl-timegroup-message" in
+      List.iter
+        (fun future_link ->
+           let children = Manip.children future_link in
+           match children with
+           | [] -> ()
+           | elt :: _ -> (* There should only be 1 element *)
+             let node = Ocp_js.Html.toelt elt in
+             match Ocp_js.Js.Opt.to_option node##.nodeValue with
+             | None -> ()
+             | Some name ->
+               let name = Ocp_js.Js.to_string name in
+               let link = Ui_utils.a_link ~args:["group", name] ~path:page_name [txt name] in
+               Manip.replaceChildren future_link [link]
+        )
+        future_links
+    in
+    (* Going on the correct event *)
+    let () =
+      let goto_id =
+        match List.assoc_opt "id" args with
+        | None -> 0
+        | Some i -> try int_of_string i with _ -> 0
+      in
+      let id_at_pos =
+        let rec loop cpt = function
+          | [] -> 0
+          | (hd,_) :: tl ->
+            if hd = goto_id then
+              cpt
+            else
+              loop (cpt - 1) tl in
+        loop (List.length events_in_timeline_order - 1) events_in_timeline_order
+      in
+      Js_utils.log "To go to next, %i steps are required" id_at_pos;
+      Ui_utils.slide_event Next id_at_pos in
+    (* Adding page change in URL *)
+    let prev_event id events =
+      let rec loop = function
+        | [] -> assert false
+        | [_] -> Js_utils.log "This is the last event"; None
+        | (i,_) :: (((nxt,_) :: _) as tl) ->
+          if i = id then begin
+            Some nxt
+          end else begin
+            loop tl
+          end
+      in loop events in
+    let next_event id events = prev_event id (List.rev events) in
+    let () = begin
+      let push_next () =
+        let current_id = id_current_event events_in_timeline_order in
+        match next_event current_id events_in_timeline_order with
+        | None -> Js_utils.log "No next event"
+        | Some new_id ->
+          let new_args = Ui_utils.assoc_add "id" (string_of_int new_id) args in
+          let new_url = Ui_utils.url page_name new_args in
+          Ui_utils.push new_url in
+      let push_prev () =
+        let current_id = id_current_event events_in_timeline_order in
+        match prev_event current_id events_in_timeline_order with
+        | None -> Js_utils.log "No prev event"
+        | Some new_id ->
+          let new_args = Ui_utils.assoc_add "id" (string_of_int new_id) args in
+          let new_url = Ui_utils.url page_name new_args in
+          Ui_utils.push new_url
+      in
+      let () =
+        let next = Ui_utils.slide_changer Next in
+        Ocp_js.Dom.addEventListener
+          (Manip.get_elt "click" next)
+          (Ocp_js.Dom.Event.make "click")
+          (Ocp_js.Dom.handler (fun _ ->
+               push_next ();
+               Ocp_js.Js._true))
+          Ocp_js.Js._true |> ignore in
+      let () =
+        let prev = Ui_utils.slide_changer Prev in
+        Ocp_js.Dom.addEventListener
+          (Manip.get_elt "click" prev)
+          (Ocp_js.Dom.Event.make "click")
+          (Ocp_js.Dom.handler (fun e ->
+               push_prev ();
+               Ocp_js.Js._true))
+          Ocp_js.Js._true |> ignore in
+      let () =
+        let reinit = Ui_utils.slide_reinit () in
+        Ocp_js.Dom.addEventListener
+          (Manip.get_elt "click" reinit)
+          (Ocp_js.Dom.Event.make "click")
+          (Ocp_js.Dom.handler (fun e ->
+               ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.assoc_remove "id" args);
+               Ocp_js.Js._true))
+          Ocp_js.Js._true |> ignore in
+      let () = (* Adding links to timeline lower part *)
+        let lower_links = List.rev @@ Manip.by_class "tl-timemarker" in
+        try
+          List.iter2
+            (fun (i, _) elt ->
+               Ocp_js.Dom.addEventListener
+                 (Manip.get_elt "click" elt)
+                 (Ocp_js.Dom.Event.make "click")
+                 (Ocp_js.Dom.handler (fun e ->
+                      let url =
+                        Ui_utils.url page_name (Ui_utils.assoc_add "id" (string_of_int i) args) in
+                      Ui_utils.push url;
+                      Ocp_js.Js._true))
+                 Ocp_js.Js._true |> ignore
+            )
+            events_in_timeline_order
+            lower_links
+        with Invalid_argument s -> Js_utils.log "Error in lower part listeners: %s" s
+      in ()
+    end in
     EventPanel.paginate_all
       ~urlarg_page:"" ~urlarg_size:"" table_elts;
     ignore (Js_of_ocaml.Js.Unsafe.eval_string
