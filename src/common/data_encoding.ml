@@ -125,11 +125,17 @@ let to_title line =
 let date_encoding =
   Json_encoding.(
     conv
-      (fun date -> (CalendarLib.Date.year date, CalendarLib.Date.(int_of_month @@ month date)))
-      (fun (year, month) -> Utils.to_date year (Some month) None)
-      (obj2
+      (fun date ->
+         (
+           CalendarLib.Date.year date,
+           CalendarLib.Date.(int_of_month @@ month date),
+           Some (CalendarLib.Date.(day_of_month date))
+         ))
+      (fun (year, month, day) -> Utils.to_date year (Some month) day)
+      (obj3
          (req "year" int)
          (req "month" int)
+         (opt "day" int)
       )
   )
 
