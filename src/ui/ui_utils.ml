@@ -420,7 +420,7 @@ let get_args () =
       Http h | Https h -> h.hu_arguments
     | File _ -> []
 
-let assoc_add key elt l =
+let assoc_add_unique key elt l =
   let rec loop acc = function
     | [] -> (key, elt) :: l
     | ((hd_key, hd_elt) as hd) :: tl ->
@@ -430,6 +430,8 @@ let assoc_add key elt l =
   in
   loop [] l
 
+let assoc_add key elt l = (key, elt) :: l
+
 let assoc_remove key l =
   let rec loop acc = function
     | [] -> List.rev acc
@@ -438,6 +440,16 @@ let assoc_remove key l =
         loop acc tl
       else loop (hd :: acc) tl
   in loop [] l
+
+let assoc_remove_with_binding key bnd l =
+  let rec loop acc = function
+    | [] -> List.rev acc
+    | ((hd_key,hd_bnd) as hd) :: tl ->
+      if hd_key = key && hd_bnd = bnd then
+        loop acc tl
+      else loop (hd :: acc) tl
+  in loop [] l
+  
 
 let assoc_list key l =
   let rec loop acc = function
@@ -534,3 +546,44 @@ let simple_button action t =
     ~a:[a_class ["btn"; "btn-primary"];
         a_onclick (fun _ -> action (); true)]
     [txt t]
+
+(* Returns a checkbox that performs action oncheck when the box is
+   selected / unselected and a function that returns the current status
+   of the box (Some true if selected, Some false if unselected, None if it does
+   not exist in the page*)
+let dynamic_checkbox
+    ~classes
+    ~checked
+    ~style
+    ~value
+    ~id
+    ~oncheck
+    ~onuncheck =
+  let ref_checked = ref checked in
+  let onclick =
+    fun _ ->
+      if !ref_checked then begin
+        ref_checked := false;
+        onuncheck ()
+      end else begin
+        ref_checked := true;
+        oncheck ()
+      end; true
+  in
+  let html_elt =
+    let a = [
+      a_id id;
+      a_class classes;
+      a_value value;
+      a_input_type `Checkbox;
+      a_onclick onclick;
+      a_style style
+    ] in
+    let a =
+      if checked then
+        a_checked () :: a
+      else a
+    in input ~a ()
+  in
+  let getter () = !ref_checked in
+  html_elt, getter

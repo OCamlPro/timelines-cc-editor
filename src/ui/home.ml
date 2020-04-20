@@ -65,6 +65,7 @@ let display_timeline is_auth args (events : (int * event) list) : unit =
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
   (* Now, adding links *)
  ()
+
 let form is_auth args categories =
   let form_with_content title key input_type =
     let content = List.assoc_opt key args in
@@ -78,7 +79,24 @@ let form is_auth args categories =
       | Some "false" -> true
       | _ -> false
     in
-    form_with_content "Public view" "user-view" (Checkbox test_user_view)
+    let checkbox, getter =
+      Ui_utils.dynamic_checkbox
+        ~classes:[]
+        ~style:"margin-top:5%"
+        ~checked:test_user_view
+        ~value:"user-view"
+        ~id:"user-view"
+        ~oncheck:(fun _ ->
+            let args = Ui_utils.assoc_add_unique "confidential" "false" args in
+            ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+        ~onuncheck:(fun _ ->
+            let args = Ui_utils.assoc_add_unique "confidential" "true" args in
+            ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+    in
+    div ~a:[a_class [row]][
+      div ~a:[a_class [clg3]] [txt "Public view"];
+      div ~a:[a_class [clg3]] [checkbox]
+    ], getter
   in
   let category_html, category_getters =
     let actual_categories = Ui_utils.assoc_list "group" args in
@@ -86,7 +104,24 @@ let form is_auth args categories =
     List.map
       (fun category ->
          let checked = List.mem category actual_categories in
-         form_with_content category category (Checkbox checked)
+         let checkbox, getter =
+           Ui_utils.dynamic_checkbox
+             ~classes:[]
+             ~style:"margin-top:7%"
+             ~checked
+             ~value:"user-view"
+             ~id:"user-view"
+             ~oncheck:(fun _ ->
+                 let args = Ui_utils.assoc_add "group" category args in
+                 ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+             ~onuncheck:(fun _ ->
+                 let args = Ui_utils.assoc_remove_with_binding "group" category args in
+                 ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+         in
+         div ~a:[a_class [row]][
+           div ~a:[a_class [clg3]] [txt category];
+           div ~a:[a_class [clg3]] [checkbox]
+         ], getter
       )
       categories in
   let button =
@@ -101,17 +136,16 @@ let form is_auth args categories =
           | None -> []
           | Some d -> ["end_date", d] in
         let confidential =
-          match get_user_view () with
-          | Some "true" -> ["confidential", "false"]
-          | Some "false" -> ["confidential", "true"]
-          | _ -> [] in
+          if get_user_view () then
+            ["confidential", "false"]
+          else
+            ["confidential", "true"]
+        in
         let categories =
           List.flatten @@
           List.map2
             (fun category get ->
-               match get () with
-               | Some "true" -> ["group", category]
-               | _ -> []
+               if get () then ["group", category] else []
             )
             categories
             category_getters
@@ -123,11 +157,13 @@ let form is_auth args categories =
       ~a:[
         a_class ["btn";"btn-primary"];
         a_onclick action
-      ] [txt "Filter"];
+      ] [txt "Filter by date"];
   in form (
-    [start_date] @ [end_date] @
     (if is_auth then [user_view] else [])@
+    [h4 [txt "Categories"]] @
     category_html @
+    [h4 [txt "Dates"]] @
+    [start_date] @ [end_date] @
     [button]
   )
 
@@ -153,7 +189,7 @@ let make_panel_lines (events : (int * event) list) =
       (fun (id,{start_date; text = {headline; _}}) ->
          let onclick () =
            let args = Ui_utils.get_args () in
-           let new_args = Ui_utils.assoc_add "id" (string_of_int id) args in
+           let new_args = Ui_utils.assoc_add_unique "id" (string_of_int id) args in
            ignore @@ !Dispatcher.dispatch ~path:page_name ~args:new_args
          in
          tr ~a:[a_onclick (fun _ -> onclick (); true); a_class ["clickable"]] [
@@ -314,7 +350,7 @@ let page
         match next_event current_id events_in_timeline_order with
         | None -> Js_utils.log "No next event"
         | Some new_id ->
-          let new_args = Ui_utils.assoc_add "id" (string_of_int new_id) args in
+          let new_args = Ui_utils.assoc_add_unique "id" (string_of_int new_id) args in
           let new_url = Ui_utils.url page_name new_args in
           Ui_utils.push new_url in
       let push_prev () =
@@ -322,7 +358,7 @@ let page
         match prev_event current_id events_in_timeline_order with
         | None -> Js_utils.log "No prev event"
         | Some new_id ->
-          let new_args = Ui_utils.assoc_add "id" (string_of_int new_id) args in
+          let new_args = Ui_utils.assoc_add_unique "id" (string_of_int new_id) args in
           let new_url = Ui_utils.url page_name new_args in
           Ui_utils.push new_url
       in
@@ -363,7 +399,7 @@ let page
                  (Ocp_js.Dom.Event.make "click")
                  (Ocp_js.Dom.handler (fun e ->
                       let url =
-                        Ui_utils.url page_name (Ui_utils.assoc_add "id" (string_of_int i) args) in
+                        Ui_utils.url page_name (Ui_utils.assoc_add_unique "id" (string_of_int i) args) in
                       Ui_utils.push url;
                       Ocp_js.Js._true))
                  Ocp_js.Js._true |> ignore
