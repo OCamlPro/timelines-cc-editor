@@ -78,7 +78,7 @@ let form is_auth args categories =
       | Some "false" -> true
       | _ -> false
     in
-    form_with_content "User view" "user-view" (Checkbox test_user_view)
+    form_with_content "Public view" "user-view" (Checkbox test_user_view)
   in
   let category_html, category_getters =
     let actual_categories = Ui_utils.assoc_list "group" args in

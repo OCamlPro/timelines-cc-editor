@@ -188,8 +188,7 @@ let admin_page_if_trustworthy ~args =
                               Ui_utils.download "database.csv" str; finish ())))
                   ~logout_action
                   events); finish ())
-      | Some i ->
-        begin
+      | Some i -> begin
           try
             let i = int_of_string i in
             Request.categories (fun categories ->
@@ -203,7 +202,7 @@ let admin_page_if_trustworthy ~args =
                     let edit_button =
                       Ui_utils.simple_button
                         (fun () -> update_action i old_event categories (get_event ()))
-                        "Edit event"
+                        "Update event"
                     in
                     let remove_button =
                       Ui_utils.simple_button

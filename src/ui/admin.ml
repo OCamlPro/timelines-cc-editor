@@ -180,7 +180,7 @@ let event_form
 
 let empty_event_form id action =
   let empty_event = {
-    start_date = Utils.to_date 1 None None;
+    start_date = CalendarLib.Date.today ();
     end_date = None;
     text = {text = ""; headline = ""};
     media = None;
