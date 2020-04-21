@@ -208,7 +208,7 @@ let event_short_row (i, event) =
     div ~a:[a_class [clg2]] [edit_link]
   ]
 
-let events_list args ~export_action ~logout_action events =
+let events_list args events =
   let add_link =
     div ~a:[
       a_class ["btn"; "btn-primary"];
@@ -217,11 +217,11 @@ let events_list args ~export_action ~logout_action events =
     ] [txt "Create event"] in
   let logout =
     div ~a:[a_class ["btn"; "btn-primary"];
-            a_onclick (fun _ -> logout_action args; true (*Ui_utils.logout_session (); Js_utils.reload (); true *))]
+            a_onclick (fun _ -> Controller.logout (); true (*Ui_utils.logout_session (); Js_utils.reload (); true *))]
       [txt "Logout"] in
   let export =
     div ~a:[a_class ["btn"; "btn-primary"];
-            a_onclick (fun _ -> export_action (); true)]
+            a_onclick (fun _ -> Controller.export_database args; true)]
       [txt "Export database"] in
   let back_to_home =
     div ~a:[a_class ["btn"; "btn-primary"];
@@ -236,7 +236,7 @@ let add_new_event_form categories =
     0
     categories
 
-let compare id old_event new_event categories ~add_action ~update_action ~remove_action =
+let rec compare id old_event new_event categories =
   let prefix, old_event, new_event =
     match old_event with
     | Some event -> (* The event has been modified *)
@@ -248,9 +248,11 @@ let compare id old_event new_event categories ~add_action ~update_action ~remove
       ] in
       let new_event =
         let form, get_new_event = event_form new_event id categories in
+        let args = Ui_utils.get_args () in
         let update_button =
           Ui_utils.simple_button
-            (fun () -> update_action id event categories (get_new_event ()))
+            (fun () ->
+               Controller.update_action compare args id event categories (get_new_event ()))
             "Update event"
         in [
           form;
@@ -267,7 +269,7 @@ let compare id old_event new_event categories ~add_action ~update_action ~remove
         let form, get_new_event = event_form new_event id categories in
         let add_button =
           Ui_utils.simple_button
-            (fun () -> add_action (get_new_event ()))
+            (fun () -> Controller.add_action (get_new_event ()))
             "Add new event"
         in [form; add_button; back_button ()] in
       prefix, old_event, new_event
@@ -281,9 +283,7 @@ let compare id old_event new_event categories ~add_action ~update_action ~remove
 
 (* Login utilities *)
 
-let admin_page_login
-    ~(login_action : string -> string -> unit)
-    ~(register_action : string -> string -> unit) =
+let admin_page_login () =
   let login, get_login =
     placeholder
       ~id:"login"
@@ -309,7 +309,7 @@ let admin_page_login
           (fun _ ->
              match get_login (), get_pwd () with
              | Some login, Some pwd ->
-               login_action login pwd;
+               Controller.login login pwd;
                true
              | _ ->
                Js_utils.log "Login or password not found";
@@ -325,9 +325,7 @@ let admin_page_login
           (fun _ ->
              match get_login (), get_pwd () with
              | Some login, Some pwd ->
-               Js_utils.log "Registering account@.";
-               register_action login pwd;
-               ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+               Controller.register_account login pwd;
                true
              | _ ->
                Js_utils.log "Missing data@.";

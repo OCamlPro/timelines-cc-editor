@@ -49,11 +49,6 @@ let main_page ~args =
           Request.categories (fun categories ->
               let page, init =
                 Home.page
-                  ~login_action
-                  ~register_action
-                  ~logout_action
-                  ~add_action
-                  ~update_action:(update_action Admin.compare args)
                   is_auth args categories events in
               set_in_main_page [page];
               init ();
@@ -84,26 +79,7 @@ let admin_page_if_trustworthy ~args =
         Request.events ~args
           (fun events ->
              set_in_main_page
-               (Admin.events_list args
-                  ~export_action:(fun () ->
-                      Request.events ~args (fun events ->
-                          Request.title ~args (fun title ->
-                              let sep = "%2C" in
-                              let title =
-                                match title with
-                                | None -> sep
-                                | Some title -> Data_encoding.title_to_csv ~sep title in
-                              let header = Data_encoding.header ~sep in
-                              let events =
-                                List.fold_left
-                                  (fun acc event ->
-                                     acc ^ Data_encoding.event_to_csv ~sep event ^ ";%0A")
-                                  ""
-                                  (snd @@ List.split events) in
-                              let str =  (title ^ ";%0A" ^ header ^ ";%0A" ^ events) in
-                              Ui_utils.download "database.csv" str; finish ())))
-                  ~logout_action
-                  events); finish ())
+               (Admin.events_list args events); finish ())
       | Some i -> begin
           try
             let i = int_of_string i in
@@ -117,7 +93,14 @@ let admin_page_if_trustworthy ~args =
                     in
                     let edit_button =
                       Ui_utils.simple_button
-                        (fun () -> update_action Admin.compare args i old_event categories (get_event ()))
+                        (fun () ->
+                           update_action
+                             Admin.compare
+                             args
+                             i
+                             old_event
+                             categories
+                             (get_event ()))
                         "Update event"
                     in
                     let remove_button =
@@ -139,9 +122,7 @@ let admin_page_if_trustworthy ~args =
 
 let admin_page_if_not_trustworthy () =
   set_in_main_page [
-    Admin.admin_page_login
-      ~login_action
-      ~register_action
+    Admin.admin_page_login ()
   ];
   finish ()
 

@@ -12,7 +12,7 @@ let back_button () =
     (fun () -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
     "Back"
 
-let edit_button ~update_action args (events : (int * event) list) categories =
+let edit_button args (events : (int * event) list) categories =
     Ui_utils.split_button "timeline-page" 8 "Update event" "Cancel"
       ~action_at_split:(fun () ->
           match Ui_utils.get_split_from_splitted "timeline-page" with
@@ -33,7 +33,9 @@ let edit_button ~update_action args (events : (int * event) list) categories =
                   let add_button =
                     Ui_utils.simple_button
                       (fun () ->
-                         update_action id event categories (get_event ());
+                         Controller.update_action
+                           Admin.compare
+                           args id event categories (get_event ());
                       )
                       "Update event" in
                   let split_content =
@@ -213,12 +215,9 @@ let make_panel_lines (events : (int * event) list) =
       events
 
 let page
-    ~(login_action    : string -> string -> unit)
-    ~(logout_action   : (string * string) list -> unit)
-    ~(register_action : string -> string -> unit)
-    ~(add_action      : event -> unit)
-    ~(update_action   : int -> event -> string list -> event -> unit)
-    is_auth args categories (events : (int * event) list) =
+    is_auth args
+    categories
+    (events : (int * event) list) =
   let events =
     List.sort
       (fun
@@ -259,7 +258,7 @@ let page
             let add_button =
               Ui_utils.simple_button
                 (fun () ->
-                   add_action (get_event ());
+                   Controller.add_action (get_event ());
                    ignore @@ !Dispatcher.dispatch ~path:page_name ~args
                 )
                 "Add new event" in
@@ -281,12 +280,12 @@ let page
                     ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[]; true)
                ] [txt "Admin page"];
         div ~a:[a_class ["btn"; "btn-primary"];
-                a_onclick (fun _ -> logout_action args; true)
+                a_onclick (fun _ -> Controller.logout (); true)
                ] [txt "Logout"];
         add_button; back_button
       ]
     else
-      Admin.admin_page_login ~login_action ~register_action in
+      Admin.admin_page_login () in
   let default_page =
     div [
       div ~a:[a_id "timeline-page"][
@@ -306,7 +305,7 @@ let page
   let table_elts =
     make_panel_lines events_in_timeline_order |> Array.of_list in
   let init () =
-    display_timeline update_action is_auth args categories events;
+    display_timeline Controller.update_action is_auth args categories events;
     (* Now, adding additional events to timeline links. *)
     let () =
       let future_links = Manip.by_class "tl-timegroup-message" in
@@ -426,8 +425,7 @@ let page
       (* Adding edit button *)
       let () =
         if is_auth then begin
-          let edit_button, cancel_button =
-            edit_button args ~update_action events categories in
+          let edit_button, cancel_button = edit_button args events categories in
           let div_buttons =
             div ~a:[a_style "position: sticky; z-index:10; height:0px; top: 0"]
               [edit_button; cancel_button] in

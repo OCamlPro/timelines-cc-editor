@@ -1,8 +1,8 @@
 let finish () = Lwt.return (Ok ())
 
-(* Controllers *)
+let error s = Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
 
-let login_action log pwd =
+let login log pwd =
   ignore @@
   Request.login log pwd (function
       | Some auth_data -> begin
@@ -13,20 +13,24 @@ let login_action log pwd =
         end
       | None -> begin
           Js_utils.alert "Wrong login/password@.";
-          finish ()
+          error ("Wrong login")
         end)
 
-let logout_action args =
+let logout () =
   ignore @@
   Request.logout
-    ~args
     (fun _ ->
        Ui_utils.logout_session ();
        Js_utils.reload ();
        finish ())
 
-let register_action log pwd =
-  ignore @@ Request.register_user log pwd (fun _ -> finish ())
+let register_account log pwd =
+  ignore @@
+  Request.register_user log pwd (fun _ ->
+      Js_utils.log "Registering account@.";
+      ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+      finish ()
+    )
 
 let add_action event =
   Js_utils.log "Adding event %a" Utils.pp_event event;
@@ -76,10 +80,26 @@ let rec update_action compare args i old_event categories = (
             event_opt
             new_event
             categories
-            ~add_action
-            ~update_action:(update_action compare args)
-            ~remove_action:(remove_action args)
         ];
         finish ()
     )
 )
+
+let export_database args =
+  ignore @@
+  Request.events ~args (fun events ->
+      Request.title ~args (fun title ->
+          let sep = "%2C" in
+          let title =
+            match title with
+            | None -> sep
+            | Some title -> Data_encoding.title_to_csv ~sep title in
+          let header = Data_encoding.header ~sep in
+          let events =
+            List.fold_left
+              (fun acc event ->
+                 acc ^ Data_encoding.event_to_csv ~sep event ^ ";%0A")
+              ""
+              (snd @@ List.split events) in
+          let str =  (title ^ ";%0A" ^ header ^ ";%0A" ^ events) in
+          Ui_utils.download "database.csv" str; finish ()))
