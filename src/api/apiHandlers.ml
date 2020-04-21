@@ -51,11 +51,11 @@ let update_event req (id, old_event, event) =
            Format.printf "Deleted element while editing@.";
            EzAPIServerUtils.return (Modified None)
          | Some should_be_old_event ->
-           if old_event = should_be_old_event then begin
              Format.printf "Event in the db: %a@. Expected event: %a@."
                Utils.pp_event should_be_old_event
                Utils.pp_event old_event
              ;
+           if old_event = should_be_old_event then begin
              match Writer.update_event id event with
              | Ok () ->   EzAPIServerUtils.return Success
              | Error s -> EzAPIServerUtils.return (Failed s)

@@ -35,7 +35,7 @@ clean:
 	rm -f -f www/js/ocptimeline-js.js
 	rm -f csv-parser
 	rm -f csv-dbparser
-	rm db-version.txt
+	rm -f db-version.txt
 
 mr-proper: clean
 	dropdb $(DATABASE)

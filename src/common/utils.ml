@@ -95,8 +95,27 @@ module Header = struct
 
 end
 
+let pp_opt pp fmt = function
+    None -> ()
+  | Some e -> Format.fprintf fmt "%a" pp e
+
 let pp_event fmt (e : event) =
-  Format.fprintf fmt "{Event '%s' starting on %a}" e.text.headline (CalendarLib.Printer.Date.fprint "%D") e.start_date
+  Format.fprintf fmt
+    "{start_date = %a;\n\
+     end_date = %a;\n\
+     text = %s; %s;\n\
+     media = %a;\n\
+     group = %a\n\
+     confidential = %b\n\
+     ponderation = %i}"
+    (CalendarLib.Printer.Date.fprint "%D") e.start_date
+    (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
+    e.text.headline e.text.text
+    (pp_opt (fun fmt m -> Format.fprintf fmt "%s" m.url)) e.media
+    (pp_opt (fun fmt   -> Format.fprintf fmt "%s")) e.group
+    e.confidential
+    e.ponderation
+    
 
 let hd_opt = function
     [] -> None
@@ -113,7 +132,3 @@ let list_init n f =
     else aux (n - 1) (f (n - 1) :: acc)
   in
   aux n []
-
-let pp_opt pp fmt = function
-    None -> ()
-  | Some e -> Format.fprintf fmt "%a" pp e

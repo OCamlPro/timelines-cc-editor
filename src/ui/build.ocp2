@@ -5,7 +5,8 @@ OCaml.program("ocptimeline-js", ocaml + {
    	 "dispatcher.ml";
    	 "ui_utils.ml", pp_js;
 	 "panel.ml", pp_js;
-   	 "request.ml";
+	 "request.ml";
+	 "controller.ml", pp_js;
 	 "admin.ml", pp_js;
 	 "home.ml", pp_js;
 	 "pages.ml", pp_js;

@@ -161,7 +161,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              ORDER BY id_ DESC"
     in
     req >>= fun l ->
-    return @@ List.map (fun l -> (line_to_event ~with_end_date:false l)) l
+    return @@ List.map (fun l -> (line_to_event ~with_end_date:true l)) l
 
   module Login = struct
     let remove_session id =

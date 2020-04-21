@@ -12,27 +12,39 @@ let back_button () =
     (fun () -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
     "Back"
 
-let add_button_to_event i event =
-  let button = (* todo: not a string html element *)
-    Format.sprintf
-      "<a href='admin?action=edit&id=%i' class=\"btn btn-light row\"> Edit </a>"
-      i
-  in
-  let new_text =
-    let text = event.text.text in
-    Format.asprintf "<div>%s</div>\n%s"
-      text
-      button
-  in
-  {event with text = {headline = event.text.headline; text = new_text}}
-
-let process_events is_auth events =
-  List.map (fun (i, event) ->
-      if is_auth then
-        add_button_to_event i event
-      else event
-    )
-    events
+let edit_button ~update_action args (events : (int * event) list) categories =
+    Ui_utils.split_button "timeline-page" 8 "Update event" "Cancel"
+      ~action_at_split:(fun () ->
+          match Ui_utils.get_split_from_splitted "timeline-page" with
+          | None -> false
+          | Some split -> begin
+              try
+                let id =
+                  match List.assoc_opt "id" args with
+                  | None -> fst @@ List.hd @@ List.rev events
+                  | Some id -> int_of_string id in
+                match List.assoc_opt id events with
+                | None ->
+                  alert (Format.sprintf "Event %i not found" id);
+                  raise (Invalid_argument "edit_button")
+                | Some event ->
+                  let form, get_event =
+                    Admin.event_form event id categories in
+                  let add_button =
+                    Ui_utils.simple_button
+                      (fun () ->
+                         update_action id event categories (get_event ());
+                      )
+                      "Update event" in
+                  let split_content =
+                    [form; add_button; back_button ()] in
+                  Manip.replaceChildren split split_content; true
+              with Invalid_argument s ->
+                Js_utils.log "Error while splitting in edition: %s" s;
+                false
+            end
+        )
+      ~action_at_unsplit:(fun () -> true)
 
 let id_current_event (events : (int * event) list) =
   let args = Ui_utils.get_args () in
@@ -53,18 +65,19 @@ let id_current_event (events : (int * event) list) =
       Js_utils.log "Error while searching for id, writing 0 instead";
       0
 
-let display_timeline is_auth args (events : (int * event) list) : unit =
-  let events' = process_events is_auth events in
+let display_timeline update_action is_auth args categories (events : (int * event) list) : unit =
+  let events_only = snd @@ List.split events in
+  let events_only = List.map (fun e -> {e with end_date = None}) events_only in
   let cmd =
-    let json = Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events' in
+    let json =
+      Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events_only in
     let yoj = Json_repr.to_yojson json in
     Format.asprintf
       "window.timeline = new TL.Timeline('timeline-embed',{\"events\":%s})"
       (Yojson.Safe.to_string yoj) in
   Js_utils.log "Cmd = %s" cmd;
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
-  (* Now, adding links *)
- ()
+  ()
 
 let form is_auth args categories =
   let form_with_content title key input_type =
@@ -200,10 +213,11 @@ let make_panel_lines (events : (int * event) list) =
       events
 
 let page
-    ~(login_action : string -> string -> unit)
-    ~(logout_action : (string * string) list -> unit)
+    ~(login_action    : string -> string -> unit)
+    ~(logout_action   : (string * string) list -> unit)
     ~(register_action : string -> string -> unit)
-    ~(add_action : event -> unit)
+    ~(add_action      : event -> unit)
+    ~(update_action   : int -> event -> string list -> event -> unit)
     is_auth args categories (events : (int * event) list) =
   let events =
     List.sort
@@ -292,7 +306,7 @@ let page
   let table_elts =
     make_panel_lines events_in_timeline_order |> Array.of_list in
   let init () =
-    display_timeline is_auth args events;
+    display_timeline update_action is_auth args categories events;
     (* Now, adding additional events to timeline links. *)
     let () =
       let future_links = Manip.by_class "tl-timegroup-message" in
@@ -407,7 +421,23 @@ let page
             events_in_timeline_order
             lower_links
         with Invalid_argument s -> Js_utils.log "Error in lower part listeners: %s" s
-      in ()
+      in
+
+      (* Adding edit button *)
+      let () =
+        if is_auth then begin
+          let edit_button, cancel_button =
+            edit_button args ~update_action events categories in
+          let div_buttons =
+            div ~a:[a_style "position: sticky; z-index:10; height:0px; top: 0"]
+              [edit_button; cancel_button] in
+          let timeline = Js_utils.find_component "page-content" in
+          match Manip.children timeline with
+          | [] -> Manip.appendChildren timeline [div_buttons]
+          | before :: _ -> Manip.appendChildren ~before timeline [div_buttons]
+        end
+      in
+      ()
     end in
     EventPanel.paginate_all
       ~urlarg_page:"" ~urlarg_size:"" table_elts;

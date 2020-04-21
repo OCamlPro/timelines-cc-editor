@@ -1,15 +1,13 @@
 open Js_utils
 open Js_of_ocaml_tyxml.Tyxml_js.Html
+open Dispatcher
+open Controller
 
 type dispatcher = args:(string * string) list -> (unit, unit Xhr_lwt.error) result Lwt.t
 
 let pages : (string, dispatcher) Hashtbl.t = Hashtbl.create 3
 
 let add_page path f = Hashtbl.add pages path f
-
-let main_div_id = "page-content"
-let get_main_page () = find_component main_div_id
-let set_in_main_page content = Manip.replaceChildren (get_main_page ()) content
 
 let default_page ?(link_name = "Home") ~classes () =
   Ui_utils.a_link
@@ -45,45 +43,6 @@ let dispatch ~path ~args =
 
 let () = Dispatcher.dispatch := dispatch
 
-(* Controllers *)
-
-let login_action log pwd =
-  ignore @@
-  Request.login log pwd (function
-      | Some auth_data -> begin
-          Js_utils.log "Login OK!@.";
-          Ui_utils.auth_session log auth_data;
-          Js_utils.reload ();
-          finish ()
-        end
-      | None -> begin
-          Js_utils.alert "Wrong login/password@.";
-          finish ()
-        end)
-
-let logout_action args =
-  ignore @@
-  Request.logout
-    ~args
-    (fun _ ->
-       Ui_utils.logout_session ();
-       Js_utils.reload ();
-       finish ())
-
-let register_action log pwd =
-  ignore @@ Request.register_user log pwd (fun _ -> finish ())
-
-let add_action event =
-  Js_utils.log "Adding event %a" Utils.pp_event event;
-  let args = Ui_utils.get_args () in
-  ignore @@
-  Request.add_event ~args
-    event
-    (function
-      | Ok () -> dispatch ~path:"" ~args
-      | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
-    )
-
 let main_page ~args =
   Request.timeline_data ~args (fun events ->
       Request.is_auth (fun is_auth ->
@@ -94,6 +53,7 @@ let main_page ~args =
                   ~register_action
                   ~logout_action
                   ~add_action
+                  ~update_action:(update_action Admin.compare args)
                   is_auth args categories events in
               set_in_main_page [page];
               init ();
@@ -103,50 +63,6 @@ let main_page ~args =
     )
 
 let admin_page_if_trustworthy ~args =
-  let remove_action i =
-    let c = Js_utils.confirm "Are you sure you want to remove this event ? This is irreversible." in
-    if c then
-      ignore @@
-      Request.remove_event
-        ~args
-        i
-        (fun _ ->
-           ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
-           finish ())
-    else ()
-  in
-  let rec update_action i old_event categories = (
-    fun new_event ->
-      Js_utils.log "Update...";
-      ignore @@
-      Request.update_event ~args i ~old_event ~new_event (
-        function
-        | Success -> begin
-            Js_utils.log "Going back to main page";
-            dispatch
-              ~path:Admin.page_name
-              ~args:(["action", "edit"])
-          end
-        | Failed s -> begin
-            Js_utils.log "Update failed: %s" s;
-            Lwt.return
-              (Error (Xhr_lwt.Str_err ("Update event action failed: " ^ s)))
-          end
-        | Modified event_opt ->
-          Js_utils.log "Event has been modified while editing";
-          set_in_main_page [
-            Admin.compare
-              i
-              event_opt
-              new_event
-              categories
-              ~add_action
-              ~update_action
-              ~remove_action
-          ];
-          finish ()
-      )
-  ) in
   match List.assoc_opt "action" args with
   | Some "add" ->
     Request.categories (fun categories ->
@@ -201,12 +117,12 @@ let admin_page_if_trustworthy ~args =
                     in
                     let edit_button =
                       Ui_utils.simple_button
-                        (fun () -> update_action i old_event categories (get_event ()))
+                        (fun () -> update_action Admin.compare args i old_event categories (get_event ()))
                         "Update event"
                     in
                     let remove_button =
                       Ui_utils.simple_button
-                        (fun () -> remove_action i)
+                        (fun () -> remove_action args i)
                         "Remove event"
                     in
                     let back = Admin.back_button () in
