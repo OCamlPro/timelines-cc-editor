@@ -425,7 +425,7 @@ let page
         | [] -> assert false
         | [_] ->
           Js_utils.log "This is the first event";
-          None
+          if has_title then Some 0 else None
         | (i,_) :: (((nxt,_) :: _) as tl) ->
           if i = id then begin
             Some nxt
