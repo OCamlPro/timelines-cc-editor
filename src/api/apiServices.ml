@@ -96,11 +96,11 @@ let events : ((int * Data_types.event) list) service0 =
     ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
     Path.(root // "events")
 
-let title : Data_types.text option service0 =
+let title : Data_types.title option service0 =
   service
     ~params:auth_params
     ~name:"title"
-    ~output:(Json_encoding.option Data_encoding.title_encoding)
+    ~output:(Json_encoding.(tup1 @@ option Data_encoding.title_encoding))
     Path.(root // "title")
 
 let add_event : (Data_types.event, api_result) post_service0 =
@@ -118,6 +118,14 @@ let update_event : (int * Data_types.event * Data_types.event, update_event_res)
     ~input:(Json_encoding.tup3 tup1_int Data_encoding.event_encoding Data_encoding.event_encoding)
     ~output:update_event_res_encoding
     Path.(root // "update_event")
+
+let update_title : (Data_types.title * Data_types.title, update_title_res) post_service0 =
+  post_service
+    ~params:auth_params
+    ~name:"update_event"
+    ~input:(Json_encoding.tup2 Data_encoding.title_encoding Data_encoding.title_encoding)
+    ~output:update_title_res_encoding
+    Path.(root // "update_title")
 
 let categories : (string list) service0 =
   service

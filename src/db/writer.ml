@@ -32,8 +32,8 @@ let add_event (e : event) =
   | Some group -> add_category group; ()
 
 let add_title (t : title) =
-  let headline = t.headline in
-  let text = t.text in
+  let headline = t.text.headline in
+  let text = t.text.text in
   let () =
     match Reader.title () with
       None -> ()
@@ -66,6 +66,23 @@ let update_event (i: int) (e : event) =
       | None -> ()
       | Some group -> add_category group in
     Ok ()
+
+let update_title (e : title) =
+  let start_date = e.start_date in
+  let end_date = e.end_date in
+  let headline = e.text.headline in
+  let text = e.text.text in
+  let media = opt (fun m -> m.url) e.media in
+  let group = e.group in
+  let ponderation = Int32.of_int e.ponderation in
+  let confidential = e.confidential in
+  let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$?start_date, end_date_=$?end_date, \
+                       headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
+                       confidential_=$confidential, ponderation_=$ponderation WHERE id_=0";
+    match group with
+    | None -> ()
+    | Some group -> add_category group in
+  Ok ()
 
 let remove_event id =
   let id = Int32.of_int id in

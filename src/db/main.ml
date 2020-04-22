@@ -10,7 +10,10 @@ let () =
   | Some "--db" ->
     let {title; events} = Data_encoding.file_to_events file in
     let () = Writer.remove_events () in
-    let () = ignore @@ Writer.add_title title in
+    let () =
+      match title with
+      | None -> ()
+      | Some title -> ignore @@ Writer.add_title title in
     let () =
       List.iter
         Writer.add_event
@@ -25,7 +28,8 @@ let () =
         Reader.events true >>= fun events ->
         let events = List.map snd events in
         let json =
-          Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
+          Json_encoding.construct
+            Data_encoding.timeline_encoding Data_types.{title = Some title; events} in
         Data_encoding.write_json json (file ^ ".json")
     end
   | Some "--to-csv" -> begin

@@ -26,7 +26,7 @@ let back_button () =
 
 let event_form
     ?(readonly = false)
-    (e: event)
+    (e: date option meta_event)
     (id_line: int) categories =
   let idl =
     let num = string_of_int id_line in
@@ -35,7 +35,7 @@ let event_form
     else num in
   let start_date, get_start_date =
     let str_date =
-      Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%F") e.start_date
+      Format.asprintf "%a" (Utils.pp_opt (CalendarLib.Printer.Date.fprint "%F")) e.start_date
     in
     placeholder
       ~readonly
@@ -122,14 +122,8 @@ let event_form
   let get_event () =
     let start_date =
       match get_start_date () with
-      | None -> assert false
-      | Some str_date -> begin
-          match Utils.string_to_date str_date with
-          | None -> begin
-              Js_utils.log "Error with date %s" str_date;
-              failwith "Error while parsing date"
-            end
-          | Some date -> date end
+      | None -> None
+      | Some d -> Utils.string_to_date d
     in
     let end_date =
       match get_start_date () with
@@ -146,7 +140,6 @@ let event_form
       match get_ponderation () with
       | None -> 0
       | Some i -> try int_of_string i with _ -> failwith ("Bad ponderation in UI:" ^ i) in
-
     Data_encoding.to_event
       ~start_date
       ~end_date
@@ -181,7 +174,7 @@ let event_form
 
 let empty_event_form id action =
   let empty_event = {
-    start_date = CalendarLib.Date.today ();
+    start_date = Some (CalendarLib.Date.today ());
     end_date = None;
     text = {text = ""; headline = ""};
     media = None;
@@ -237,7 +230,11 @@ let add_new_event_form categories =
     0
     categories
 
-let rec compare id old_event new_event categories =
+let rec compare
+    (id : int)
+    (categories : string list)
+    (old_event : date option meta_event option)
+    (new_event : date option meta_event) =
   let prefix, old_event, new_event =
     match old_event with
     | Some event -> (* The event has been modified *)
@@ -254,7 +251,7 @@ let rec compare id old_event new_event categories =
           Ui_utils.simple_button
             "compare-update"
             (fun _ ->
-               Controller.update_action compare args id event categories (get_new_event ())
+               Controller.update_action compare args id categories event (get_new_event ())
                  (fun () ->
                     Js_utils.log "Event updated";
                     !Dispatcher.dispatch

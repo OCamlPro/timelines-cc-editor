@@ -13,45 +13,96 @@ let back_button () =
     (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
     "Back"
 
-let edit_button args (events : (int * event) list) categories =
-    Ui_utils.split_button "timeline-page" 8 "Edit event" "Cancel"
+let edit_button (events : (int * event) list) title categories =
+    Ui_utils.split_button "timeline-page" 8 "Edit slide" "Cancel"
       ~action_at_split:(fun () ->
           match Ui_utils.get_split_from_splitted "timeline-page" with
           | None -> false
           | Some split -> begin
+              let args = Ui_utils.get_args () in
               try
-                let id =
+                (* We will now check in which context the button has been clicked:
+                   was it while on the title page or on an event page ? *)
+                let id = (* if id = 0, then it is the title *)
                   match List.assoc_opt "id" args with
-                  | None -> fst @@ List.hd @@ List.rev events
+                  | None -> begin
+                      match title with
+                      | None -> fst @@ List.hd @@ List.rev events (* The id of the first event *)
+                      | Some _ -> 0
+                    end
                   | Some id -> int_of_string id in
-                match List.assoc_opt id events with
-                | None ->
-                  alert (Format.sprintf "Event %i not found" id);
-                  raise (Invalid_argument "edit_button")
-                | Some event ->
-                  let form, get_event =
-                    Admin.event_form event id categories in
-                  let add_button =
-                    Ui_utils.simple_button
-                      "edit-add"
-                      (fun self ->
-                         Controller.update_action
-                           Admin.compare
-                           args id event categories (get_event ())
-                           (fun () ->
-                              Js_utils.log "Going back to main page %s with %i arguments"
-                                page_name
-                                (List.length args)
-                              ;
-                              !Dispatcher.dispatch
-                                ~path:page_name
-                                ~args
-                           )
-                      )
-                      "Update event" in
-                  let split_content =
-                    [form; add_button; back_button ()] in
-                  Manip.replaceChildren split split_content; true
+                if id = 0 then begin (* Title case *)
+                  match title with
+                  | None -> assert false (* Previous test checks that *)
+                  | Some title ->
+                    let form, get_title =
+                      Admin.event_form
+                        title
+                        id
+                        categories in
+                    let add_button =
+                      Ui_utils.simple_button
+                        "edit-add"
+                        (fun self ->
+                           Controller.update_action
+                             Admin.compare
+                             args
+                             id
+                             categories
+                             title
+                             (get_title ())
+                             (fun () ->
+                                Js_utils.log "Going back to main page %s with %i arguments"
+                                  page_name
+                                  (List.length args)
+                                ;
+                                !Dispatcher.dispatch
+                                  ~path:page_name
+                                  ~args
+                             )
+                        )
+                        "Update title" in
+                    let split_content =
+                      [form; add_button; back_button ()] in
+                    Manip.replaceChildren split split_content; true
+                end else begin
+                  match List.assoc_opt id events with
+                  | None ->
+                    alert (Format.sprintf "Event %i not found" id);
+                    raise (Invalid_argument "edit_button")
+                  | Some event ->
+                    let event = Utils.event_to_metaevent event in
+                    let form, get_event =
+                      Admin.event_form
+                        event
+                        id
+                        categories in
+                    let add_button =
+                      Ui_utils.simple_button
+                        "edit-add"
+                        (fun self ->
+                           Controller.update_action
+                             Admin.compare
+                             args
+                             id
+                             categories
+                             event
+                             (get_event ())
+                             (fun () ->
+                                Js_utils.log "Going back to main page %s with %i arguments"
+                                  page_name
+                                  (List.length args)
+                                ;
+                                !Dispatcher.dispatch
+                                  ~path:page_name
+                                  ~args
+                             )
+                        )
+                        "Update event" in
+                    let split_content =
+                      [form; add_button; back_button ()] in
+                    Manip.replaceChildren split split_content; true
+                end
               with Invalid_argument s ->
                 Js_utils.log "Error while splitting in edition: %s" s;
                 false
@@ -59,10 +110,11 @@ let edit_button args (events : (int * event) list) categories =
         )
       ~action_at_unsplit:(fun () -> true)
 
-let id_current_event (events : (int * event) list) =
+let id_current_event has_title (events : (int * event) list) =
   let args = Ui_utils.get_args () in
   match List.assoc_opt "id" args with
   | None -> begin
+      if has_title then 0 else
       try
         let id = fst @@ List.hd @@ List.rev events in
         Js_utils.log "Id of last event: %i" id;
@@ -78,17 +130,17 @@ let id_current_event (events : (int * event) list) =
       Js_utils.log "Error while searching for id, writing 0 instead";
       0
 
-let display_timeline update_action is_auth args categories (events : (int * event) list) : unit =
+let display_timeline update_action is_auth args categories title (events : (int * event) list) :
+  unit =
   let events_only = snd @@ List.split events in
   let events_only = List.map (fun e -> {e with end_date = None}) events_only in
   let cmd =
-    let json =
-      Json_encoding.construct (Json_encoding.list Data_encoding.event_encoding) events_only in
-    let yoj = Json_repr.to_yojson json in
-    Format.asprintf
-      "window.timeline = new TL.Timeline('timeline-embed',{\"events\":%s})"
-      (Yojson.Safe.to_string yoj) in
-  Js_utils.log "Cmd = %s" cmd;
+    let timeline = {title; events = events_only} in
+    let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
+    let yoj       = Json_repr.to_yojson json in
+      Format.asprintf
+        "window.timeline = new TL.Timeline('timeline-embed',%s)"
+        (Yojson.Safe.to_string yoj) in
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
   ()
 
@@ -234,7 +286,9 @@ let make_panel_lines (events : (int * event) list) =
 let page
     is_auth args
     categories
+    title
     (events : (int * event) list) =
+  let has_title = match title with None -> false | Some _ -> true in
   let events =
     List.sort
       (fun
@@ -323,7 +377,7 @@ let page
   let table_elts =
     make_panel_lines events_in_timeline_order |> Array.of_list in
   let init () =
-    display_timeline Controller.update_action is_auth args categories events;
+    display_timeline Controller.update_action is_auth args categories title events;
     (* Now, adding additional events to timeline links. *)
     let () =
       let future_links = Manip.by_class "tl-timegroup-message" in
@@ -358,7 +412,10 @@ let page
               cpt
             else
               loop (cpt - 1) tl in
-        loop (List.length events_in_timeline_order - 1) events_in_timeline_order
+        let cpt_init =
+          let len = List.length events_in_timeline_order in
+          if has_title then len else len - 1 in
+        loop cpt_init events_in_timeline_order
       in
       Js_utils.log "To go to next, %i steps are required" id_at_pos;
       Ui_utils.slide_event Next id_at_pos in
@@ -366,18 +423,26 @@ let page
     let prev_event id events =
       let rec loop = function
         | [] -> assert false
-        | [_] -> Js_utils.log "This is the last event"; None
+        | [_] ->
+          Js_utils.log "This is the first event";
+          None
         | (i,_) :: (((nxt,_) :: _) as tl) ->
           if i = id then begin
             Some nxt
           end else begin
             loop tl
           end
-      in loop events in
-    let next_event id events = prev_event id (List.rev events) in
+      in
+      loop events in
+    let next_event id events =
+      let events = List.rev events in
+      if id = 0 then
+        Some (fst @@ List.hd events)
+      else
+        prev_event id events in
     let () = begin
       let push_next () =
-        let current_id = id_current_event events_in_timeline_order in
+        let current_id = id_current_event has_title events_in_timeline_order in
         match next_event current_id events_in_timeline_order with
         | None -> Js_utils.log "No next event"
         | Some new_id ->
@@ -385,7 +450,7 @@ let page
           let new_url = Ui_utils.url page_name new_args in
           Ui_utils.push new_url in
       let push_prev () =
-        let current_id = id_current_event events_in_timeline_order in
+        let current_id = id_current_event has_title events_in_timeline_order in
         match prev_event current_id events_in_timeline_order with
         | None -> Js_utils.log "No prev event"
         | Some new_id ->
@@ -443,7 +508,7 @@ let page
       (* Adding edit button *)
       let () =
         if is_auth then begin
-          let edit_button, cancel_button = edit_button args events categories in
+          let edit_button, cancel_button = edit_button events title categories in
           let div_buttons =
             div ~a:[a_style "position: sticky; z-index:10; height:0px; top: 0"]
               [edit_button; cancel_button] in

@@ -16,6 +16,44 @@ let to_text headline text =
     text
   }
 
+let to_title_event headline text = {
+  start_date = None;
+  end_date = None;
+  text = {headline; text};
+  group = None;
+  media = None;
+  ponderation = 0;
+  confidential = false
+}
+
+let to_title line =
+  match String.split_on_char '\t' line with
+  | title :: text :: _ -> to_title_event title text
+  | _ -> raise (Invalid_argument (Format.sprintf "Missing elements for building title (%s)" line))
+
+let metaevent_to_event meta : event option =
+  match meta.start_date with
+  | None -> None
+  | Some start_date -> Some {
+      start_date;
+      end_date = meta.end_date;
+      text = meta.text;
+      media = meta.media;
+      group = meta.group;
+      confidential = meta.confidential;
+      ponderation = meta.ponderation
+    }
+
+let event_to_metaevent e = {
+      start_date = Some e.start_date;
+      end_date = e.end_date;
+      text = e.text;
+      media = e.media;
+      group = e.group;
+      confidential = e.confidential;
+      ponderation = e.ponderation
+    }
+
 let to_date year month day =
   let default_first = function
       None -> 1
@@ -115,7 +153,23 @@ let pp_event fmt (e : event) =
     (pp_opt (fun fmt   -> Format.fprintf fmt "%s")) e.group
     e.confidential
     e.ponderation
-    
+
+let pp_title fmt (e : title) =
+  Format.fprintf fmt
+    "{start_date = %a;\n\
+     end_date = %a;\n\
+     text = %s; %s;\n\
+     media = %a;\n\
+     group = %a\n\
+     confidential = %b\n\
+     ponderation = %i}"
+    (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.start_date
+    (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
+    e.text.headline e.text.text
+    (pp_opt (fun fmt m -> Format.fprintf fmt "%s" m.url)) e.media
+    (pp_opt (fun fmt   -> Format.fprintf fmt "%s")) e.group
+    e.confidential
+    e.ponderation
 
 let hd_opt = function
     [] -> None

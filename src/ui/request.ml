@@ -48,13 +48,15 @@ let cook encoding cont =
      Js_utils.log "Cooking";
      let yoj = Yojson.Safe.from_string str in
      let json = Json_repr.from_yojson yoj in
-     try
-       let elt = Json_encoding.destruct encoding json in
-       Js_utils.log "Cooking OK";
-       cont elt
-     with e ->
-       Js_utils.log "Error while cooking %s" str;
-       raise e
+     let elt =
+       try
+         let elt = Json_encoding.destruct encoding json in
+         Js_utils.log "Cooking OK";
+         elt
+       with e ->
+         Js_utils.log "Error while cooking %s" str;
+         raise e in
+     cont elt
   )
 
 let args_from_session args =
@@ -75,7 +77,7 @@ let events ~args cont =
   raw_events ~args (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
 let title ~args cont =
-  get ~args "title" (cook (Json_encoding.(option (Data_encoding.title_encoding))) cont)
+  get ~args "title" (cook (Json_encoding.(tup1 @@ option (Data_encoding.title_encoding))) cont)
 
 let event ~args id cont =
   let args = args_from_session args in
@@ -98,6 +100,16 @@ let update_event ~args id ~old_event ~new_event cont =
         Data_encoding.event_encoding Data_encoding.event_encoding)
     (id, old_event, new_event)
     ApiData.update_event_res_encoding cont
+
+let update_title ~args ~old_title ~new_title cont =
+  let args = args_from_session args in
+  post ~args
+    "update_title"
+    (Json_encoding.tup2
+       Data_encoding.title_encoding
+       Data_encoding.title_encoding)
+    (old_title, new_title)
+    ApiData.update_title_res_encoding cont
 
 let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)
 

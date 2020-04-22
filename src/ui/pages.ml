@@ -47,12 +47,14 @@ let main_page ~args =
   Request.timeline_data ~args (fun events ->
       Request.is_auth (fun is_auth ->
           Request.categories (fun categories ->
-              let page, init =
-                Home.page
-                  is_auth args categories events in
-              set_in_main_page [page];
-              init ();
-              finish ()
+              Request.title ~args (fun title ->
+                  let page, init =
+                    Home.page
+                      is_auth args categories title events in
+                  set_in_main_page [page];
+                  init ();
+                  finish ()
+                )
             )
         )
     )
@@ -86,6 +88,7 @@ let admin_page_if_trustworthy ~args =
             let i = int_of_string i in
             Request.categories (fun categories ->
                 Request.event ~args i (fun old_event ->
+                    let old_event = Utils.event_to_metaevent old_event in
                     let form, get_event =
                       Admin.event_form
                         old_event
@@ -100,8 +103,8 @@ let admin_page_if_trustworthy ~args =
                              Admin.compare
                              args
                              i
-                             old_event
                              categories
+                             old_event
                              (get_event ())
                              (fun _ -> !Dispatcher.dispatch ~path:Admin.page_name ~args:[])
                         )

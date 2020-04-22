@@ -26,8 +26,8 @@ type media = {
   url: string;
 }
 
-type event = {
-  start_date: date;
+type 'start_date meta_event = {
+  start_date: 'start_date;
   end_date: date option;
   text: text;
   media: media option;
@@ -36,9 +36,11 @@ type event = {
   ponderation: int;
 }
 
-type title = text (* An event in Timeline.js, we only use the text here *)
+type event = date meta_event
+
+type title = date option meta_event
 
 type timeline = {
   events: event list;
-  title: title
+  title: title option
 }

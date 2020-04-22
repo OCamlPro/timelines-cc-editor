@@ -67,6 +67,34 @@ let update_event req (id, old_event, event) =
      end
   )
 
+let update_title req (old_title, title) =
+  is_auth req >>=
+  (fun auth ->
+     if not auth then EzAPIServerUtils.return (Failed "Error 403")
+     else begin
+       (* Check if the old event has been modified *)
+       Reader.title () >>=
+       (function
+         | None ->
+           Format.printf "Deleted element while editing@.";
+           EzAPIServerUtils.return (Modified None)
+         | Some should_be_old_title ->
+           Format.printf "Title in the db: %a@. Expected title: %a@."
+             Utils.pp_title should_be_old_title
+             Utils.pp_title old_title
+           ;
+           if old_title = should_be_old_title then begin
+             match Writer.update_title title with
+             | Ok () ->   EzAPIServerUtils.return Success
+             | Error s -> EzAPIServerUtils.return (Failed s)
+           end else begin
+             Format.printf "Modified element while editing@.";
+             EzAPIServerUtils.return (Modified (Some should_be_old_title))
+           end
+       )
+     end
+  )
+
 let categories _ () = Reader.categories () >>= EzAPIServerUtils.return
 
 let timeline_data req () =
@@ -120,12 +148,9 @@ let is_auth req () = is_auth req >>= EzAPIServerUtils.return
 
 let export_database req () =
   if_is_auth req (fun () ->
-      Reader.title () >>= function
-      | None ->
-        EzAPIServerUtils.return (Error "No title in database")
-      | Some title ->
-        Reader.events true >>= fun events ->
-        try
+      Reader.title () >>= fun title ->
+      Reader.events true >>= fun events ->
+      try
           let events = List.map snd events in
           let json =
             Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in

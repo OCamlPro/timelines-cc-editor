@@ -117,7 +117,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     PGSQL(dbh) "SELECT * FROM events_ WHERE id_ = 0" >>=
     function
     | [] -> return None
-    | (_,_,_,headline, text,_,_,_,_) :: _ -> return (Some {headline; text})
+    | (_,_,_,headline, text,_,_,_,_) :: _ -> return (Some (Utils.to_title_event headline text))
 
   let category_exists group =
     with_dbh >>> fun dbh ->

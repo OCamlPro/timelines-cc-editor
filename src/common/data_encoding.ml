@@ -24,7 +24,7 @@ let to_event
     ~confidential
     ~media
     ~title
-    ~text =
+    ~text : date option meta_event =
 
   let text =
     let title =
@@ -39,12 +39,7 @@ let to_event
   in
 
   let media = opt to_media media in
-
-  let end_date =
-    match end_date with
-    | None -> Some start_date
-    | Some res -> Some res
-  in {
+  {
     start_date;
     end_date;
     text;
@@ -60,7 +55,7 @@ let line_to_event (header : Header.t) line =
     (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
   let data = Array.of_list data in
   let start_date =
-    match Header.start_year  header data with
+    match Header.start_year header data with
       | None -> failwith "There should be a start year for an event"
       | Some start_year ->
         let start_month =
@@ -69,7 +64,7 @@ let line_to_event (header : Header.t) line =
           | res -> res
           | exception Failure _ -> None in
         try
-          to_date (int_of_string start_year) start_month None
+          Some (to_date (int_of_string start_year) start_month None)
         with Failure _ -> raise (NewLine ("Error trying to parse start year " ^ start_year))
   in
   let end_date =
@@ -117,11 +112,6 @@ let line_to_event (header : Header.t) line =
     ~text
     ~confidential
 
-let to_title line =
-  match String.split_on_char '\t' line with
-  | title :: text :: _ -> to_text title text
-  | _ -> raise (Invalid_argument (Format.sprintf "Missing elements for building title (%s)" line))
-
 let date_encoding =
   Json_encoding.(
     conv
@@ -157,7 +147,7 @@ let media_encoding =
 
 let group_encoding = Json_encoding.string
 
-let event_encoding =
+let meta_event_encoding start_date_encoding =
   Json_encoding.(
     conv
       (fun {start_date; end_date; text; group; media; ponderation; confidential} ->
@@ -165,7 +155,7 @@ let event_encoding =
       (fun (start_date, end_date, text, group, media, ponderation, confidential) ->
            {start_date; end_date; text; group; media; ponderation; confidential})
       (obj7
-         (req "start_date"   date_encoding)
+         (req "start_date"   start_date_encoding)
          (opt "end_date"     date_encoding)
          (req "text"         text_encoding)
          (opt "group"        group_encoding)
@@ -175,7 +165,9 @@ let event_encoding =
       )
   )
 
-let title_encoding = Json_encoding.(obj1 (req "text" text_encoding))
+let event_encoding = meta_event_encoding date_encoding
+
+let title_encoding = meta_event_encoding (Json_encoding.option date_encoding)
 
 let timeline_encoding =
   Json_encoding.(
@@ -184,7 +176,7 @@ let timeline_encoding =
       (fun (events, title) -> {events; title})
       (obj2
          (req "events" (list event_encoding))
-         (req "title" title_encoding))
+         (opt "title" title_encoding))
   )
 
 let file_to_events f =
@@ -200,8 +192,9 @@ let file_to_events f =
           let line = input_line chan in
           (* Format.printf "Line %s@." line;*)
           try
-            let event = line_to_event header line in
-            l := event :: !l;
+            match metaevent_to_event @@ line_to_event header line with
+            | None -> Format.printf "Event %s has no start date" line
+            | Some event -> l := (event :: !l)
             (* Format.printf
               "Event of line %s started on %a and ended on %s@."
               line
@@ -225,7 +218,7 @@ let file_to_events f =
     in !l
   in
   close_in chan;
-  {title; events}
+  {title = Some title; events}
 
 let file_to_json f =
   let timeline = file_to_events f in
@@ -234,7 +227,7 @@ let file_to_json f =
 let str_to_events ~log_error str =
   let rec loop = function
     | [] -> failwith "Empty file"
-    | [title] -> {title = to_title title ; events = []}
+    | [title] -> {title = Some (to_title title) ; events = []}
     | title :: header :: tl ->
       let title = to_title title in
       let header = Header.header_to_map header in
@@ -244,8 +237,9 @@ let str_to_events ~log_error str =
           List.iter
             (fun line ->
                try
-                 let new_event = line_to_event header line in
-                 l := new_event :: !l
+                 match metaevent_to_event @@ line_to_event header line with
+                 | None -> Format.printf "Event %s has no start date" line
+                 | Some new_event -> l := new_event :: !l
                with
                | NewLine s -> begin
                    match !l with
@@ -261,7 +255,7 @@ let str_to_events ~log_error str =
                | _ -> log_error line "Exception"
             ) tl
         in !l
-  in {title; events}
+  in {title = Some title; events}
 in
 loop @@ String.split_on_char '\n' str
 
@@ -275,9 +269,9 @@ let write_json json f =
 let title_to_csv ~sep (title : title) =
   Format.asprintf
     "%s%s%s"
-    title.headline
+    title.text.headline
     sep
-    title.text
+    title.text.text
 
 let header ~sep =
   Format.asprintf
