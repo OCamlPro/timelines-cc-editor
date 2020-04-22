@@ -13,7 +13,7 @@ let back_button () =
     "Back"
 
 let edit_button args (events : (int * event) list) categories =
-    Ui_utils.split_button "timeline-page" 8 "Update event" "Cancel"
+    Ui_utils.split_button "timeline-page" 8 "Edit event" "Cancel"
       ~action_at_split:(fun () ->
           match Ui_utils.get_split_from_splitted "timeline-page" with
           | None -> false
