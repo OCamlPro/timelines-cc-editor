@@ -252,14 +252,15 @@ let rec compare id old_event new_event categories =
         let args = Ui_utils.get_args () in
         let update_button =
           Ui_utils.simple_button
-            "compare_update"
+            "compare-update"
             (fun _ ->
                Controller.update_action compare args id event categories (get_new_event ())
-               (fun () ->
-                 !Dispatcher.dispatch
-                   ~path:page_name
-                   ~args:[]
-               )
+                 (fun () ->
+                    Js_utils.log "Event updated";
+                    !Dispatcher.dispatch
+                      ~path:page_name
+                      ~args:[]
+                 )
             )
             "Update event"
         in [

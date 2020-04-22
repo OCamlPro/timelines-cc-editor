@@ -102,7 +102,9 @@ let admin_page_if_trustworthy ~args =
                              i
                              old_event
                              categories
-                             (get_event ()))
+                             (get_event ())
+                             (fun _ -> !Dispatcher.dispatch ~path:Admin.page_name ~args:[])
+                        )
                         "Update event"
                     in
                     let remove_button =

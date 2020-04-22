@@ -57,25 +57,25 @@ let remove_action args i =
 
 let rec update_action compare args i old_event categories new_event cont = (
   Js_utils.log "Update...";
-    Request.update_event ~args i ~old_event ~new_event (
-      function
-      | Success -> cont ()
-      | Failed s -> begin
-          Js_utils.log "Update failed: %s" s;
-          Lwt.return
-            (Error (Xhr_lwt.Str_err ("Update event action failed: " ^ s)))
-        end
-      | Modified event_opt ->
-        Js_utils.log "Event has been modified while editing";
-        Dispatcher.set_in_main_page [
-          compare
-            i
-            event_opt
-            new_event
-            categories
-        ];
-        finish ()
-    )
+  Request.update_event ~args i ~old_event ~new_event (
+    function
+    | Success -> cont ()
+    | Failed s -> begin
+        Js_utils.log "Update failed: %s" s;
+        Lwt.return
+          (Error (Xhr_lwt.Str_err ("Update event action failed: " ^ s)))
+      end
+    | Modified event_opt ->
+      Js_utils.log "Event has been modified while editing";
+      Dispatcher.set_in_main_page [
+        compare
+          i
+          event_opt
+          new_event
+          categories
+      ];
+      finish ()
+  )
 )
 
 let export_database args =
