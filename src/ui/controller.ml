@@ -61,11 +61,7 @@ let rec update_action compare args i old_event categories = (
     ignore @@
     Request.update_event ~args i ~old_event ~new_event (
       function
-      | Success -> begin
-          Js_utils.log "Going back to main page";
-          !Dispatcher.dispatch
-            ~path:"admin"
-            ~args:(["action", "edit"])
+      | Success -> begin finish ()
         end
       | Failed s -> begin
           Js_utils.log "Update failed: %s" s;

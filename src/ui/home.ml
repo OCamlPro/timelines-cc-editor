@@ -36,6 +36,13 @@ let edit_button args (events : (int * event) list) categories =
                          Controller.update_action
                            Admin.compare
                            args id event categories (get_event ());
+                         Js_utils.log "Going back to main page %s with %i arguments"
+                           page_name
+                           (List.length args)
+                         ;
+                         !Dispatcher.dispatch
+                           ~path:page_name
+                           ~args
                       )
                       "Update event" in
                   let split_content =

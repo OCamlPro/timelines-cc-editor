@@ -217,7 +217,7 @@ let events_list args events =
     ] [txt "Create event"] in
   let logout =
     div ~a:[a_class ["btn"; "btn-primary"];
-            a_onclick (fun _ -> Controller.logout (); true (*Ui_utils.logout_session (); Js_utils.reload (); true *))]
+            a_onclick (fun _ -> Controller.logout (); true)]
       [txt "Logout"] in
   let export =
     div ~a:[a_class ["btn"; "btn-primary"];
@@ -252,7 +252,11 @@ let rec compare id old_event new_event categories =
         let update_button =
           Ui_utils.simple_button
             (fun () ->
-               Controller.update_action compare args id event categories (get_new_event ()))
+               Controller.update_action compare args id event categories (get_new_event ());
+               !Dispatcher.dispatch
+                 ~path:page_name
+                 ~args:[]
+            )
             "Update event"
         in [
           form;
