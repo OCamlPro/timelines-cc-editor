@@ -88,6 +88,8 @@ let form is_auth args categories =
   in
   let start_date, get_start_date = form_with_content "From" "start-date" (Other `Date) in
   let end_date,   get_end_date   = form_with_content "To"   "end-date"   (Other `Date) in
+  let precision,  get_precision  =
+    form_with_content "Precision" "max_level" (Number (Some 0, None)) in
   let user_view,  get_user_view =
     let test_user_view =
       match List.assoc_opt "confidential" args with
@@ -150,6 +152,10 @@ let form is_auth args categories =
           match get_end_date () with
           | None -> []
           | Some d -> ["end_date", d] in
+        let precision =
+          match get_precision () with
+          | None -> []
+          | Some p -> ["max_level", p] in
         let confidential =
           if get_user_view () then
             ["confidential", "false"]
@@ -165,20 +171,20 @@ let form is_auth args categories =
             categories
             category_getters
         in
-        start_date @ end_date @ confidential @ categories
+        start_date @ end_date @ confidential @ precision @ categories
       in
       ignore @@ !Dispatcher.dispatch ~path:page_name ~args; true in
     div
       ~a:[
         a_class ["btn";"btn-primary"];
         a_onclick action
-      ] [txt "Filter by date"];
+      ] [txt "Filter"];
   in form (
     (if is_auth then [user_view] else [])@
     [h4 [txt "Categories"]] @
     category_html @
-    [h4 [txt "Dates"]] @
-    [start_date] @ [end_date] @
+    [h4 [txt "Other filters"]] @
+    [start_date] @ [end_date] @ [precision] @
     [button]
   )
 
