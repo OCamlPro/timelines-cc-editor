@@ -55,14 +55,11 @@ let remove_action args i =
          finish ())
   else ()
 
-let rec update_action compare args i old_event categories = (
-  fun new_event ->
-    Js_utils.log "Update...";
-    ignore @@
+let rec update_action compare args i old_event categories new_event cont = (
+  Js_utils.log "Update...";
     Request.update_event ~args i ~old_event ~new_event (
       function
-      | Success -> begin finish ()
-        end
+      | Success -> cont ()
       | Failed s -> begin
           Js_utils.log "Update failed: %s" s;
           Lwt.return

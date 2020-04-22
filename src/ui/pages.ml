@@ -65,7 +65,8 @@ let admin_page_if_trustworthy ~args =
           Admin.add_new_event_form categories in
         let add_button =
           Ui_utils.simple_button
-            (fun () -> add_action (get_event ()))
+            "add-button-trust"
+            (fun _ -> add_action (get_event ()))
             "Add new event"
         in
         let back = Admin.back_button () in
@@ -93,7 +94,8 @@ let admin_page_if_trustworthy ~args =
                     in
                     let edit_button =
                       Ui_utils.simple_button
-                        (fun () ->
+                        "edit-button-trust"
+                        (fun _ ->
                            update_action
                              Admin.compare
                              args
@@ -105,7 +107,8 @@ let admin_page_if_trustworthy ~args =
                     in
                     let remove_button =
                       Ui_utils.simple_button
-                        (fun () -> remove_action args i)
+                        "remove-button-trust"
+                        (fun _ -> remove_action args i)
                         "Remove event"
                     in
                     let back = Admin.back_button () in

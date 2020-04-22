@@ -543,10 +543,14 @@ let split_button
       ] [txt unsplit_button_text] in
   split_button, unsplit_button
 
-let simple_button action t =
+let simple_button id action t =
   div
     ~a:[a_class ["btn"; "btn-primary"];
-        a_onclick (fun _ -> action (); true)]
+        a_id id;
+        a_onclick (
+          fun _ ->
+            let self = find_component id in
+            action self; true)]
     [txt t]
 
 (* Returns a checkbox that performs action oncheck when the box is

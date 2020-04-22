@@ -9,7 +9,8 @@ let page_name = "home"
 
 let back_button () =
   Ui_utils.simple_button
-    (fun () -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
+    "home-back"
+    (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
     "Back"
 
 let edit_button args (events : (int * event) list) categories =
@@ -32,17 +33,20 @@ let edit_button args (events : (int * event) list) categories =
                     Admin.event_form event id categories in
                   let add_button =
                     Ui_utils.simple_button
-                      (fun () ->
+                      "edit-add"
+                      (fun self ->
                          Controller.update_action
                            Admin.compare
-                           args id event categories (get_event ());
-                         Js_utils.log "Going back to main page %s with %i arguments"
-                           page_name
-                           (List.length args)
-                         ;
-                         !Dispatcher.dispatch
-                           ~path:page_name
-                           ~args
+                           args id event categories (get_event ())
+                           (fun () ->
+                              Js_utils.log "Going back to main page %s with %i arguments"
+                                page_name
+                                (List.length args)
+                              ;
+                              !Dispatcher.dispatch
+                                ~path:page_name
+                                ~args
+                           )
                       )
                       "Update event" in
                   let split_content =
@@ -270,7 +274,8 @@ let page
               Admin.add_new_event_form categories in
             let add_button =
               Ui_utils.simple_button
-                (fun () ->
+                "add-page"
+                (fun _ ->
                    Controller.add_action (get_event ());
                    ignore @@ !Dispatcher.dispatch ~path:page_name ~args
                 )

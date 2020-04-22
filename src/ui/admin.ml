@@ -20,7 +20,8 @@ let valid        i = "button-"      ^ i
 
 let back_button () =
   Ui_utils.simple_button
-    (fun () -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
+    "admin-back"
+    (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
     "Back"
 
 let event_form
@@ -251,11 +252,14 @@ let rec compare id old_event new_event categories =
         let args = Ui_utils.get_args () in
         let update_button =
           Ui_utils.simple_button
-            (fun () ->
-               Controller.update_action compare args id event categories (get_new_event ());
-               !Dispatcher.dispatch
-                 ~path:page_name
-                 ~args:[]
+            "compare_update"
+            (fun _ ->
+               Controller.update_action compare args id event categories (get_new_event ())
+               (fun () ->
+                 !Dispatcher.dispatch
+                   ~path:page_name
+                   ~args:[]
+               )
             )
             "Update event"
         in [
@@ -273,7 +277,8 @@ let rec compare id old_event new_event categories =
         let form, get_new_event = event_form new_event id categories in
         let add_button =
           Ui_utils.simple_button
-            (fun () -> Controller.add_action (get_new_event ()))
+            "comapre-add"
+            (fun _ -> Controller.add_action (get_new_event ()))
             "Add new event"
         in [form; add_button; back_button ()] in
       prefix, old_event, new_event
