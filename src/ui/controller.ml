@@ -120,7 +120,7 @@ let export_database args =
   ignore @@
   Request.events ~args (fun events ->
       Request.title ~args (fun title ->
-          let sep = "%2C" in
+          let sep = "," in
           let title =
             match title with
             | None -> sep
@@ -129,8 +129,8 @@ let export_database args =
           let events =
             List.fold_left
               (fun acc event ->
-                 acc ^ Data_encoding.event_to_csv ~sep event ^ ";%0A")
+                 acc ^ Data_encoding.event_to_csv ~sep event ^ ";%\n")
               ""
               (snd @@ List.split events) in
-          let str =  (title ^ ";%0A" ^ header ^ ";%0A" ^ events) in
+          let str =  (title ^ ";\n" ^ header ^ ";\n" ^ events) in
           Ui_utils.download "database.csv" str; finish ()))

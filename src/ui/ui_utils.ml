@@ -369,17 +369,16 @@ let hash s = string_of_int @@ Hashtbl.hash s
 
 let download filename filecontent =
   Js_utils.log "Test:\n%s" filecontent;
-  let filecontent = "data:text/csv;charset=us-ascii," ^ filecontent in
+  let filecontent = "data:text/csv;charset=utf-8," ^ Url.urlencode filecontent in
   let filelink =
     a ~a:[
-      a_href "javascript:void(0);";
+      a_href filecontent;
       a_download (Some filename);
       a_style "display: none";
     ][txt filecontent]
   in
   let body = Of_dom.of_body Dom_html.document##.body in
   Js_utils.Manip.appendChild body filelink;
-  Manip.setAttribute filelink "href" filecontent;
   (Js_utils.Manip.get_elt "click" filelink)##click
 
 type slide_change = Next | Prev
