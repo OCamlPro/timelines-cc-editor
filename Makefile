@@ -10,8 +10,7 @@ include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 build: parser db api js
 
 init:
-	git submodule init
-	git submodule update
+	bash build-deps.sh
 	ocp-build init
 
 db: db-update
