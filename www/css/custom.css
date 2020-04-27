@@ -20,6 +20,9 @@ html {
     font-family: fontin-reg;
 }
 
+.tl-headline{
+    color: white !important
+}
 
 .tl-slidenav-next .tl-slidenav-icon, .tl-slidenav-previous .tl-slidenav-icon {
     font-family: tl-icons;
@@ -47,6 +50,10 @@ html {
 
 .tl-text {
     color: black
+}
+
+.tl-text-content a {
+    color: white !important
 }
 
 .tl-timegroup-message {
