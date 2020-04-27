@@ -110,13 +110,13 @@ let edit_button (events : (int * event) list) title categories =
         )
       ~action_at_unsplit:(fun () -> true)
 
-let id_current_event has_title (events : (int * event) list) =
+let id_current_event has_title (order : int list) =
   let args = Ui_utils.get_args () in
   match List.assoc_opt "id" args with
   | None -> begin
       if has_title then 0 else
       try
-        let id = fst @@ List.hd @@ List.rev events in
+        let id = List.hd @@ List.rev order in
         Js_utils.log "Id of last event: %i" id;
         id
       with
@@ -132,15 +132,19 @@ let id_current_event has_title (events : (int * event) list) =
 
 let display_timeline update_action is_auth args categories title (events : (int * event) list) :
   unit =
-  let events_only = snd @@ List.split events in
-  let events_only = List.map (fun e -> {e with end_date = None}) events_only in
+  let events = List.map (
+      fun (i,e) ->
+        let id = Ui_utils.slide_id_from_id i in
+        id, {e with end_date = None}) events in
   let cmd =
-    let timeline = {title; events = events_only} in
-    let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
-    let yoj       = Json_repr.to_yojson json in
+    let timeline = (events, title) in
+    let json = Json_encoding.construct (Data_encoding.id_timeline_encoding) timeline in
+    let yoj  = Json_repr.to_yojson json in
+    let str  = Yojson.Safe.to_string yoj in
+    let () = Js_utils.log "yojson to send: %s" str in
       Format.asprintf
         "window.timeline = new TL.Timeline('timeline-embed',%s)"
-        (Yojson.Safe.to_string yoj) in
+        str in
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
   ()
 
@@ -305,19 +309,6 @@ let page
       )
       events
   in
-  let events_in_timeline_order =
-    (* Requires a second reordering to use for the table and not for the timeline itself. *)
-    let rec loop all_acc local_start_date local_end_date local_acc = function
-      | [] -> (local_acc :: all_acc) |> List.rev |> List.flatten
-      | (i,hd) :: tl -> begin
-          if (Some hd.start_date) = local_start_date && hd.end_date = local_end_date then
-            loop all_acc local_start_date local_end_date ((i,hd) :: local_acc) tl
-          else
-            loop (local_acc :: all_acc) (Some hd.start_date) hd.end_date [i,hd] tl
-        end
-    in
-    loop [] None None [] events
-  in
   let add_button, back_button =
     Ui_utils.split_button "timeline-page" 8 "Add new event" "Cancel"
       ~action_at_split:(fun () ->
@@ -375,10 +366,21 @@ let page
     ]
   in
   let table_elts =
-    make_panel_lines events_in_timeline_order |> Array.of_list in
+    make_panel_lines events |> Array.of_list in
   let init () =
     display_timeline Controller.update_action is_auth args categories title events;
     (* Now, adding additional events to timeline links. *)
+    let order =
+      (* Requires a second reordering to use for the table and not for the timeline itself. *)
+      let slides = Manip.by_class "tl-slide" in (* In the page order *)
+      List.fold_left
+        (fun acc elt ->
+           try
+             let id = Ocp_js.Js.to_string @@ (Manip.get_elt "id" elt)##.id in
+             (Ui_utils.id_from_slide_id id) :: acc
+           with _ -> acc
+        ) [] slides
+    in
     let () =
       let future_links = Manip.by_class "tl-timegroup-message" in
       List.iter
@@ -407,15 +409,15 @@ let page
       let id_at_pos =
         let rec loop cpt = function
           | [] -> 0
-          | (hd,_) :: tl ->
+          | hd :: tl ->
             if hd = goto_id then
               cpt
             else
               loop (cpt - 1) tl in
         let cpt_init =
-          let len = List.length events_in_timeline_order in
+          let len = List.length order in
           if has_title then len else len - 1 in
-        loop cpt_init events_in_timeline_order
+        loop cpt_init order
       in
       Js_utils.log "To go to next, %i steps are required" id_at_pos;
       Ui_utils.slide_event Next id_at_pos in
@@ -426,7 +428,7 @@ let page
         | [_] ->
           Js_utils.log "This is the first event";
           if has_title then Some 0 else None
-        | (i,_) :: (((nxt,_) :: _) as tl) ->
+        | i :: ((nxt :: _) as tl) ->
           if i = id then begin
             Some nxt
           end else begin
@@ -437,21 +439,21 @@ let page
     let next_event id events =
       let events = List.rev events in
       if id = 0 then
-        Some (fst @@ List.hd events)
+        Some (List.hd events)
       else
         prev_event id events in
     let () = begin
       let push_next () =
-        let current_id = id_current_event has_title events_in_timeline_order in
-        match next_event current_id events_in_timeline_order with
+        let current_id = id_current_event has_title order in
+        match next_event current_id order with
         | None -> Js_utils.log "No next event"
         | Some new_id ->
           let new_args = Ui_utils.assoc_add_unique "id" (string_of_int new_id) args in
           let new_url = Ui_utils.url page_name new_args in
           Ui_utils.push new_url in
       let push_prev () =
-        let current_id = id_current_event has_title events_in_timeline_order in
-        match prev_event current_id events_in_timeline_order with
+        let current_id = id_current_event has_title order in
+        match prev_event current_id order with
         | None -> Js_utils.log "No prev event"
         | Some new_id ->
           let new_args = Ui_utils.assoc_add_unique "id" (string_of_int new_id) args in
@@ -488,8 +490,9 @@ let page
       let () = (* Adding links to timeline lower part *)
         let lower_links = List.rev @@ Manip.by_class "tl-timemarker" in
         try
+          Js_utils.log "Events ordered: %i ; Lower links: %i" (List.length order) (List.length lower_links);
           List.iter2
-            (fun (i, _) elt ->
+            (fun i elt ->
                Ocp_js.Dom.addEventListener
                  (Manip.get_elt "click" elt)
                  (Ocp_js.Dom.Event.make "click")
@@ -500,7 +503,7 @@ let page
                       Ocp_js.Js._true))
                  Ocp_js.Js._true |> ignore
             )
-            events_in_timeline_order
+            order
             lower_links
         with Invalid_argument s -> Js_utils.log "Error in lower part listeners: %s" s
       in

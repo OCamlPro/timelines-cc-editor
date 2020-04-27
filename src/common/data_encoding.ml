@@ -167,6 +167,13 @@ let meta_event_encoding start_date_encoding =
 
 let event_encoding = meta_event_encoding date_encoding
 
+let id_event_encoding =
+  Json_encoding.(
+    merge_objs
+      (obj1 @@ req "unique_id" string)
+      event_encoding;
+  )
+
 let title_encoding = meta_event_encoding (Json_encoding.option date_encoding)
 
 let timeline_encoding =
@@ -178,6 +185,13 @@ let timeline_encoding =
          (req "events" (list event_encoding))
          (opt "title" title_encoding))
   )
+
+let id_timeline_encoding =
+  Json_encoding.(
+    obj2
+      (req "events" (list id_event_encoding))
+      (opt "title" title_encoding))
+
 
 let file_to_events f =
   let chan = open_in f in

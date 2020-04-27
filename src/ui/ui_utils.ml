@@ -411,6 +411,15 @@ let slide_event slide_change i = (* Clicks i times on next or prev *)
     end
   in loop i
 
+let slide_id_from_id i = Format.sprintf "slide-custom-id-%i" i
+
+let id_from_slide_id id =
+  match String.split_on_char '-' id with
+  | _slide :: _custom :: _id :: i :: _ -> int_of_string i
+  | _ ->
+    Js_utils.log "Id %s has a bad format" id;
+    raise (Invalid_argument "Ui_utils.id_from_slide_id")
+
 let get_path () =
   match Jsloc.url () with
       Http h | Https h -> h.hu_path_string
