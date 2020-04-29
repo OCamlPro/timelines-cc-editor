@@ -557,6 +557,7 @@ let simple_button id action t =
         a_id id;
         a_onclick (
           fun _ ->
+            Js_utils.log "Clicked on button %s" id;
             let self = find_component id in
             action self; true)]
     [txt t]

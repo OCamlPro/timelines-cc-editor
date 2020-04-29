@@ -348,7 +348,7 @@ module MakePageGen(M: sig
 
   let current_page = ref 1
   let current_size = ref M.page_size
-  let min_size, max_size = 5, 50
+  let min_size, max_size = 5, 100
 
   let make_common ?(footer=false) ?(suf_id = "") ~before ~after () =
     let panel_footer_content =
@@ -473,7 +473,7 @@ module MakePageGen(M: sig
         if not page_sizer then span ~a:[a_class ["hidden"]] []
         else
           let open Bootstrap_helpers.Menu in
-          let sizes = [ min_size; 10; 20; max_size ] in
+          let sizes = [ min_size; 10; 20; 50; max_size ] in
           let id = Ui_utils.make_id M.name "size-selector" in
 
           let select = List.map (fun p ->
@@ -671,7 +671,7 @@ module MakePageTableList(
 
   let current_page = ref 1
   let current_size = ref M.page_size
-  let min_size, max_size = 5, 50
+  let min_size, max_size = 5, 100
   let datas : M.data list ref = ref []
 
   let make_paginate ?(prefix="") page page_size seps f =
@@ -715,7 +715,7 @@ module MakePageTableList(
     if not page_sizer then span ~a:[a_class ["hidden"]] []
     else
       let open Bootstrap_helpers.Menu in
-      let sizes = [ min_size; 10; 20; max_size ] in
+      let sizes = [ min_size; 10; 20; 50; max_size ] in
       let id = Ui_utils.make_id M.name "size-selector" in
       let select = List.map (fun p ->
           Action ([], mk_onclick_size p id, txt (string_of_int p)))

@@ -317,19 +317,20 @@ let make_panel_lines_auth (events : (int * event) list) =
            let new_args = Ui_utils.assoc_add_unique "id" (string_of_int id) args in
            ignore @@ !Dispatcher.dispatch ~path:page_name ~args:new_args
          in
+         let a style = (a_style style) :: [
+           a_onclick (fun _ -> onclick (); true);
+         ] in
          let date =
            Format.asprintf "%a"
              (CalendarLib.Printer.Date.fprint "%d/%m/%Y") start_date in
-         tr ~a:[a_onclick (fun _ -> onclick (); true);
-                a_class ["clickable"];
-               ] [
-           td ~a:[ a_style "width:25%" ] [txt date];
-           td ~a:[ a_style "width:37.5%" ] [txt headline];
-           td ~a:[ a_style "width:12.5%" ] [txt @@ string_of_int ponderation];
-           td ~a:[ a_style "width:12.5%" ] [txt @@ string_of_bool confidential];
-           td ~a:[ a_style "width:12.5%" ] [
+         tr ~a:[a_class ["clickable"]] [
+           td ~a:(a "width:25%") [txt date];
+           td ~a:(a "width:37.5%") [txt headline];
+           td ~a:(a "width:12.5%") [txt @@ string_of_int ponderation];
+           td ~a:(a "width:12.5%") [txt @@ string_of_bool confidential];
+           td [
              Ui_utils.simple_button
-               ("edit-" ^ string_of_int id)
+               ("edit-table-" ^ string_of_int id)
                (fun _ ->
                   !Dispatcher.dispatch
                     ~path:Admin.page_name

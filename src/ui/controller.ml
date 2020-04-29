@@ -44,7 +44,7 @@ let add_action event =
     Request.add_event ~args
       event
       (function
-        | Ok () -> !Dispatcher.dispatch ~path:"" ~args
+        | Ok () -> !Dispatcher.dispatch ~path:"home" ~args:[]
         | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
       )
 

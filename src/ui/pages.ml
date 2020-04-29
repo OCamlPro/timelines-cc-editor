@@ -34,6 +34,7 @@ let dispatch ~path ~args =
     | f ->
       let url = Ui_utils.url path args in
       Ui_utils.push url;
+      Js_utils.log "Pushing %s" url;
       f ~args
   with exn ->
     Js_utils.log "Exception in dispatch of %s: %s"
@@ -60,8 +61,10 @@ let main_page ~args =
     )
 
 let admin_page_if_trustworthy ~args =
+  Js_utils.log "Admin page: trustworthy version";
   match List.assoc_opt "action" args with
   | Some "add" ->
+    Js_utils.log "Adding an element";
     Request.categories (fun categories ->
         let form, get_event =
           Admin.add_new_event_form categories in
@@ -77,14 +80,17 @@ let admin_page_if_trustworthy ~args =
       )
   | None | Some "edit" ->
     begin
+      Js_utils.log "Edition or main_page";
       match List.assoc_opt "id" args with
       | None ->
+        Js_utils.log "No id provided";
         Request.events ~args
           (fun events ->
              set_in_main_page
                (Admin.events_list args events); finish ())
       | Some i -> begin
           try
+            Js_utils.log "Editing event %s" i;
             let i = int_of_string i in
             Request.categories (fun categories ->
                 Request.event ~args i (fun old_event ->
