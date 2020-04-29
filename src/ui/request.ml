@@ -123,7 +123,7 @@ let register_user email password cont =
   Js_utils.log "Hash: %s@." hash;
   post ~args:[] "register_user"
     Json_encoding.(tup2 string string) (email, hash)
-    Json_encoding.(tup1 ApiData.api_result_encoding) cont
+    ApiData.api_result_encoding cont
 
 let login email password cont =
   let hash = Ui_utils.hash password (* todo: change this *) in
