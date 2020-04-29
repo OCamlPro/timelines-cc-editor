@@ -229,6 +229,10 @@ let form is_auth args categories =
           else
             ["confidential", "true"]
         in
+        let min_level =
+          match List.assoc_opt "min_level" args with
+          | None -> []
+          | Some i -> ["min_level", i] in
         let categories =
           List.flatten @@
           List.map2
@@ -238,7 +242,7 @@ let form is_auth args categories =
             categories
             category_getters
         in
-        start_date @ end_date @ confidential @ precision @ categories
+        start_date @ end_date @ confidential @ min_level @ precision @ categories 
       in
       ignore @@ !Dispatcher.dispatch ~path:page_name ~args; true in
     div
