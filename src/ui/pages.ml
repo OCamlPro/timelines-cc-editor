@@ -106,7 +106,10 @@ let admin_page_if_trustworthy ~args =
                              categories
                              old_event
                              (get_event ())
-                             (fun _ -> !Dispatcher.dispatch ~path:Admin.page_name ~args:[])
+                             (fun _ ->
+                                !Dispatcher.dispatch
+                                  ~path:Home.page_name
+                                  ~args:["id", string_of_int i])
                         )
                         "Update event"
                     in

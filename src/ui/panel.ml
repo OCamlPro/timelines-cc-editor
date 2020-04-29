@@ -309,7 +309,7 @@ module Make(M: sig
     Manip.removeChildren div;
     let container = find_component table_id in
     let table =
-      tablex ~a:[ a_class [ btable; "default-table" ] ] [
+      tablex ~a:[ a_class [ btable; (*"default-table"*) ] ] [
                tbody (theads() :: rows) ]
 
     in

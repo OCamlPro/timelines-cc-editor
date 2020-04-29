@@ -255,10 +255,10 @@ let form is_auth args categories =
     [button]
   )
 
-module EventPanel = Panel.MakePageTable(
+module EventPanelNoAuth = Panel.MakePageTable(
   struct
     let title_span _ = span []
-    let table_class = "default-table"
+    let table_class = "table"
     let page_size = 100
     let name = "events"
     let theads () =
@@ -268,6 +268,25 @@ module EventPanel = Panel.MakePageTable(
       ]
   end
   )
+
+module EventPanelAuth = Panel.MakePageTable(
+  struct
+    let title_span _ = span []
+    let table_class = "table"
+    let page_size = 100
+    let name = "events"
+    let theads () =
+      tr ~a:[] [
+        th ~a:[ a_style "width:25%" ]   [txt "Date"];
+        th ~a:[ a_style "width:37.5%" ] [txt "Headline"];
+        th ~a:[ a_style "width:12.5%" ] [txt "Ponderation"];
+        th ~a:[ a_style "width:12.5%" ] [txt "Confidential"];
+        th ~a:[ a_style "width:12.5%" ] [txt ""];
+      ]
+  end
+  )
+
+module type EventPanelType = module type of EventPanelNoAuth
 
 let make_panel_lines (events : (int * event) list) =
   match events with
@@ -287,11 +306,50 @@ let make_panel_lines (events : (int * event) list) =
       )
       events
 
+let make_panel_lines_auth (events : (int * event) list) =
+  match events with
+  | [] -> [ tr [ td ~a: [ a_colspan 9 ] [ txt "No event" ]]]
+  | _ ->
+    List.map
+      (fun (id,{start_date; text = {headline; _}; ponderation; confidential; _}) ->
+         let onclick () =
+           let args = Ui_utils.get_args () in
+           let new_args = Ui_utils.assoc_add_unique "id" (string_of_int id) args in
+           ignore @@ !Dispatcher.dispatch ~path:page_name ~args:new_args
+         in
+         let date =
+           Format.asprintf "%a"
+             (CalendarLib.Printer.Date.fprint "%d/%m/%Y") start_date in
+         tr ~a:[a_onclick (fun _ -> onclick (); true);
+                a_class ["clickable"];
+               ] [
+           td ~a:[ a_style "width:25%" ] [txt date];
+           td ~a:[ a_style "width:37.5%" ] [txt headline];
+           td ~a:[ a_style "width:12.5%" ] [txt @@ string_of_int ponderation];
+           td ~a:[ a_style "width:12.5%" ] [txt @@ string_of_bool confidential];
+           td ~a:[ a_style "width:12.5%" ] [
+             Ui_utils.simple_button
+               ("edit-" ^ string_of_int id)
+               (fun _ ->
+                  !Dispatcher.dispatch
+                    ~path:Admin.page_name
+                    ~args:["action", "edit"; "id", string_of_int id]
+               )
+               "Edit"
+           ]
+         ]
+      )
+      events
+
 let page
     is_auth args
     categories
     title
     (events : (int * event) list) =
+  let (module EventPanel : EventPanelType) =
+    if is_auth then
+      (module EventPanelAuth)
+    else (module EventPanelNoAuth) in
   let has_title = match title with None -> false | Some _ -> true in
   let events =
     List.sort
@@ -366,7 +424,12 @@ let page
     ]
   in
   let table_elts =
-    make_panel_lines events |> Array.of_list in
+    let make_lines =
+      if is_auth then
+        make_panel_lines_auth
+      else
+        make_panel_lines in
+    make_lines events |> Array.of_list in
   let init () =
     display_timeline Controller.update_action is_auth args categories title events;
     (* Now, adding additional events to timeline links. *)

@@ -149,7 +149,6 @@ let event_form
       ~media:(get_media ())
       ~title:(get_headline ())
       ~text:(get_text ())
-
       ~typ2:None
 
   in
