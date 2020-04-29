@@ -259,7 +259,7 @@ module EventPanel = Panel.MakePageTable(
   struct
     let title_span _ = span []
     let table_class = "default-table"
-    let page_size = 20
+    let page_size = 100
     let name = "events"
     let theads () =
       tr [
@@ -281,7 +281,7 @@ let make_panel_lines (events : (int * event) list) =
            ignore @@ !Dispatcher.dispatch ~path:page_name ~args:new_args
          in
          tr ~a:[a_onclick (fun _ -> onclick (); true); a_class ["clickable"]] [
-           td [txt @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") start_date];
+           td [txt @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%d/%m/%Y") start_date];
            td [txt headline];
          ]
       )

@@ -129,7 +129,7 @@ let export_database args =
           let events =
             List.fold_left
               (fun acc event ->
-                 acc ^ Data_encoding.event_to_csv ~sep event ^ ";%\n")
+                 acc ^ Data_encoding.event_to_csv ~sep event ^ ";\n")
               ""
               (snd @@ List.split events) in
           let str =  (title ^ ";\n" ^ header ^ ";\n" ^ events) in
