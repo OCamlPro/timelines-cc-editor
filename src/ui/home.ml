@@ -10,7 +10,7 @@ let page_name = "home"
 let back_button () =
   Ui_utils.simple_button
     "home-back"
-    (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
+    (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.get_args ()))
     "Back"
 
 let edit_button (events : (int * event) list) title categories =
