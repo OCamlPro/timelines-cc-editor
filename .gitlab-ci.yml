@@ -19,8 +19,8 @@ build:
     - sudo apk add bash
     - "[ -d _opam ] || opam switch create . ocaml.4.07.1 --deps-only --locked"
   script:
-    - ocp-build init
-    - bash build_deps.sh
+    - opam exec -- ocp-build init
+    - opam exec -- bash build_deps.sh
     - opam exec -- make js
     - tar czhf www.tar.gz -C www .
   cache:
