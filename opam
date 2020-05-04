@@ -26,6 +26,8 @@ depends: [
   "ocplib-endian"
   "digestif"
   "hex"
+  "conf-pkg-config"
+  "conf-libcurl"
   "ocurl" { >= "0.9.1" }
   "zarith"
   "lwt" { = "4.5.0" }
