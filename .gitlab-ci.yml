@@ -13,7 +13,7 @@ workflow:
 # Customize the build rules and the artifacts here
 build:
   stage: build
-  image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.08
+  image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.10
   before_script:
     - touch /tmp/foo
     - "[ -d _opam ] || opam switch create . ocaml-system --deps-only --locked"
