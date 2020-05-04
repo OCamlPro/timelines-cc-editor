@@ -20,7 +20,7 @@ build:
   script:
     - git submodule init
     - git submodule update
-    - sudo apk add pkgconf
+    - sudo apk add pkgconf && opam install conf-pkg-config --no-depexts
     - bash build_deps.sh
     - make js
     - tar czhf www.tar.gz -C www .
