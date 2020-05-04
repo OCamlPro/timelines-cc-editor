@@ -15,12 +15,13 @@ build:
   stage: build
   image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.10
   variables:
-    GIT_SUBMODULE_STRATEGY: normal
   before_script:
     - sudo apk add pkgconf && opam option --global 'depext-bypass+=["pkgconfig"]'
     - sudo apk add bash
     - "[ -d _opam ] || opam switch create . ocaml.4.07.1 --deps-only --locked"
   script:
+    - git submodule init
+    - git submodule update
     - opam exec -- ocp-build init
     - opam exec -- bash build_deps.sh
     - opam exec -- make js
