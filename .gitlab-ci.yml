@@ -13,7 +13,7 @@ workflow:
 # Customize the build rules and the artifacts here
 build:
   stage: build
-  image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.10.0
+  image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.10
   before_script:
     - sudo apk add pkgconf && opam option --global 'depext-bypass+=["pkgconfig"]'
     - sudo apk add bash
