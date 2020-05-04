@@ -20,6 +20,7 @@ build:
   script:
     - git submodule init
     - git submodule update
+    - sudo apk add pkgconf
     - bash build_deps.sh
     - make js
     - tar czhf www.tar.gz -C www .
