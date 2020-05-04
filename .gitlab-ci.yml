@@ -137,7 +137,7 @@ deploy-temp:
     - if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
 
 # Adjust the PUBLIC_HOST here. Be sure to set the DNS too!
- deploy-prod:
+deploy-prod:
    <<: *deploy-job
    variables:
      <<: *deploy-variables
