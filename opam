@@ -6,6 +6,17 @@ homepage: "no"
 bug-reports: "no"
 dev-repo: "git+https://gitlab.ocamlpro.com/steven.de-oliveira/timeline"
 license: "GPLv3"
+depexts: [
+  "postgresql"
+  "libsodium-dev"
+  "libgeoip1"
+  "libgeoip-dev"
+  "libcurl4-gnutls-dev"
+  "curl"
+  "zlib1g-dev"
+  "pkg-config"
+  "libgmp-dev"
+]
 depends: [
   "ocaml" { >= "4.07.1" }
   "ocamlfind" { build }
@@ -16,7 +27,7 @@ depends: [
   "ocplib-endian"
   "digestif"
   "hex"
-  "ocurl"
+  "ocurl" 
   "zarith"
   "lwt" { = "4.5.0" }
   "menhir"
