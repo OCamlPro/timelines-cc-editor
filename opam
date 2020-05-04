@@ -45,7 +45,7 @@ depends: [
   "faraday-lwt-unix"
   "faraday-async"
   "angstrom-unix"
-
+  "pgocaml"
 ]
 pin-depends: [
   [ "ocp-build.next" "git+https://github.com/OCamlPro/ocp-build.git#next"]

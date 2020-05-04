@@ -2,7 +2,37 @@ OCPTimeline
 
 # Install
 
-1. Prepare installation of dependencies.
+1. Install the dependencies:
+sudo apt-get install\
+     postgresql\
+     libsodium-dev\
+     libgeoip1\
+     libgeoip-dev\
+     libcurl4-gnutls-dev\
+     curl\
+     zlib1g-dev\
+     pkg-config\
+     libgmp-dev\
+     opam
+
+2. Edit the opam config file
+
+Before installing and compiling the next dependencies, you need to disable
+the sandbox mode of opam. Check the file `~/.opam/config`, and comment
+the lines below if there are still there:
+
+```
+wrap-build-commands:
+  ["%{hooks}%/sandbox.sh" "build"] {os = "linux" | os = "macos"}
+wrap-install-commands:
+  ["%{hooks}%/sandbox.sh" "install"] {os = "linux" | os = "macos"}
+wrap-remove-commands:
+  ["%{hooks}%/sandbox.sh" "remove"] {os = "linux" | os = "macos"}
+```
+
+3. Initialize.
+   From here, "make init" should do the trick. If you want to customize
+   your installation, here are the steps.
 
   You need a switch 4.07.1 (for ocp-build). You are strongly advised to
   create a new switch for the installation.
@@ -21,7 +51,7 @@ OCPTimeline
   wrap-remove-commands:
     ["%{hooks}%/sandbox.sh" "remove"] {os = "linux" | os = "macos"}
 ```
-2. Install dependnecies:
+Then, install dependnecies:
   $ opam install -y \
    	ocp-build base64 lwt.4.5 \
    	ocplib-json-typed \
@@ -49,9 +79,8 @@ OCPTimeline
 	omd \
 	sha
 
-3. Compile.
-make init
-make parser
+4. Compile.
+make
 
 # Usage
 

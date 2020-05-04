@@ -5,13 +5,14 @@ DBUPDATER=dbupdater
 
 all: build
 
-include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
+init:
+	git submodule init
+	git submodule update
+	bash opam_build.sh
+	bash build_deps.sh
 
 build: parser db api js website
 
-init:
-	bash build-deps.sh
-	ocp-build init
 
 db: db-update
 	PGDATABASE=$(DATABASE) ocp-build csv-dbparser
