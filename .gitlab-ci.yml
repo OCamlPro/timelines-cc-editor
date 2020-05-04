@@ -16,6 +16,7 @@ build:
   image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.07
   before_script:
     - sudo apk add pkgconf && opam option --global 'depext-bypass+=["pkgconfig"]'
+    - sudo apk add bash
     - "[ -d _opam ] || opam switch create . ocaml-system --deps-only --locked"
   script:
     - opam exec -- make js
