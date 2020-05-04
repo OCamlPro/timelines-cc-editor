@@ -1,0 +1,163 @@
+stages:
+  - build
+  - image
+  - deploy
+
+# Define some conditions to run the whole pipeline
+workflow:
+  rules:
+    - if: $CI_MERGE_REQUEST_ID                     # Run on MRs
+    - if: $CI_COMMIT_TAG                           # Run on tags
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run on master
+
+# Customize the build rules and the artifacts here
+build:
+  stage: build
+  image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.07.1
+  before_script:
+    - "[ -d _opam ] || opam switch create . ocaml-system --deps-only --locked"
+  script:
+    - opam exec -- make
+    - tar czhf www.tar.gz -C www .
+  cache:
+    key:
+      files:
+        - opam
+    paths:
+      - _opam
+  artifacts:
+    paths:
+      - www.tar.gz
+
+# The Dockerfile for the image we want to generate
+# Here we inherit from nginx and just add the contents of our web-app
+.gen-dockerfile: &gen-dockerfile
+- |
+  echo "\
+  FROM bitnami/nginx:latest
+  ADD www.tar.gz /app
+  " > /kaniko/Dockerfile
+
+# Builds and pushes the Docker image using Kaniko
+make-image:
+  stage: image
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - *gen-dockerfile
+    - |
+      echo "\
+      { \"auths\": {
+          \"$CI_REGISTRY\": {
+            \"username\":\"$CI_REGISTRY_USER\",
+            \"password\":\"$CI_REGISTRY_PASSWORD\"
+      }}}
+      " > /kaniko/.docker/config.json
+    - /kaniko/executor
+        --context=$CI_PROJECT_DIR
+        --dockerfile=/kaniko/Dockerfile
+        --destination=$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+        $(if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
+            echo "--destination=$CI_REGISTRY_IMAGE:latest";
+          fi)
+
+# Configuration for the bitnami/nginx helm chart that we deploy
+.gen-deploy-yaml: &gen-deploy-yaml
+- |
+  echo "\
+  image:
+    registry: ${CI_REGISTRY}
+    repository: ${CI_REGISTRY_IMAGE#$CI_REGISTRY/}
+    tag: ${CI_COMMIT_REF_SLUG}
+    pullPolicy: Always
+    pullSecrets:
+      - gitlab-deploy
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: true
+    hostname: \"${PUBLIC_HOST}\"
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      kubernetes.io/tls-acme: \"true\"
+    tls:
+      - secretName: ${CI_PROJECT_PATH_SLUG}-tls
+        hosts:
+          - \"${PUBLIC_HOST}\"
+  " > deploy.yaml
+
+# This defines the deploy jobs, shouldn't need to be changed
+# See https://gitlab.com/gitlab-org/cluster-integration/auto-deploy-image/-/blob/master/src/bin/auto-deploy for guidance.
+.deploy_template: &deploy-job
+  stage: deploy
+  # We just need an image where we can run helm (v.3 minimum)
+  image: dtzar/helm-kubectl:3.2.0
+  # Skip downloading of the artifacts
+  dependencies: []
+  interruptible: true
+  variables: &deploy-variables
+    POD_NAME: ${CI_ENVIRONMENT_SLUG}-${CI_COMMIT_REF_SLUG}
+    PUBLIC_HOST: ${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}.${KUBE_INGRESS_BASE_DOMAIN}
+    # Uncomment this for verbose debug
+    # CI_DEBUG_TRACE: "true"
+  before_script:
+    # We use the bitnami/nginx chart that works well with the associated Docker
+    # image used as base for our server
+    - helm repo add bitnami https://charts.bitnami.com/bitnami
+    - helm repo update
+  script:
+    - *gen-deploy-yaml
+    - helm upgrade --install --reset-values --atomic --cleanup-on-fail
+        --force
+        --namespace="$KUBE_NAMESPACE"
+        --values deploy.yaml
+        "$POD_NAME"
+        bitnami/nginx
+
+# Only master
+deploy-master:
+  <<: *deploy-job
+  environment:
+    name: dev
+    url: https://${PUBLIC_HOST}
+    on_stop: stop-deploy-dev
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+# For MRs or other branches: same, but auto-stop after 3 days
+deploy-temp:
+  <<: *deploy-job
+  environment:
+    name: dev
+    url: https://${PUBLIC_HOST}
+    on_stop: stop-deploy-dev
+    auto_stop_in: 3 days
+  rules:
+    - if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+
+# # Adjust the PUBLIC_HOST here. Be sure to set the DNS too!
+ deploy-prod:
+   <<: *deploy-job
+   variables:
+     <<: *deploy-variables
+     PUBLIC_HOST: ${CI_PROJECT_NAME}.ocamlpro.com
+   environment:
+     name: prod
+     url: https://${PUBLIC_HOST}
+   rules:
+     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+       when: manual
+       allow_failure: true
+
+stop-deploy-dev:
+  <<: *deploy-job
+  environment:
+    name: dev
+    action: stop
+  interruptible: false
+  script:
+    - helm uninstall "$POD_NAME"
+  rules:
+    - when: manual
+      allow_failure: true
