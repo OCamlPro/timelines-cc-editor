@@ -42,4 +42,5 @@ clean:
 	rm -f db-version.txt
 
 mr-proper: clean
+	opam switch remove . -y
 	dropdb $(DATABASE)

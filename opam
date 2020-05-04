@@ -31,6 +31,8 @@ depends: [
   "ocurl" { >= "0.9.1" }
   "zarith"
   "lwt" { = "4.5.0" }
+  "lwt_log"
+  "extunix"
   "menhir"
   "ezjsonm"
   "num"
@@ -53,11 +55,14 @@ depends: [
   "js_of_ocaml-ocamlbuild"
   "js_of_ocaml-ppx"
   "httpaf"
+  "httpaf-lwt-unix"
   "faraday-lwt"
   "faraday-lwt-unix"
   "faraday-async"
   "angstrom-unix"
   "pgocaml"
+  "sha"
+  "extunix"
 ]
 pin-depends: [
   [ "ocp-build.next" "git+https://github.com/OCamlPro/ocp-build.git#next"]

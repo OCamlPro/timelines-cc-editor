@@ -13,7 +13,7 @@ OCaml.program("ocptimeline-js", ocaml + {
 	 ];
    requires = [
     "js_of_ocaml";
-    "js_of_ocaml.tyxml";
+    "js_of_ocaml-tyxml";
     "js_of_ocaml-lwt";
     "ocplib-utils-js";
     "yojson";
@@ -52,7 +52,7 @@ OCaml.program("ocptimeline-js-website", ocaml + {
 	 ];
    requires = [
     "js_of_ocaml";
-    "js_of_ocaml.tyxml";
+    "js_of_ocaml-tyxml";
     "js_of_ocaml-lwt";
     "ocplib-utils-js";
     "yojson";
