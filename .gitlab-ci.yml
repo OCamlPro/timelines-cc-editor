@@ -14,6 +14,8 @@ workflow:
 build:
   stage: build
   image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.10
+  variables:
+    GIT_SUBMODULE_STRATEGY: normal
   before_script:
     - sudo apk add pkgconf && opam option --global 'depext-bypass+=["pkgconfig"]'
     - sudo apk add bash
