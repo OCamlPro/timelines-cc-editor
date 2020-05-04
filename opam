@@ -15,7 +15,7 @@ depends: [
   "ocplib-endian"
   "digestif"
   "hex"
-  "ocurl"
+  "ocurl" { = "0.9.1" }
   "zarith"
   "lwt" { = "4.5.0" }
   "menhir"
