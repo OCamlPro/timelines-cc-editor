@@ -4,6 +4,3 @@
 [submodule "libs/ez-api"]
 	path = libs/ez-api
 	url = https://github.com/OCamlPro/ez-api.git
-[submodule "libs/ez-pgocaml"]
-	path = libs/ez-pgocaml
-	url = https://github.com/OCamlPro/ez-pgocaml
