@@ -15,6 +15,7 @@ build:
   stage: build
   image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.10
   variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - sudo apk add pkgconf && opam option --global 'depext-bypass+=["pkgconfig"]'
     - sudo apk add bash
@@ -22,9 +23,8 @@ build:
   script:
     - sudo apk add dropbear-ssh
     - sed -i 's/git@github.com:/git:\/\/github.com\//' .gitmodules
-    - git submodule update --init --recursive
     - opam exec -- ocp-build init
-    - opam exec -- bash build_deps.sh
+    - opam exec -- sh build_deps.sh
     - opam exec -- make js
     - tar czhf www.tar.gz -C www .
   cache:
@@ -54,6 +54,7 @@ make-image:
     entrypoint: [""]
   script:
     - *gen-dockerfile
+    - mkdir -p /kaniko/.docker
     - |
       echo "\
       { \"auths\": {
