@@ -21,8 +21,6 @@ build:
     - sudo apk add bash
     - "[ -d _opam ] || opam switch create . ocaml.4.07.1 --deps-only --locked"
   script:
-    - sudo apk add dropbear-ssh
-    - sed -i 's/git@github.com:/git:\/\/github.com\//' .gitmodules
     - opam exec -- ocp-build init
     - opam exec -- sh build_deps.sh
     - opam exec -- make js
