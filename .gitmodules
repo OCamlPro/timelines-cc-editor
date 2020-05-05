@@ -1,9 +1,9 @@
 [submodule "libs/ocplib-jsutils"]
 	path = libs/ocplib-jsutils
-	url = git@github.com:OCamlPro/ocplib-jsutils
+	url = https://github.com/OCamlPro/ocplib-jsutils
 [submodule "libs/ez-api"]
 	path = libs/ez-api
 	url = https://github.com/OCamlPro/ez-api.git
 [submodule "libs/ez-pgocaml"]
 	path = libs/ez-pgocaml
-	url = git@github.com:Stevendeo/ez-pgocaml.git
+	url = https://github.com/Stevendeo/ez-pgocaml.git
