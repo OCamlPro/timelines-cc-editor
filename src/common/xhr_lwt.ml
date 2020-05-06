@@ -56,16 +56,7 @@ let base ?port ?(scheme="https") hu_host =
   | "https" -> Https url
   | _ -> Http url
 
-let base_url = Http {
-  hu_host = "d4.dune.network";
-  hu_port = 12346;
-  hu_path = [];
-  hu_path_string = "";
-  hu_arguments = [];
-  hu_fragment = ""
-}
-
-let make_url ?(base=base_url) ?(args=[]) url =
+let make_url ~base ?(args=[]) url =
   let scheme, base = match base with
     | Http base -> "http", base
     | Https base -> "https", base
@@ -86,15 +77,15 @@ let make_frame ?(code=0) ?(url="") ?(headers=fun _ -> None)
     ?(content_xml=fun _ -> None) content =
   {url; code; headers; content; content_xml}
 
-let get_raw ?base ?args url =
-  let url2 = make_url ?base ?args url in
+let get_raw ~base ?args url =
+  let url2 = make_url ~base ?args url in
   (* Format.eprintf "GET %s@." (string_of_url url2); *)
   try Xhr.perform url2 >>= handle_response
   with _ -> return (Error (Xhr_err (make_frame ~url ("No response from server"))))
 
 
-let post_raw ?base ?args ?(content_type="application/json") url contents =
-  let url2 = make_url ?base ?args url in
+let post_raw ~base ?args ?(content_type="application/json") url contents =
+  let url2 = make_url ~base ?args url in
   (* Format.eprintf "POST %s with @[%s@]@." (string_of_url url2) contents; *)
   let contents = `String contents in
   try Xhr.perform ~content_type ~contents url2 >>= handle_response
@@ -113,12 +104,12 @@ let construct enc o = match enc with
   | Raw (to_string, _) -> Printf.sprintf "%S" (to_string o)
   | Enc enc -> EzEncoding.construct enc o *)
 
-let get ?base ?args url = get_raw ?base ?args url
+let get ~base ?args url = get_raw ~base ?args url
 
-let post ?base ?args ?content_type input_enc output_enc url contents =
+let post ~base ?args ?content_type input_enc output_enc url contents =
   let contents = construct input_enc contents in
   let contents = Format.asprintf "%a" (Json_repr.pp_any ()) (Json_repr.to_any contents) in
-  post_raw ?base ?args ?content_type url contents >>=
+  post_raw ~base ?args ?content_type url contents >>=
   (function
     | Ok res ->
       let res =
