@@ -1,4 +1,4 @@
-let api_url = "d4.dune.network"
-let api_port = 6789
+let api_url = ""
+let api_port = 80
 
 let database = "ocptl_db"
