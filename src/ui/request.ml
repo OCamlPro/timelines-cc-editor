@@ -2,14 +2,12 @@ open Js_of_ocaml.Url
 open Lwt
 
 let api () =
-  Http {
-    hu_host = Config.api_url;
-    hu_port = Config.api_port;
-    hu_path = [];
-    hu_path_string = "";
-    hu_arguments = [];
-    hu_fragment = ""
-  }
+  match Js_of_ocaml.Url.Current.get () with
+  | Some u -> u
+  | None ->
+    match Js_of_ocaml.Url.url_of_string "http://localhost:8080" with
+    | Some u -> u
+    | None -> assert false
 
 let get ?(args = []) apifun cont =
   let url = api () in
