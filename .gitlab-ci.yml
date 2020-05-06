@@ -88,7 +88,7 @@ make-image:
       kubernetes.io/ingress.class: nginx
       kubernetes.io/tls-acme: \"true\"
     tls:
-      - secretName: ${CI_PROJECT_PATH_SLUG}-tls
+      - secretName: ${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}-tls
         hosts:
           - \"${PUBLIC_HOST}\"
   " > deploy.yaml
