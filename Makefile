@@ -11,6 +11,8 @@ init:
 	bash opam_build.sh
 	bash build_deps.sh
 
+include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
+
 build: parser db api js website
 
 
@@ -23,7 +25,7 @@ parser:
 
 api: db
 	PGDATABASE=$(DATABASE) ocp-build api-lib
-	ocp-build api
+	ocp-build make api -lpthread
 	cp _obuild/api/api.asm api
 
 js:

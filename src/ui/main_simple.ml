@@ -3,7 +3,11 @@ let default_ponderation = 10
 let main () =
   Request.timeline_data ~args:["ponderation", string_of_int default_ponderation] (fun events ->
       Request.title ~args:[] (fun title ->
-          let events = List.map (fun (i,e) ->  ("id-" ^ string_of_int i), e) events in
+          let events =
+            List.map (fun (i,e) ->
+              ("id-" ^ string_of_int i),
+              {e with Data_types.group = None}
+            ) events in
           let cmd =
             let timeline = (events, title) in
             let json = Json_encoding.construct (Data_encoding.id_timeline_encoding) timeline in
