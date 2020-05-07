@@ -167,6 +167,7 @@ deploy-prod:
    environment:
      name: prod
      url: https://${PUBLIC_HOST}
+     on_stop: stop-deploy-prod
    rules:
      - when: manual
        allow_failure: true
@@ -175,6 +176,21 @@ stop-deploy-dev:
   <<: *deploy-job
   environment:
     name: dev
+    action: stop
+  interruptible: false
+  script:
+    - helm uninstall "$POD_NAME"
+  rules:
+    - when: manual
+      allow_failure: true
+
+stop-deploy-prod:
+  <<: *deploy-job
+  variables:
+    <<: *deploy-variables
+    PUBLIC_HOST: ${CI_PROJECT_NAME}.ocamlpro.com
+  environment:
+    name: prod
     action: stop
   interruptible: false
   script:
