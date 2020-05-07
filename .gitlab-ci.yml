@@ -23,7 +23,7 @@ build:
   script:
     - opam exec -- ocp-build init
     - opam exec -- sh build_deps.sh
-    - opam exec -- make js
+    - opam exec -- make website
     - tar czhf www.tar.gz -C www .
   cache:
     key:
@@ -41,7 +41,10 @@ build:
 - |
   echo "\
   FROM bitnami/nginx:latest
-  ADD www.tar.gz /app
+  ADD --chown=www-data www.tar.gz /app
+  USER 0
+  RUN chmod a+rX-w -R /app
+  USER 1001
   " > /kaniko/Dockerfile
 
 # Builds and pushes the Docker image using Kaniko
@@ -64,6 +67,7 @@ make-image:
         --context=$CI_PROJECT_DIR
         --dockerfile=/kaniko/Dockerfile
         --destination=$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+        --destination=$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHORT_SHA
         $(if [ "$CI_COMMIT_BRANCH" = "$CI_DEFAULT_BRANCH" ]; then
             echo "--destination=$CI_REGISTRY_IMAGE:latest";
           fi)
@@ -75,7 +79,7 @@ make-image:
   image:
     registry: ${CI_REGISTRY}
     repository: ${CI_REGISTRY_IMAGE#$CI_REGISTRY/}
-    tag: ${CI_COMMIT_REF_SLUG}
+    tag: ${CI_COMMIT_REF_SLUG}-${CI_COMMIT_SHORT_SHA}
     pullPolicy: Always
     pullSecrets:
       - gitlab-deploy
