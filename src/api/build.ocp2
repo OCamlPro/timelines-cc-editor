@@ -31,5 +31,7 @@ OCaml.library("api-lib",
 OCaml.program("api",
         ocaml + {
               files = [ "main.ml" ];
-              requires = '[ api-lib ];
+              requires = '[
+	        api-lib
+	      ];
               });

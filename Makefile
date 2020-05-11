@@ -25,7 +25,7 @@ parser:
 
 api: db
 	PGDATABASE=$(DATABASE) ocp-build api-lib
-	ocp-build make api -lpthread
+	ocp-build make api
 	cp _obuild/api/api.asm api
 
 js:
