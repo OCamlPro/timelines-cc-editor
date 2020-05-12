@@ -91,7 +91,7 @@ make-image:
       root /app;
       location / {
         index index.html;
-	proxy_hide_header X-Frame-Options;
+        proxy_hide_header X-Frame-Options;
       }
     }
   ingress:
