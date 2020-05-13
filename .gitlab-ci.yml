@@ -94,7 +94,6 @@ make-image:
       root /app;
       location / {
         index index.html;
-        add_header X-Frame-Options "";
       }
     }
   ingress:
