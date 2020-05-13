@@ -11,7 +11,7 @@ let allowing_dynamic_slides = [
 
 let allow_init () =
   let hostname = Ui_utils.get_hostname () in
-  Js_utils.log "Hostname = %s" hostname;
+  Js_utils.log "Anchor = %s" hostname;
   List.mem hostname allowing_dynamic_slides
 
 let display_timeline () =
@@ -43,7 +43,7 @@ let display_timeline () =
 
 let url_position has_title order =
   Js_utils.log "Url position";
-  let path = Ui_utils.get_path () in
+  let path = Ui_utils.get_fragment () in
   match Utils.StringMap.find_opt path order with
   | None -> 0
   | Some i -> if has_title then i+1 else i
@@ -53,6 +53,8 @@ let go_to_right_slide has_title order =
   let position = url_position has_title order in
   Js_utils.log "Slide %i" position;
   Ui_utils.slide_event Next position
+
+let url id = Ui_utils.url ("#" ^ id) []
 
 let add_handlers_to_markers has_title order =
   Js_utils.log "Add links to markers";
@@ -77,12 +79,12 @@ let add_handlers_to_markers has_title order =
           let () =
             if diff < 0 then begin (* Go Prev *)
               Ui_utils.slide_event Prev ((-1) * diff);
-              let url = Ui_utils.url orig_id [] in
+              let url = url orig_id in
               Ui_utils.push url
             end
             else if diff > 0 then begin
               Ui_utils.slide_event Next diff;
-              let url = Ui_utils.url orig_id [] in
+              let url = url orig_id in
               Ui_utils.push url
             end
             else ()
@@ -104,7 +106,7 @@ let add_handlers_to_arrows has_title order rev_order =
       Js_utils.log "Cannot find event at position %i" (current_pos - 1);
       Ocp_js.Js._false
     | Some path ->
-      let url = Ui_utils.url path [] in
+      let url = url path in
       Ui_utils.push url;
       Ocp_js.Js._true
   in
@@ -115,7 +117,7 @@ let add_handlers_to_arrows has_title order rev_order =
       Js_utils.log "Cannot find event at position %i" (current_pos - 1);
       Ocp_js.Js._false
     | Some path ->
-      let url = Ui_utils.url path [] in
+      let url = url path in
       Ui_utils.push url;
       Ocp_js.Js._true
   in
@@ -150,11 +152,9 @@ let add_handlers_to_arrows has_title order rev_order =
            ) 
         )
     )
-        Ocp_js.Js._true |> ignore
+      Ocp_js.Js._true |> ignore
   in ()
               
-  
-
 let init_slide_from_url has_title =
   if not (allow_init ()) then
     Lwt.return (Ok ())
@@ -180,7 +180,6 @@ let init_slide_from_url has_title =
         Lwt.return (Ok ())
       end
   end
-
-
+                
 let () = let open Lwt in
   (display_timeline () >>= init_slide_from_url) >>= (fun _ -> Lwt.return (Ok ())) |> ignore

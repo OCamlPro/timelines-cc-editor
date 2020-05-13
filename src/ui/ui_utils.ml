@@ -3,8 +3,8 @@ open Bootstrap_helpers
 open Grid
 open Form
 open Js_utils
-open Js_of_ocaml_tyxml.Tyxml_js.Html
 open Ocp_js
+
 let link ?(args=[]) path =
   match args with
   | [] -> path
@@ -630,3 +630,27 @@ let get_path () =
   match Jsloc.url () with
   | Http h | Https h -> h.hu_path_string
   | File f -> f.fu_path_string
+
+let get_fragment () =
+  match Jsloc.url () with
+  | Http h | Https h -> h.hu_fragment
+  | File f -> f.fu_fragment
+
+let display_url () =
+  let display_u u =
+    Js_utils.log
+      "{ host = %s;\n\
+         port = %i;\n\
+         path = %s;\n\
+         args = %s;\n\
+         fragment = %s\n\
+       }"
+      u.Url.hu_host
+      u.hu_port
+      u.hu_path_string
+      (link ~args:u.hu_arguments "")
+      u.hu_fragment in
+  match Jsloc.url () with
+  | Http u -> Js_utils.log "http"; display_u u;
+  | Https u -> Js_utils.log "https"; display_u u;
+  | File _ -> Js_utils.log "file"
