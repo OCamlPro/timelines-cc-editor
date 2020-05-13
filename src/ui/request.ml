@@ -11,6 +11,11 @@ let api () =
 
 let get ?(args = []) apifun cont =
   let url = api () in
+  let url = (* Only for standalone !! *)
+    match url with
+    | Http u -> Http {u with hu_path_string = ""}
+    | Https u -> Https {u with hu_path_string = ""}
+    | File f -> File {f with fu_path_string = ""} in
   let () =
     Js_utils.log "GET %s from %s with args [%a]"
       apifun
@@ -22,7 +27,7 @@ let get ?(args = []) apifun cont =
   Xhr_lwt.get ~args ~base:url apifun >>=
   function
     Ok elt ->
-    Js_utils.log "GET %s OK" apifun;
+    Js_utils.log "GET %s OK: %s" apifun elt;
     cont elt
   | Error e ->
     let code, msg = Xhr_lwt.error_content e in
@@ -51,8 +56,12 @@ let cook encoding cont =
          let elt = Json_encoding.destruct encoding json in
          Js_utils.log "Cooking OK";
          elt
-       with e ->
-         Js_utils.log "Error while cooking %s" str;
+       with
+       | e ->
+         Js_utils.log "Error while cooking %s: %s"
+           str
+           (Printexc.to_string e)
+         ;
          raise e in
      cont elt
   )

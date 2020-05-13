@@ -85,6 +85,7 @@ let opt f = function
 
 
 module StringMap = Map.Make (String)
+module IntMap = Map.Make (struct type t = int let compare = (-) end)
 
 let fold_lefti f =
   let i = ref (-1) in
