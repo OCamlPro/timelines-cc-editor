@@ -53,6 +53,14 @@ let sql_upgrade_2_to_3 =  [
   )|}
 ]
 
+let sql_downgrade_4_to_3 = [
+  {| ALTER TABLE events_ DROP COLUMN unique_id_ |}
+]
+
+let sql_upgrade_3_to_4 =  [
+  {| ALTER TABLE events_ ADD COLUMN unique_id_ VARCHAR UNIQUE NOT NULL |}
+]
+
 let ( upgrades, downgrades ) =
   let rev_versions = ref [] in
   let versions = List.mapi (fun i (upgrade, downgrade) ->
@@ -64,6 +72,7 @@ let ( upgrades, downgrades ) =
         sql_upgrade_0_to_1, sql_downgrade_1_to_0;
         sql_upgrade_1_to_2, sql_downgrade_2_to_1;
         sql_upgrade_2_to_3, sql_downgrade_3_to_2;
+        sql_upgrade_3_to_4, sql_downgrade_4_to_3;
       ]
   in
   (versions, !rev_versions)

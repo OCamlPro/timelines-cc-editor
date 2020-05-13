@@ -15,6 +15,7 @@ include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 
 build: parser db api js website
 
+include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 
 db: db-update
 	PGDATABASE=$(DATABASE) ocp-build csv-dbparser

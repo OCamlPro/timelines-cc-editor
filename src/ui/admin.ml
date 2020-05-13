@@ -70,6 +70,15 @@ let event_form
        ~name:"headline"
        () in
 
+  let unique_id, get_unique_id =
+    placeholder
+      ~readonly
+      ~id:(title idl)
+      ~content:e.unique_id
+      ~title:"Unique id"
+      ~name:"unique-id"
+       () in
+
   let media, get_media =
     let content = match e.media with None -> "" | Some e -> e.url in
     placeholder
@@ -119,6 +128,7 @@ let event_form
       ~content:(string_of_int e.ponderation)
       ~input_type:(Number (Some 0, None))
       () in
+  
   let get_event () =
     let start_date =
       match get_start_date () with
@@ -134,12 +144,27 @@ let event_form
       match get_confidential () with
       | None | Some "false" -> false
       | Some "true" -> true
-      | Some thingelse -> failwith ("bool_of_str " ^ thingelse) in
+      | Some thingelse ->
+        let error =
+          Format.sprintf "Confidentiality must be 'true' or 'false': %s is invalid" thingelse
+        in failwith error in
 
     let ponderation =
       match get_ponderation () with
       | None -> 0
-      | Some i -> try int_of_string i with _ -> failwith ("Bad ponderation in UI:" ^ i) in
+      | Some i -> try int_of_string i with _ ->
+        failwith ("Ponderation must be an integer: " ^ i ^ " is invalid") in
+
+    let title = get_headline () in
+
+    let unique_id =
+      match get_unique_id () with
+      | Some i -> i
+      | None ->
+        match title with
+        | None -> failwith "You must either provide a unique ID or a title"
+        | Some t -> Utils.short_title t
+    in
     Data_encoding.to_event
       ~start_date
       ~end_date
@@ -147,9 +172,10 @@ let event_form
       ~confidential
       ~ponderation
       ~media:(get_media ())
-      ~title:(get_headline ())
+      ~title
       ~text:(get_text ())
       ~typ2:None
+      ~unique_id
 
   in
   let html =
@@ -179,7 +205,8 @@ let empty_event_form id action =
     media = None;
     group = None;
     confidential = false;
-    ponderation = 0
+    ponderation = 0;
+    unique_id = ""
   }
   in
   event_form empty_event id action

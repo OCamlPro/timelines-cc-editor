@@ -16,6 +16,24 @@ let to_text headline text =
     text
   }
 
+let short_title str =
+  let allowed_char c =
+    let code = Char.code c in
+    if (code >= 65 && code <= 90)  || (* between 'A' and 'Z' *)
+       (code >= 97 && code <= 122) || (* between 'a' and 'z' *)
+       (code >= 48 && code <= 57)  (* between '0' and '9' *)
+    then c
+    else
+      match c with
+      | '.' | '-' | '_' -> c
+      | _ -> '-' in
+  if str = "" then
+    "__no_title__id__"
+  else
+    let short =
+      String.sub str 0 (min (String.length str) 60) in
+    String.map allowed_char short
+
 let to_title_event headline text = {
   start_date = None;
   end_date = None;
@@ -23,7 +41,8 @@ let to_title_event headline text = {
   group = None;
   media = None;
   ponderation = 0;
-  confidential = false
+  confidential = false;
+  unique_id = "timeline-title-" ^ (short_title headline)
 }
 
 let to_title line =
@@ -41,7 +60,8 @@ let metaevent_to_event meta : event option =
       media = meta.media;
       group = meta.group;
       confidential = meta.confidential;
-      ponderation = meta.ponderation
+      ponderation = meta.ponderation;
+      unique_id = meta.unique_id
     }
 
 let event_to_metaevent e = {
@@ -51,7 +71,8 @@ let event_to_metaevent e = {
       media = e.media;
       group = e.group;
       confidential = e.confidential;
-      ponderation = e.ponderation
+      ponderation = e.ponderation;
+      unique_id = e.unique_id
     }
 
 let to_date year month day =

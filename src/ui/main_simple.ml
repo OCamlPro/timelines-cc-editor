@@ -20,13 +20,12 @@ let display_timeline () =
       Request.title ~args:[] (fun title ->
           Js_utils.log "Title OK";
           let events =
-            List.map (fun (i,e) ->
-              (Ui_utils.short_title e.text.headline),
+            List.map (fun (_,e) ->
               {e with group = None}
             ) events in
           let cmd =
-            let timeline = (events, title) in
-            let json = Json_encoding.construct (Data_encoding.id_timeline_encoding) timeline in
+            let timeline = {events; title} in
+            let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
             let yoj  = Json_repr.to_yojson json in
             let str  = Yojson.Safe.to_string yoj in
             Format.asprintf

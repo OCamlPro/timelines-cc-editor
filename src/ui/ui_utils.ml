@@ -603,24 +603,6 @@ let dynamic_checkbox
   let getter () = !ref_checked in
   html_elt, getter
 
-let short_title str =
-  let allowed_char c =
-    let code = Char.code c in
-    if (code >= 65 && code <= 90)  || (* between 'A' and 'Z' *)
-       (code >= 97 && code <= 122) || (* between 'a' and 'z' *)
-       (code >= 48 && code <= 57)  (* between '0' and '9' *)
-    then c
-    else
-      match c with
-      | '.' | '-' | '_' -> c
-      | _ -> '-' in
-  if str = "" then
-    "__no_title__id__"
-  else
-    let short =
-      String.sub str 0 (min (String.length str) 60) in
-    String.map allowed_char short
-
 let get_hostname () =
   match Jsloc.url () with
   | Http h | Https h -> h.hu_host

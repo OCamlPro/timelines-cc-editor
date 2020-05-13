@@ -135,10 +135,10 @@ let display_timeline update_action is_auth args categories title (events : (int 
   let events = List.map (
       fun (i,e) ->
         let id = Ui_utils.slide_id_from_id i in
-        id, {e with end_date = None}) events in
+        {e with end_date = None; unique_id = id}) events in
   let cmd =
-    let timeline = (events, title) in
-    let json = Json_encoding.construct (Data_encoding.id_timeline_encoding) timeline in
+    let timeline = {events; title} in
+    let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
     let yoj  = Json_repr.to_yojson json in
     let str  = Yojson.Safe.to_string yoj in
     let () = Js_utils.log "yojson to send: %s" str in
