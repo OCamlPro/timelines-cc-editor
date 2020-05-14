@@ -99,8 +99,9 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let event auth id =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
-    PGSQL(dbh)
-      "SELECT * FROM events_ \
+      PGSQL(dbh)
+      "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+               confidential_, ponderation_, unique_id_ FROM events_ \
        WHERE (id_ = $id) AND ($auth OR NOT confidential_)" >>= function
     | res :: _ ->
       let (_, event) = line_to_event res in
@@ -109,13 +110,17 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let events auth =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 AND ($auth OR NOT confidential_) ORDER BY id_ DESC" >>=
+    PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_ FROM events_ \
+                WHERE id_ > 0 AND ($auth OR NOT confidential_) ORDER BY id_ DESC" >>=
     fun l ->
     return @@ List.map line_to_event l
 
   let title () =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ = 0" >>=
+    PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_ FROM events_ \
+                WHERE id_ = 0" >>=
     function
     | [] -> return None
     | (_,_,_,headline, text,_,_,_,_, _) :: _ -> return (Some (Utils.to_title_event headline text))
