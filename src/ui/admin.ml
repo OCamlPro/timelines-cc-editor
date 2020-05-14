@@ -189,6 +189,7 @@ let event_form
         end_date;
         media;
         headline;
+        unique_id;
         group;
         text;
         ponderation;
