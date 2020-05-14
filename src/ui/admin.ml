@@ -14,6 +14,7 @@ let title        i = "title-"       ^ i
 let media        i = "media-"       ^ i
 let group        i = "group-"       ^ i
 let text         i = "text-"        ^ i
+let unique_id    i = "unique-id-"   ^ i
 let confidential i = "confid-"      ^ i
 let ponderation  i = "ponderation-" ^ i
 let valid        i = "button-"      ^ i
@@ -73,7 +74,7 @@ let event_form
   let unique_id, get_unique_id =
     placeholder
       ~readonly
-      ~id:(title idl)
+      ~id:(unique_id idl)
       ~content:e.unique_id
       ~title:"Unique id"
       ~name:"unique-id"
