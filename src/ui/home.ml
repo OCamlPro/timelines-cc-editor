@@ -576,21 +576,28 @@ let page
         with Invalid_argument s -> Js_utils.log "Error in lower part listeners: %s" s
       in
 
-      (* Adding edit button *)
-      let () =
-        if is_auth then begin
-          let edit_button, cancel_button = edit_button events title categories in
-          let div_buttons =
-            div ~a:[a_style "position: sticky; z-index:10; height:0px; top: 0"]
-              [edit_button; cancel_button] in
-          let timeline = Js_utils.find_component "page-content" in
-          match Manip.children timeline with
-          | [] -> Manip.appendChildren timeline [div_buttons]
-          | before :: _ -> Manip.appendChildren ~before timeline [div_buttons]
-        end
-      in
-      ()
-    end in
+      let top_buttons =
+        let edit_buttons = 
+          if is_auth then begin
+            let edit_button, cancel_button = edit_button events title categories in
+            [div [edit_button; cancel_button]]
+          end else [] in 
+        let export = [
+          div
+            ~a:[
+              a_class ["btn"; "btn-primary"];
+              a_id "export-pdf";
+              a_onclick (fun _ -> Ui_utils.html2pdf "slides-pdf"; true)
+            ] [txt "Raw Timeline"]
+        ] in
+        div ~a:[a_class ["row"]; a_style "position: sticky; z-index:10; height:0px;  top: 0"]
+          (edit_buttons @ export) in
+      let timeline = Js_utils.find_component "page-content" in
+      match Manip.children timeline with
+      | [] -> Manip.appendChild timeline top_buttons
+      | before :: _ -> Manip.appendChild ~before timeline top_buttons
+    end
+    in
     EventPanel.paginate_all
       ~urlarg_page:"" ~urlarg_size:"" table_elts;
     ignore (Js_of_ocaml.Js.Unsafe.eval_string

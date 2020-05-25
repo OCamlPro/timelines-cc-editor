@@ -636,3 +636,24 @@ let display_url () =
   | Http u -> Js_utils.log "http"; display_u u;
   | Https u -> Js_utils.log "https"; display_u u;
   | File _ -> Js_utils.log "file"
+
+let html2pdf id =
+  let slides =
+    List.map
+      (fun d ->
+         div
+           ~a:[a_style "display: inline-block; white-space: normal"]
+           [Js_utils.Manip.clone ~deep:true d])
+      (Js_utils.Manip.by_class "tl-slide") in
+  let main_style =
+    "position: absolute;\
+     overflow-x: scroll;\
+     overflox-y: hidden;\
+     white-space: nowrap" in
+  let new_div = div ~a:[a_style main_style] slides in
+  let w =
+    match Ocp_js.Js.Opt.to_option @@ Js_utils.window_open "" "" with
+    | None -> assert false
+    | Some w -> w
+  in
+  let () = Manip.appendChild (Js_utils.Window.body w) new_div in ()
