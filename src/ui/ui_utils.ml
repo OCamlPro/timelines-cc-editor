@@ -637,19 +637,26 @@ let display_url () =
   | Https u -> Js_utils.log "https"; display_u u;
   | File _ -> Js_utils.log "file"
 
-let html2pdf id =
+type align = H | V
+
+let html2pdf ~align id =
+  let slide_style, main_style =
+    match align with
+    | V -> "", ""
+    | H ->
+      "display: inline-block; white-space: normal",
+      "position: absolute;\
+       overflow-x: scroll;\
+       overflow-y: hidden;\
+       white-space: nowrap"
+  in
   let slides =
     List.map
       (fun d ->
          div
-           ~a:[a_style "display: inline-block; white-space: normal"]
+           ~a:[a_style slide_style]
            [Js_utils.Manip.clone ~deep:true d])
       (Js_utils.Manip.by_class "tl-slide") in
-  let main_style =
-    "position: absolute;\
-     overflow-x: scroll;\
-     overflox-y: hidden;\
-     white-space: nowrap" in
   let new_div = div ~a:[a_style main_style] slides in
   let w =
     match Ocp_js.Js.Opt.to_option @@ Js_utils.window_open "" "" with

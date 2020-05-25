@@ -582,16 +582,24 @@ let page
             let edit_button, cancel_button = edit_button events title categories in
             [div [edit_button; cancel_button]]
           end else [] in 
-        let export = [
+        let export_vertical = [
           div
             ~a:[
               a_class ["btn"; "btn-primary"];
               a_id "export-pdf";
-              a_onclick (fun _ -> Ui_utils.html2pdf "slides-pdf"; true)
-            ] [txt "Raw Timeline"]
+              a_onclick (fun _ -> Ui_utils.html2pdf ~align:V "slides-pdf"; true)
+            ] [txt "Raw Timeline (Vertical)"]
+        ] in 
+        let export_hori = [
+          div
+            ~a:[
+              a_class ["btn"; "btn-primary"];
+              a_id "export-pdf";
+              a_onclick (fun _ -> Ui_utils.html2pdf ~align:H "slides-pdf"; true)
+            ] [txt "Raw Timeline (Horizontal)"]
         ] in
         div ~a:[a_class ["row"]; a_style "position: sticky; z-index:10; height:0px;  top: 0"]
-          (edit_buttons @ export) in
+          (edit_buttons @ export_vertical @ export_hori) in
       let timeline = Js_utils.find_component "page-content" in
       match Manip.children timeline with
       | [] -> Manip.appendChild timeline top_buttons
