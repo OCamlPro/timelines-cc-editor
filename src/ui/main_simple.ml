@@ -25,11 +25,13 @@ let display_timeline () =
                 let t = e.text in
                 let text = 
                   match e.last_update with
-                    | None -> t.text
+                    | None ->
+                      Format.asprintf "%s<span class='last-date'></span>" 
+                        t.text
                     | Some d -> 
                       Format.asprintf "%s<span class='last-date'>%a</span>" 
                         t.text
-                        (CalendarLib.Printer.Date.fprint "%F") e.start_date
+                        (CalendarLib.Printer.Date.fprint "%F") d
                 in
                 {t with text} in
               {e with 
