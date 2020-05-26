@@ -143,7 +143,7 @@ let display_timeline update_action is_auth args categories title (events : (int 
     let str  = Yojson.Safe.to_string yoj in
     let () = Js_utils.log "yojson to send: %s" str in
       Format.asprintf
-        "window.timeline = new TL.Timeline('timeline-embed',%s)"
+        "window.timeline = new TL.Timeline('home-timeline-embed',%s)"
         str in
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
   ()
@@ -417,7 +417,7 @@ let page
       div ~a:[a_id "timeline-page"][
         div ~a:[a_class [row]] [
           div ~a:[a_class [clg12];
-                  a_id "timeline-embed";
+                  a_id "home-timeline-embed";
                   a_style" height: 600px"][]
         ];
         div ~a:[a_class [row]] [
