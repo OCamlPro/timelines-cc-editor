@@ -16,7 +16,7 @@ open Utils
 exception NewLine of string
 
 let to_event
-    ?last_update
+    ~last_update
     ~unique_id
     ~start_date
     ~end_date
@@ -121,7 +121,7 @@ let line_to_event line_cpt (header : Header.t) line =
     ~text
     ~confidential
     ~unique_id
-    ?last_update:None
+    ~last_update:None
 
 let date_encoding =
   Json_encoding.(

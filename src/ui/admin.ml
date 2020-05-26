@@ -177,7 +177,7 @@ let event_form
       ~text:(get_text ())
       ~typ2:None
       ~unique_id
-      ~last_update:(CalendarLib.Date.today ())
+      ~last_update:(Some (CalendarLib.Date.today ()))
 
   in
   let html =

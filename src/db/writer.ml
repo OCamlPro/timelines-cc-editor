@@ -21,13 +21,15 @@ let add_event (e : event) =
   let ponderation = Int32.of_int e.ponderation in
   let confidential = e.confidential in
   let unique_id = e.unique_id in
+  let last_update = e.last_update in
   let () =
     PGSQL(dbh)
       "INSERT INTO \
        events_(start_date_, end_date_, headline_, text_, \
-       media_, group_, confidential_, ponderation_, unique_id_) \
+       media_, group_, confidential_, ponderation_, unique_id_, last_update_) \
        VALUES($start_date, $?end_date, $headline,$text,\
-       $?media,$?group, $confidential, $ponderation, $unique_id)" in
+       $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update)"
+  in
   match group with
   | None -> ()
   | Some group -> add_category group; ()
