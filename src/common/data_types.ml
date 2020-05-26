@@ -34,7 +34,8 @@ type 'start_date meta_event = {
   group: main_event_type option;
   confidential: bool;
   ponderation: int;
-  unique_id : string
+  unique_id : string;
+  last_update: date option
 }
 
 type event = date meta_event

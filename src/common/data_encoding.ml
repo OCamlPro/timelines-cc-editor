@@ -16,6 +16,7 @@ open Utils
 exception NewLine of string
 
 let to_event
+    ?last_update
     ~unique_id
     ~start_date
     ~end_date
@@ -49,7 +50,8 @@ let to_event
     media;
     ponderation;
     confidential;
-    unique_id
+    unique_id;
+    last_update
   }
 
 let line_to_event line_cpt (header : Header.t) line =
@@ -119,6 +121,7 @@ let line_to_event line_cpt (header : Header.t) line =
     ~text
     ~confidential
     ~unique_id
+    ?last_update:None
 
 let date_encoding =
   Json_encoding.(
@@ -158,11 +161,11 @@ let group_encoding = Json_encoding.string
 let meta_event_encoding start_date_encoding =
   Json_encoding.(
     conv
-      (fun {start_date; end_date; text; group; media; ponderation; confidential; unique_id} ->
-           (start_date, end_date, text, group, media, ponderation, confidential, unique_id))
-      (fun (start_date, end_date, text, group, media, ponderation, confidential, unique_id) ->
-           {start_date; end_date; text; group; media; ponderation; confidential; unique_id})
-      (obj8
+      (fun {start_date; end_date; text; group; media; ponderation; confidential; unique_id; last_update} ->
+           (start_date, end_date, text, group, media, ponderation, confidential, unique_id, last_update))
+      (fun (start_date, end_date, text, group, media, ponderation, confidential, unique_id, last_update) ->
+           {start_date; end_date; text; group; media; ponderation; confidential; unique_id; last_update})
+      (obj9
          (req "start_date"   start_date_encoding)
          (opt "end_date"     date_encoding)
          (req "text"         text_encoding)
@@ -171,6 +174,7 @@ let meta_event_encoding start_date_encoding =
          (req "ponderation"  int)
          (req "confidential" bool)
          (req "unique_id"    string)
+         (opt "last_update"  date_encoding)
       )
   )
 

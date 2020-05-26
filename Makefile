@@ -11,8 +11,6 @@ init:
 	bash opam_build.sh
 	bash build_deps.sh
 
-include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
-
 build: parser db api js website
 
 include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg

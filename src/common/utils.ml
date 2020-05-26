@@ -42,7 +42,8 @@ let to_title_event headline text = {
   media = None;
   ponderation = 0;
   confidential = false;
-  unique_id = "timeline-title-" ^ (short_title headline)
+  unique_id = "timeline-title-" ^ (short_title headline);
+  last_update = None
 }
 
 let to_title line =
@@ -61,7 +62,8 @@ let metaevent_to_event meta : event option =
       group = meta.group;
       confidential = meta.confidential;
       ponderation = meta.ponderation;
-      unique_id = meta.unique_id
+      unique_id = meta.unique_id;
+      last_update = None
     }
 
 let event_to_metaevent e = {
@@ -72,7 +74,8 @@ let event_to_metaevent e = {
       group = e.group;
       confidential = e.confidential;
       ponderation = e.ponderation;
-      unique_id = e.unique_id
+      unique_id = e.unique_id;
+      last_update = None
     }
 
 let to_date year month day =

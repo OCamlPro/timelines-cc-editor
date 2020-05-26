@@ -54,7 +54,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let line_to_event ?(with_end_date=true) line =
     match line with
-      (id, Some start_date, end_date, headline, text, url, group, confidential, ponderation, unique_id) ->
+      (id, Some start_date, end_date, headline, text, url, group, confidential, ponderation, unique_id, last_update) ->
       Int32.to_int id, {
         start_date;
         end_date = if with_end_date then end_date else None;
@@ -65,7 +65,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         group;
         confidential;
         ponderation = Int32.to_int ponderation;
-        unique_id
+        unique_id;
+        last_update
       }
 
     | _ -> assert false
@@ -101,7 +102,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     with_dbh >>> fun dbh ->
       PGSQL(dbh)
       "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-               confidential_, ponderation_, unique_id_ FROM events_ \
+               confidential_, ponderation_, unique_id_, last_update_ FROM events_ \
        WHERE (id_ = $id) AND ($auth OR NOT confidential_)" >>= function
     | res :: _ ->
       let (_, event) = line_to_event res in
@@ -111,7 +112,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let events auth =
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_ FROM events_ \
+                confidential_, ponderation_, unique_id_, last_update_ FROM events_ \
                 WHERE id_ > 0 AND ($auth OR NOT confidential_) ORDER BY id_ DESC" >>=
     fun l ->
     return @@ List.map line_to_event l
@@ -119,11 +120,11 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let title () =
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_ FROM events_ \
+                confidential_, ponderation_, unique_id_, last_update_ FROM events_ \
                 WHERE id_ = 0" >>=
     function
     | [] -> return None
-    | (_,_,_,headline, text,_,_,_,_, _) :: _ -> return (Some (Utils.to_title_event headline text))
+    | (_,_,_,headline, text,_,_,_,_,_,_) :: _ -> return (Some (Utils.to_title_event headline text))
 
   let category_exists group =
     with_dbh >>> fun dbh ->

@@ -177,6 +177,7 @@ let event_form
       ~text:(get_text ())
       ~typ2:None
       ~unique_id
+      ~last_update:(CalendarLib.Date.today ())
 
   in
   let html =
@@ -208,7 +209,8 @@ let empty_event_form id action =
     group = None;
     confidential = false;
     ponderation = 0;
-    unique_id = ""
+    unique_id = "";
+    last_update = None
   }
   in
   event_form empty_event id action
