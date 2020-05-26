@@ -21,7 +21,21 @@ let display_timeline () =
           Js_utils.log "Title OK";
           let events =
             List.map (fun (_,e) ->
-              {e with group = None}
+              let text =
+                let t = e.text in
+                let text = 
+                  match e.last_update with
+                    | None -> t.text
+                    | Some d -> 
+                      Format.asprintf "%s<span class='last-date'>%a</span>" 
+                        t.text
+                        (CalendarLib.Printer.Date.fprint "%F") e.start_date
+                in
+                {t with text} in
+              {e with 
+               group = None;
+               text
+              }
             ) events in
           let cmd =
             let timeline = {events; title} in
