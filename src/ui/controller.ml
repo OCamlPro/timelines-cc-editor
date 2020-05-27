@@ -70,7 +70,7 @@ let rec update_action
     (old_data : date option meta_event)
     (new_data : date option meta_event)
     cont =
-  Js_utils.log "Update...";
+  Js_utils.log "Update... %a -> %a" Utils.pp_title old_data Utils.pp_title new_data;
   if i = 0 then begin
     Request.update_title ~args ~old_title:old_data ~new_title:new_data (
       function

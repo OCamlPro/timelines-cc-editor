@@ -35,7 +35,11 @@ let get ?(args = []) apifun cont =
     Lwt.return (Error e)
 
 let post ~args apifun input_encoding input output_encoding cont =
-  let () = Js_utils.log "POST %s" apifun in
+  let () =
+    let json = Json_encoding.construct input_encoding input in
+    let str = Yojson.Safe.to_string @@ Json_repr.to_yojson json in
+    Js_utils.log "POST %s (%s)" apifun str in
+  
   let url = api () in
   let () = Js_utils.log "Calling API at %s" (Js_of_ocaml.Url.string_of_url url) in
   Xhr_lwt.post ~args ~base:url input_encoding output_encoding apifun input >>=

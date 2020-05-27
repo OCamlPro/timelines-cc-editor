@@ -16,7 +16,6 @@ open Utils
 exception NewLine of string
 
 let to_event
-    ~last_update
     ~unique_id
     ~start_date
     ~end_date
@@ -27,6 +26,7 @@ let to_event
     ~media
     ~title
     ~text
+    ~last_update
   : date option meta_event =
 
   let text =

@@ -63,7 +63,7 @@ let metaevent_to_event meta : event option =
       confidential = meta.confidential;
       ponderation = meta.ponderation;
       unique_id = meta.unique_id;
-      last_update = None
+      last_update = meta.last_update
     }
 
 let event_to_metaevent e = {
@@ -75,7 +75,7 @@ let event_to_metaevent e = {
       confidential = e.confidential;
       ponderation = e.ponderation;
       unique_id = e.unique_id;
-      last_update = None
+      last_update = e.last_update
     }
 
 let to_date year month day =
