@@ -279,12 +279,11 @@ let rec compare
       ] in
       let new_event =
         let form, get_new_event = event_form new_event id categories in
-        let args = Ui_utils.get_args () in
         let update_button =
           Ui_utils.simple_button
             "compare-update"
             (fun _ ->
-               Controller.update_action compare args id categories event (get_new_event ())
+               Controller.update_action compare id categories event (get_new_event ())
                  (fun () ->
                     Js_utils.log "Event updated";
                     !Dispatcher.dispatch

@@ -107,7 +107,6 @@ let admin_page_if_trustworthy ~args =
                         (fun _ ->
                            update_action
                              Admin.compare
-                             args
                              i
                              categories
                              old_event

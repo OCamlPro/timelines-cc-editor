@@ -46,7 +46,6 @@ let edit_button (events : (int * event) list) title categories =
                         (fun self ->
                            Controller.update_action
                              Admin.compare
-                             args
                              id
                              categories
                              title
@@ -83,7 +82,6 @@ let edit_button (events : (int * event) list) title categories =
                         (fun self ->
                            Controller.update_action
                              Admin.compare
-                             args
                              id
                              categories
                              event

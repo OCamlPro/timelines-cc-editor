@@ -97,8 +97,8 @@ let add_event ~args (event : Data_types.event) cont =
     Data_encoding.event_encoding event
     ApiData.api_result_encoding cont
 
-let update_event ~args id ~old_event ~new_event cont =
-  let args = args_from_session args in
+let update_event id ~old_event ~new_event cont =
+  let args = args_from_session ["id", string_of_int id] in
   post ~args
     "update_event"
     Json_encoding.(
@@ -108,8 +108,8 @@ let update_event ~args id ~old_event ~new_event cont =
     (id, old_event, new_event)
     ApiData.update_event_res_encoding cont
 
-let update_title ~args ~old_title ~new_title cont =
-  let args = args_from_session args in
+let update_title ~old_title ~new_title cont =
+  let args = args_from_session [] in
   post ~args
     "update_title"
     (Json_encoding.tup2
