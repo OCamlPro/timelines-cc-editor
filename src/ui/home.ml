@@ -97,8 +97,17 @@ let edit_button (events : (int * event) list) title categories =
                              )
                         )
                         "Update event" in
+                    let back_button = 
+                      Ui_utils.simple_button
+                        "back-from-edit"
+                        (fun _ -> 
+                             match Manip.by_id "timeline-page-unsplit" with
+                               | None -> () 
+                               | Some b -> Ui_utils.click b
+                        ) 
+                       "Back" in
                     let split_content =
-                      [form; add_button; back_button ()] in
+                      [form; add_button; back_button] in
                     Manip.replaceChildren split split_content; true
                 end
               with Invalid_argument s ->
