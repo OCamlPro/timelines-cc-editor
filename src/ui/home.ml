@@ -279,10 +279,11 @@ module EventPanelAuth = Panel.MakePageTable(
     let name = "events"
     let theads () =
       tr ~a:[] [
+        th ~a:[ a_style "width:10%" ]   [txt "Id"];
         th ~a:[ a_style "width:25%" ]   [txt "Date"];
         th ~a:[ a_style "width:37.5%" ] [txt "Headline"];
-        th ~a:[ a_style "width:12.5%" ] [txt "Ponderation"];
-        th ~a:[ a_style "width:12.5%" ] [txt "Confidential"];
+        th ~a:[ a_style "width:7.5%" ]  [txt "Ponderation"];
+        th ~a:[ a_style "width:7.5%" ]  [txt "Confidential"];
         th ~a:[ a_style "width:12.5%" ] [txt ""];
       ]
   end
@@ -326,10 +327,11 @@ let make_panel_lines_auth (events : (int * event) list) =
            Format.asprintf "%a"
              (CalendarLib.Printer.Date.fprint "%d/%m/%Y") start_date in
          tr ~a:[a_class ["clickable"]] [
-           td ~a:(a "width:25%") [txt date];
+           td ~a:(a "width:10%")   [txt (string_of_int id)];
+           td ~a:(a "width:25%")   [txt date];
            td ~a:(a "width:37.5%") [txt headline];
-           td ~a:(a "width:12.5%") [txt @@ string_of_int ponderation];
-           td ~a:(a "width:12.5%") [txt @@ string_of_bool confidential];
+           td ~a:(a "width:7.5%")  [txt @@ string_of_int ponderation];
+           td ~a:(a "width:7.5%")  [txt @@ string_of_bool confidential];
            td [
              Ui_utils.simple_button
                ("edit-table-" ^ string_of_int id)
