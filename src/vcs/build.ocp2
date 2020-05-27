@@ -1,0 +1,8 @@
+OCaml.program("vcs",
+        ocaml + {
+              files = [ "main.ml" ];
+              requires = '[
+                config
+    		calendar
+	      ];
+              });
