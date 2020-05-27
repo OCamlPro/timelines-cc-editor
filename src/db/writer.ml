@@ -63,10 +63,11 @@ let update_event (i: int) (e : event) =
     let ponderation = Int32.of_int e.ponderation in
     let confidential = e.confidential in
     let unique_id = e.unique_id in
+    let last_update = e.last_update in
     let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
                          headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
                          confidential_=$confidential, ponderation_=$ponderation, \
-                         unique_id_=$unique_id WHERE id_=$i";
+                         unique_id_=$unique_id, last_update_=$?last_update WHERE id_=$i";
       match group with
       | None -> ()
       | Some group -> add_category group in
@@ -81,9 +82,11 @@ let update_title (e : title) =
   let group = e.group in
   let ponderation = Int32.of_int e.ponderation in
   let confidential = e.confidential in
+  let last_update = e.last_update in
   let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$?start_date, end_date_=$?end_date, \
                        headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
-                       confidential_=$confidential, ponderation_=$ponderation WHERE id_=0";
+                       confidential_=$confidential, ponderation_=$ponderation, \
+                       last_update_=$?last_update WHERE id_=0";
     match group with
     | None -> ()
     | Some group -> add_category group in

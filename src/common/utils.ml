@@ -170,7 +170,8 @@ let pp_event fmt (e : event) =
      media = %a;\n\
      group = %a\n\
      confidential = %b\n\
-     ponderation = %i}"
+     ponderation = %i;
+     last_update = %a}"
     (CalendarLib.Printer.Date.fprint "%D") e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -178,6 +179,7 @@ let pp_event fmt (e : event) =
     (pp_opt (fun fmt   -> Format.fprintf fmt "%s")) e.group
     e.confidential
     e.ponderation
+    (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.last_update
 
 let pp_title fmt (e : title) =
   Format.fprintf fmt
@@ -187,7 +189,8 @@ let pp_title fmt (e : title) =
      media = %a;\n\
      group = %a\n\
      confidential = %b\n\
-     ponderation = %i}"
+     ponderation = %i;
+     last_update = %a}"
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -195,6 +198,7 @@ let pp_title fmt (e : title) =
     (pp_opt (fun fmt   -> Format.fprintf fmt "%s")) e.group
     e.confidential
     e.ponderation
+    (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.last_update
 
 let hd_opt = function
     [] -> None

@@ -166,18 +166,21 @@ let event_form
         | None -> failwith "You must either provide a unique ID or a title"
         | Some t -> Utils.short_title t
     in
-    Data_encoding.to_event
-      ~start_date
-      ~end_date
-      ~typ:(get_group ())
-      ~confidential
-      ~ponderation
-      ~media:(get_media ())
-      ~title
-      ~text:(get_text ())
-      ~typ2:None
-      ~unique_id
-      ~last_update:(Some (CalendarLib.Date.today ()))
+
+    let event =
+      Data_encoding.to_event
+        ~start_date
+        ~end_date
+        ~typ:(get_group ())
+        ~confidential
+        ~ponderation
+        ~media:(get_media ())
+        ~title
+        ~text:(get_text ())
+        ~typ2:None
+        ~unique_id
+        ~last_update:(Some (CalendarLib.Date.today ()))
+    in Js_utils.log "New event: %a" Utils.pp_title event; event
 
   in
   let html =
