@@ -1,5 +1,6 @@
 open Js_utils
 open Data_types
+open Js_of_ocaml_tyxml.Tyxml_js.Html
 
 let default_ponderation = 10
 
@@ -47,11 +48,7 @@ let display_timeline () =
               "window.timeline = new TL.Timeline('timeline-embed',%s)"
               str in
           let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
-          let has_title =
-            match title with
-            | None -> false
-            | Some t -> true in
-          Lwt.return (Ok has_title)
+          Lwt.return (Ok {title; events})
         )
     )
 
@@ -60,7 +57,7 @@ let url_position has_title order =
   let path = Ui_utils.get_fragment () in
   match Utils.StringMap.find_opt path order with
   | None -> 0
-  | Some i -> if has_title then i+1 else i
+  | Some (i, _) -> if has_title then i+1 else i
 
 let go_to_right_slide has_title order =
   Js_utils.log "Go to the right slide";
@@ -86,29 +83,48 @@ let add_handlers_to_markers has_title order =
       match Utils.StringMap.find_opt id marker_order with
       | None ->
         Js_utils.log "Marker with id %s not found" id
-      | Some (orig_id, marker_pos) ->
-        let handler _ =
-          let current_pos = url_position has_title order in
-          let diff = marker_pos - current_pos in
-          let () =
-            if diff < 0 then begin (* Go Prev *)
-              Ui_utils.slide_event Prev ((-1) * diff);
-              let url = url orig_id in
-              Ui_utils.push url
-            end
-            else if diff > 0 then begin
-              Ui_utils.slide_event Next diff;
-              let url = url orig_id in
-              Ui_utils.push url
-            end
-            else ()
-          in Ocp_js.Js._true
-        in
-        Ocp_js.Dom.addEventListener
-          (Manip.get_elt "click" elt)
-          (Ocp_js.Dom.Event.make "click")
-          (Ocp_js.Dom.handler handler)
-          Ocp_js.Js._true |> ignore
+      | Some (orig_id, (marker_pos, event)) ->
+        let () = (* Adding handler *)
+          let handler _ =
+            let current_pos = url_position has_title order in
+            let diff = marker_pos - current_pos in
+            let () =
+              if diff < 0 then begin (* Go Prev *)
+                Ui_utils.slide_event Prev ((-1) * diff);
+                let url = url orig_id in
+                Ui_utils.push url
+              end
+              else if diff > 0 then begin
+                Ui_utils.slide_event Next diff;
+                let url = url orig_id in
+                Ui_utils.push url
+              end
+              else ()
+            in Ocp_js.Js._true
+          in
+          Ocp_js.Dom.addEventListener
+            (Manip.get_elt "click" elt)
+            (Ocp_js.Dom.Event.make "click")
+            (Ocp_js.Dom.handler handler)
+            Ocp_js.Js._true |> ignore in
+        let () = (* Adding image *)
+          match event.media with
+          | None | Some {url = ""} -> ()
+          | Some {url} ->
+            let im = img ~a:[a_style "max-height: 11px"] ~src:url ~alt:"" () in
+            match Manip.children elt with
+              _timespan :: content_container :: _ -> begin
+                match Manip.children content_container with
+                  container :: _ -> begin
+                    match Manip.children container with
+                      media_container :: _ ->
+                      Manip.replaceChildren media_container [im]
+                    | _ -> ()
+                  end
+                | _ -> ()
+              end
+            | _ -> ()
+        in ()
   )
     markers
 
@@ -168,23 +184,33 @@ let add_handlers_to_arrows has_title order rev_order =
     )
       Ocp_js.Js._true |> ignore
   in ()
-              
-let init_slide_from_url has_title =
+
+let find_event unique_id events =
+  List.find
+    (fun e -> unique_id = e.unique_id)
+    events
+
+let init_slide_from_url res =
   if not (allow_init ()) then
     Lwt.return (Ok ())
   else begin 
-    match has_title with
+    match res with
     | Error e ->
       Js_utils.log "Error before initializing slide";
       Lwt.return (Error e)
-    | Ok has_title -> begin
+    | Ok {title; events} -> begin
+        let has_title =
+          match title with
+          | None -> false
+          | Some _ -> true in
         (* Calculating in which order the slides are *)
         let _,order, rev_order =
           let slides = Manip.by_class "tl-slide" in (* In the page order *)
           List.fold_left (fun (cpt, acc_ord, acc_rev_ord) elt ->
               try
                 let id = Ocp_js.Js.to_string @@ (Manip.get_elt "id" elt)##.id in
-                (cpt+1, Utils.StringMap.add id cpt acc_ord, Utils.IntMap.add cpt id acc_rev_ord)
+                let e = find_event id events in
+                (cpt+1, Utils.StringMap.add id (cpt, e) acc_ord, Utils.IntMap.add cpt id acc_rev_ord)
               with _ -> (cpt+1, acc_ord, acc_rev_ord)
             ) (0, Utils.StringMap.empty, Utils.IntMap.empty) slides
         in
