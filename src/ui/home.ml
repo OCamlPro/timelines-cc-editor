@@ -564,12 +564,13 @@ let page
                ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.assoc_remove "id" args);
                Ocp_js.Js._true))
           Ocp_js.Js._true |> ignore in
-      let () = (* Adding links to timeline lower part *)
+      let () = (* Adding links to timeline lower part & updating logos *)
         let lower_links = List.rev @@ Manip.by_class "tl-timemarker" in
         try
           Js_utils.log "Events ordered: %i ; Lower links: %i" (List.length order) (List.length lower_links);
           List.iter2
             (fun i elt ->
+               (* Adding links *)
                Ocp_js.Dom.addEventListener
                  (Manip.get_elt "click" elt)
                  (Ocp_js.Dom.Event.make "click")
@@ -578,7 +579,25 @@ let page
                         Ui_utils.url page_name (Ui_utils.assoc_add_unique "id" (string_of_int i) args) in
                       Ui_utils.push url;
                       Ocp_js.Js._true))
-                 Ocp_js.Js._true |> ignore
+                 Ocp_js.Js._true |> ignore;
+               (* Updating images *)
+               let event = List.assoc i events in 
+               match event.media with
+               | None | Some {url = ""} -> ()
+               | Some {url} ->
+                 let im = img ~a:[a_style "max-height: 11px"] ~src:url ~alt:"" () in
+                 match Manip.children elt with
+                   _timespan :: content_container :: _ -> begin
+                     match Manip.children content_container with
+                       container :: _ -> begin
+                         match Manip.children container with
+                           media_container :: _ ->
+                           Manip.replaceChildren media_container [im]
+                         | _ -> ()
+                       end
+                     | _ -> ()
+                   end
+                 | _ -> ()
             )
             order
             lower_links
