@@ -44,6 +44,7 @@ let update_event req (id, old_event, event) =
   (fun auth ->
      if not auth then EzAPIServerUtils.return (Failed "Error 403")
      else begin
+       Format.printf "Updating event %i with %a@." id Utils.pp_event event;
        (* Check if the old event has been modified *)
        Reader.event true id >>=
        (function
