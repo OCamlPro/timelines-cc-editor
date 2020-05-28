@@ -137,7 +137,7 @@ let event_form
       ~id:(tags idl)
       ~title:"Tags (separate with ',')"
       ~name:"tags"
-      ~content:(string_of_int e.ponderation)
+      ~content:(String.concat "," e.tags)
       () in
   
   
