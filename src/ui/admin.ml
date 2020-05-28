@@ -135,7 +135,7 @@ let event_form
     placeholder
       ~readonly
       ~id:(tags idl)
-      ~title:"Tags (separate with ',')"
+      ~title:"Tags (separate with ,)"
       ~name:"tags"
       ~content:(String.concat "," e.tags)
       () in

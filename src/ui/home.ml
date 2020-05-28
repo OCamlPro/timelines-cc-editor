@@ -160,10 +160,12 @@ let form is_auth args categories =
     let content = List.assoc_opt key args in
     Ui_utils.placeholder ~id:key ?content ~title ~name:key ~input_type ()
   in
-  let start_date, get_start_date = form_with_content "From" "start-date" (Other `Date) in
-  let end_date,   get_end_date   = form_with_content "To"   "end-date"   (Other `Date) in
-  let precision,  get_precision  =
-    form_with_content "Precision" "max_level" (Number (Some 0, None)) in
+  let start_date, get_start_date = form_with_content "From" "start_date" (Other `Date) in
+  let end_date,   get_end_date   = form_with_content "To"   "end_date"   (Other `Date) in
+  let precision,  get_min_precision  =
+    form_with_content "Precision (min)" "min_level" (Number (Some 0, None)) in
+  let precision,  get_max_precision  =
+    form_with_content "Precision (max)" "max_level" (Number (Some 0, None)) in
   let user_view,  get_user_view =
     let test_user_view =
       match List.assoc_opt "confidential" args with
@@ -215,6 +217,8 @@ let form is_auth args categories =
          ], getter
       )
       categories in
+  let tags, get_tags =
+    form_with_content "Tags (separate with ',')" "tags" (Other `Text) in
   let button =
     let action _ =
       let args =
@@ -226,8 +230,12 @@ let form is_auth args categories =
           match get_end_date () with
           | None -> []
           | Some d -> ["end_date", d] in
-        let precision =
-          match get_precision () with
+        let min_precision =
+          match get_min_precision () with
+          | None -> []
+          | Some p -> ["min_level", p] in
+        let max_precision =
+          match get_max_precision () with
           | None -> []
           | Some p -> ["max_level", p] in
         let confidential =
@@ -236,10 +244,10 @@ let form is_auth args categories =
           else
             ["confidential", "true"]
         in
-        let min_level =
-          match List.assoc_opt "min_level" args with
-          | None -> []
-          | Some i -> ["min_level", i] in
+        let tags = 
+          match get_tags () with
+            | None -> []
+            | Some t -> ["tags", t] in
         let categories =
           List.flatten @@
           List.map2
@@ -249,7 +257,7 @@ let form is_auth args categories =
             categories
             category_getters
         in
-        start_date @ end_date @ confidential @ min_level @ precision @ categories 
+        start_date @ end_date @ confidential @ min_precision @ max_precision @ categories @ tags
       in
       ignore @@ !Dispatcher.dispatch ~path:page_name ~args; true in
     div
@@ -262,7 +270,7 @@ let form is_auth args categories =
     [h4 [txt "Categories"]] @
     category_html @
     [h4 [txt "Other filters"]] @
-    [start_date] @ [end_date] @ [precision] @
+    [start_date] @ [end_date] @ [precision] @ [tags] @
     [button]
   )
 

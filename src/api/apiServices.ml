@@ -43,6 +43,15 @@ let group_param = {
   param_examples = ["OCaml"; "Software"]
 }
 
+let tags_param = {
+  param_value = "tags";
+  param_name  = Some "tags";
+  param_descr = Some "Tags";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["ocaml"; "tag1,tag2"]
+}
+
 let date_param name = {
   param_value = "date";
   param_name  = Some name;
@@ -143,6 +152,7 @@ let timeline_data : ((int * Data_types.event) list) service0 =
       group_param;
       ponderation_param "min_level";
       ponderation_param "max_level";
+      tags_param;
     ])
     Path.(root // "timeline_data")
 
