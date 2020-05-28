@@ -178,7 +178,7 @@ let event_form
         | Some t -> Utils.short_title t
     in
  
-    let tags = 
+    let tag_list = 
       match get_tags () with
       | None -> []
       | Some t -> String.split_on_char ',' t in
@@ -196,7 +196,7 @@ let event_form
         ~typ2:None
         ~unique_id
         ~last_update:(Some (CalendarLib.Date.today ()))
-        ~tags
+        ~tags:tag_list
     in Js_utils.log "New event: %a" Utils.pp_title event; event
 
   in
@@ -214,6 +214,7 @@ let event_form
         unique_id;
         group;
         text;
+        tags;
         ponderation;
         confidential;
       ]
