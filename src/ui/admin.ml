@@ -17,6 +17,7 @@ let text         i = "text-"        ^ i
 let unique_id    i = "unique-id-"   ^ i
 let confidential i = "confid-"      ^ i
 let ponderation  i = "ponderation-" ^ i
+let tags         i = "tags-"        ^ i
 let valid        i = "button-"      ^ i
 
 let back_button () =
@@ -129,6 +130,16 @@ let event_form
       ~content:(string_of_int e.ponderation)
       ~input_type:(Number (Some 0, None))
       () in
+
+  let tags, get_tags =
+    placeholder
+      ~readonly
+      ~id:(tags idl)
+      ~title:"Tags (separate with ',')"
+      ~name:"tags"
+      ~content:(string_of_int e.ponderation)
+      () in
+  
   
   let get_event () =
     let start_date =
@@ -166,6 +177,11 @@ let event_form
         | None -> failwith "You must either provide a unique ID or a title"
         | Some t -> Utils.short_title t
     in
+ 
+    let tags = 
+      match get_tags () with
+      | None -> []
+      | Some t -> String.split_on_char ',' t in
 
     let event =
       Data_encoding.to_event
@@ -180,6 +196,7 @@ let event_form
         ~typ2:None
         ~unique_id
         ~last_update:(Some (CalendarLib.Date.today ()))
+        ~tags
     in Js_utils.log "New event: %a" Utils.pp_title event; event
 
   in
@@ -213,7 +230,8 @@ let empty_event_form id action =
     confidential = false;
     ponderation = 0;
     unique_id = "";
-    last_update = None
+    last_update = None;
+    tags = []
   }
   in
   event_form empty_event id action

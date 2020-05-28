@@ -69,6 +69,15 @@ let sql_upgrade_4_to_5 =  [
   {| ALTER TABLE events_ ADD COLUMN last_update_ DATE |}
 ]
 
+let sql_downgrade_6_to_5 = [
+  {| ALTER TABLE events_ DROP COLUMN tags_ |}
+]
+
+let sql_upgrade_5_to_6 =  [
+  {| ALTER TABLE events_ ADD COLUMN tags_ VARCHAR[] |}
+]
+
+
 let ( upgrades, downgrades ) =
   let rev_versions = ref [] in
   let versions = List.mapi (fun i (upgrade, downgrade) ->
@@ -82,6 +91,7 @@ let ( upgrades, downgrades ) =
         sql_upgrade_2_to_3, sql_downgrade_3_to_2;
         sql_upgrade_3_to_4, sql_downgrade_4_to_3;
         sql_upgrade_4_to_5, sql_downgrade_5_to_4;
+        sql_upgrade_5_to_6, sql_downgrade_6_to_5;
       ]
   in
   (versions, !rev_versions)

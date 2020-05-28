@@ -35,7 +35,10 @@ type 'start_date meta_event = {
   confidential: bool;
   ponderation: int;
   unique_id : string;
-  last_update: date option
+
+  (* Not required by timeline *)
+  last_update: date option;
+  tags : string list
 }
 
 type event = date meta_event

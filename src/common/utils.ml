@@ -43,7 +43,8 @@ let to_title_event headline text = {
   ponderation = 0;
   confidential = false;
   unique_id = "timeline-title-" ^ (short_title headline);
-  last_update = None
+  last_update = None;
+  tags = []
 }
 
 let to_title line =
@@ -63,7 +64,8 @@ let metaevent_to_event meta : event option =
       confidential = meta.confidential;
       ponderation = meta.ponderation;
       unique_id = meta.unique_id;
-      last_update = meta.last_update
+      last_update = meta.last_update;
+      tags = meta.tags
     }
 
 let event_to_metaevent e = {
@@ -75,7 +77,8 @@ let event_to_metaevent e = {
       confidential = e.confidential;
       ponderation = e.ponderation;
       unique_id = e.unique_id;
-      last_update = e.last_update
+      last_update = e.last_update;
+      tags = e.tags
     }
 
 let to_date year month day =
@@ -170,8 +173,9 @@ let pp_event fmt (e : event) =
      media = %a;\n\
      group = %a\n\
      confidential = %b\n\
-     ponderation = %i;
-     last_update = %a}"
+     ponderation = %i;\n\
+     last_update = %a;\n\
+     tags = %a}"
     (CalendarLib.Printer.Date.fprint "%D") e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -180,6 +184,9 @@ let pp_event fmt (e : event) =
     e.confidential
     e.ponderation
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.last_update
+    (Format.pp_print_list
+      ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") 
+      (fun fmt -> Format.fprintf fmt "%s")) e.tags
 
 let pp_title fmt (e : title) =
   Format.fprintf fmt
@@ -189,8 +196,9 @@ let pp_title fmt (e : title) =
      media = %a;\n\
      group = %a\n\
      confidential = %b\n\
-     ponderation = %i;
-     last_update = %a}"
+     ponderation = %i;\n\
+     last_update = %a\n\
+     tags = %a}"
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -199,6 +207,9 @@ let pp_title fmt (e : title) =
     e.confidential
     e.ponderation
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.last_update
+    (Format.pp_print_list
+      ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") 
+      (fun fmt -> Format.fprintf fmt "%s")) e.tags
 
 let hd_opt = function
     [] -> None
