@@ -165,7 +165,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       match groups, tags with
       | [], [] -> begin
           PGSQL(dbh)
-            "SELECT * FROM events_ WHERE \
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              id_ > 0 AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
@@ -173,7 +174,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              ORDER BY id_ DESC" end
       | _, [] ->
         PGSQL(dbh)
-            "SELECT * FROM events_ WHERE \
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              id_ > 0 AND \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
@@ -182,7 +184,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              ORDER BY id_ DESC"
       | [], _ ->
         PGSQL(dbh)
-            "SELECT * FROM events_ WHERE \
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              id_ > 0 AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
@@ -191,7 +194,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              ORDER BY id_ DESC"
       | _ ->
         PGSQL(dbh)
-            "SELECT * FROM events_ WHERE \
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              id_ > 0 AND \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
