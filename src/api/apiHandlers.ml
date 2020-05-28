@@ -117,7 +117,8 @@ let timeline_data req () =
   let end_date = Utils.fopt Utils.string_to_date end_date in
   let min_ponderation = Utils.fopt int_of_string_opt min_ponderation in
   let max_ponderation = Utils.fopt int_of_string_opt max_ponderation in
-  let tags = Utils.fopt (fun str -> Some (String.split_on_char ',' str)) tags in
+  let tags =
+    Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
   begin
     match confidential with
     | Some "false" -> Monad_lwt.return false
