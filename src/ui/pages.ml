@@ -172,7 +172,28 @@ let admin_page ~args =
         )
     )
 
+let select_page ~args =
+  Request.is_auth
+    (fun logged ->
+       if logged then begin
+         Request.user_timelines (function
+             | Ok l ->
+               let content = Timeline_select.timelines_list l in
+               Dispatcher.set_in_main_page [content];
+               finish ()
+             | Error s ->
+               alert s;
+               finish ()
+           )
+       end
+       else begin
+         Dispatcher.set_in_main_page [Admin.admin_page_login ()];
+         finish ()
+       end
+    )
+  
+
 let () =
-  add_page ""              main_page;
+  add_page ""              select_page;
   add_page Home.page_name  main_page;
   add_page Admin.page_name admin_page

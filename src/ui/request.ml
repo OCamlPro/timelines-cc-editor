@@ -6,7 +6,7 @@ let api () =
     hu_host = "d4.dune.network";
     hu_port = Config.api_port;
     hu_path = [];
-    hu_path_string = "d4.dune.network:23456";
+    hu_path_string = "";
     hu_arguments = [];
     hu_fragment = ""    
   }
@@ -46,7 +46,7 @@ let get ?(args = []) apifun cont =
 let post ~args apifun input_encoding input output_encoding cont =
   let () = Js_utils.log "POST %s" apifun in
   let url = api () in
-  let () = Js_utils.log "Calling API at %s" (Js_of_ocaml.Url.string_of_url url) in
+  let () = Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) apifun in
   Xhr_lwt.post ~args ~base:url input_encoding output_encoding apifun input >>=
   function
     Ok elt -> cont elt
@@ -110,7 +110,7 @@ let add_event ~args (tid : string) (event : Data_types.event) cont =
   post ~args
     (Format.sprintf "add_event/%s" tid)
     Data_encoding.event_encoding event
-    ApiData.api_result_encoding cont
+    ApiData.unit_api_result_encoding cont
 
 let update_event id ~old_event ~new_event cont =
   let args = args_from_session ["id", string_of_int id] in
@@ -133,7 +133,7 @@ let register_user email password cont =
   Js_utils.log "Hash: %s@." hash;
   post ~args:[] "register_user"
     Json_encoding.(tup2 string string) (email, hash)
-    ApiData.api_result_encoding cont
+    ApiData.unit_api_result_encoding cont
 
 let login email password cont =
   let hash = Ui_utils.hash password (* todo: change this *) in
@@ -174,3 +174,10 @@ let create_timeline title cont =
     (Format.sprintf "create_timeline")
     Data_encoding.title_encoding title
     ApiData.str_api_result_encoding cont
+
+let user_timelines cont =
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "user_timelines")
+    Json_encoding.unit ()
+    ApiData.str_list_api_result_encoding cont

@@ -256,6 +256,23 @@ module Reader_generic (M : Db_intf.MONAD) = struct
           []
       )
 
+  let user_timelines (email : string) =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT timelines_ FROM users_ WHERE email_=$email" >>=
+    fun l -> return @@
+      List.fold_left
+        (fun acc ->
+           function
+           | None -> acc
+           | Some l -> 
+             List.fold_left
+               (fun acc -> function | None -> acc | Some e -> e :: acc)
+               acc
+               l
+        )
+        []
+        l
+    
 
   module Login = struct
     let remove_session id =

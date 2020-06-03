@@ -202,7 +202,16 @@ let create_timeline req title =
       EzAPIServerUtils.return (Error "[create_timeline] Error: email should be in params")
     | Some email ->
       EzAPIServerUtils.return @@ Writer.create_timeline email title
-  )
+    )
+
+let user_timelines req () =
+  if_is_auth req (fun () ->
+    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
+    | None ->
+      EzAPIServerUtils.return (Error "[user_timelines] Error: email should be in params")
+    | Some email ->
+      Reader.user_timelines email >>= fun l -> EzAPIServerUtils.return (Ok l)
+    )
 
 (*
 let reinitialize _ events =

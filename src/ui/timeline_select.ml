@@ -59,5 +59,3 @@ let timelines_list timelines =
   in
   let ok, cancel = new_timeline_button () in  
   div ((div [ok; cancel]) :: loop timelines)
-    
-  

@@ -3,23 +3,23 @@ open Json_encoding
 (* The default return type of API requests *)
 type 'a api_result = ('a, string) result
 
-let api_result_encoding : unit api_result Json_encoding.encoding =
+let api_result_encoding (param : 'a Json_encoding.encoding) : 'a api_result Json_encoding.encoding =
   Json_encoding.(
     union
       [
-        case unit (fun _ -> Some ()) (fun () -> Ok ());
-        case string (function Error s -> Some s | _ -> None) (fun s -> Error s)
+        case param (function | Ok s -> Some s | _ -> None) (fun s -> Ok s);
+        case string (function | Error s -> Some s | _ -> None) (fun s -> Error s)
       ]
   )
 
+let unit_api_result_encoding : unit api_result Json_encoding.encoding =
+  api_result_encoding Json_encoding.unit 
+
 let str_api_result_encoding : string api_result Json_encoding.encoding =
-  Json_encoding.(
-    union
-      [
-        case string (function | Ok str -> Some str | _ -> None) (fun s -> Ok s);
-        case string (function Error s -> Some s | _ -> None) (fun s -> Error s)
-      ]
-  )
+  api_result_encoding Json_encoding.string
+
+let str_list_api_result_encoding : string list api_result Json_encoding.encoding =
+  api_result_encoding Json_encoding.(list string)
 
 (* Updates require a "Modified" case *)
 type 'start_date update_meta_event_res =
