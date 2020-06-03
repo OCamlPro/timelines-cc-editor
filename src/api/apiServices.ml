@@ -158,13 +158,12 @@ let categories : (string, string list) service1 =
     ~output:Json_encoding.(list string)
     Path.(root // "categories" /: arg_timeline ())
 
-(*
-let register_user : (string * string, api_result) post_service0 =
+let register_user : (string * string, unit api_result) post_service0 =
   post_service
     ~name:"register_user"
     ~input:(Json_encoding.(tup2 string string))
-    ~output:api_result_encoding
-    Path.(root // "register_user") *)
+    ~output:unit_api_result_encoding
+    Path.(root // "register_user")
 
 let login : (string * string, string option) post_service0 =
   post_service
