@@ -53,9 +53,9 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let (>>>) f g = f g
 
-  let line_to_event ?(with_end_date=true) line =
+  let line_to_event ?(with_end_date=true) line : int * title =
     match line with
-      (id, Some start_date, end_date, headline, text, url, group, confidential, ponderation, unique_id, last_update, tags) ->
+      (id, start_date, end_date, headline, text, url, group, confidential, ponderation, unique_id, last_update, tags) ->
       let tags = 
         match tags with 
           | None -> []
@@ -82,8 +82,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         last_update; 
         tags
       }
-
-    | _ -> assert false
 
   let has_admin_rights (email : string) (tid : string) = 
     with_dbh >>> fun dbh ->
@@ -123,7 +121,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     | id :: _ -> return (Some id)
 
 
-  let event (is_auth : bool) (has_admin_rights : bool) id =
+  let event (is_auth : bool) (has_admin_rights : bool) (id : int) =
     let id = Int32.of_int id in
     let auth = is_auth && has_admin_rights in
     with_dbh >>> fun dbh ->
@@ -144,7 +142,24 @@ module Reader_generic (M : Db_intf.MONAD) = struct
                 WHERE timeline_id_ = $tid AND ($auth OR NOT confidential_) AND NOT is_title_ \
                 ORDER BY id_ DESC" >>=
     fun l ->
-    return @@ List.map line_to_event l
+    return @@
+    List.fold_left (fun acc l ->
+        let (id, e) = line_to_event l in
+        match Utils.metaevent_to_event @@ e with
+        | None -> acc
+        | Some e -> (id, e) :: acc)
+      []
+      l
+
+  (* Do not export this function is API: admin check is not performed as
+     calling this function is required to check admin in 'update_event' *)
+  let timeline_of_event (id : int) =
+    let id = Int32.of_int id in
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT timeline_id_ FROM events_ WHERE id_=$id" >>=
+    function
+    | [] -> return None
+    | hd :: _ -> return (Some hd)
 
   let title (tid : string) =
     with_dbh >>> fun dbh ->

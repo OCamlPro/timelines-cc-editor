@@ -11,8 +11,6 @@ let start () =
     |> EzAPIServerUtils.register S.title H.title
     |> EzAPIServerUtils.register S.add_event H.add_event
     |> EzAPIServerUtils.register S.update_event H.update_event
-    |> EzAPIServerUtils.register S.update_title H.update_title
-    |> EzAPIServerUtils.register S.categories H.categories
     |> EzAPIServerUtils.register S.timeline_data H.timeline_data
     |> EzAPIServerUtils.register S.remove_event H.remove_event
     (*|> EzAPIServerUtils.register S.register_user H.register_user *)

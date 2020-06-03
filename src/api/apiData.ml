@@ -30,11 +30,7 @@ let update_meta_event_res_encoding start_encoding =
     case (tup1 unit) (function Success -> Some () | _ -> None) (fun () -> Success);
   ]
 
-type update_event_res = CalendarLib.Date.t update_meta_event_res
+type update_event_res = CalendarLib.Date.t option update_meta_event_res
 
-let update_event_res_encoding = update_meta_event_res_encoding Data_encoding.date_encoding
-
-type update_title_res = CalendarLib.Date.t option update_meta_event_res
-
-let update_title_res_encoding =
+let update_event_res_encoding =
   update_meta_event_res_encoding (Json_encoding.option Data_encoding.date_encoding)

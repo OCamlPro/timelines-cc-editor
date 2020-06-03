@@ -15,6 +15,13 @@ let is_auth req =
   | Some email, Some pwd -> Reader.is_auth email pwd
   | _ -> Monad_lwt.return false
 
+let has_admin_rights req tid =
+  match 
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params
+  with
+  | None -> Monad_lwt.return false
+  | Some e -> Reader.has_admin_rights e tid
+
 let if_is_auth req cont =
   is_auth req >>= (fun auth ->
       if auth then
@@ -23,82 +30,73 @@ let if_is_auth req cont =
         EzAPIServerUtils.return (Error "Error 403")
     )
 
-let event (req, id) () =
-  is_auth req >>=
-  fun auth -> Reader.event auth id >>= EzAPIServerUtils.return
-
-let events req () =
-  is_auth req >>= fun auth ->
-  Reader.events auth >>= EzAPIServerUtils.return
-
-let title _ () = Reader.title () >>= EzAPIServerUtils.return
-
-let add_event req event =
-  if_is_auth req (fun () ->
-      Writer.add_event event;
-      EzAPIServerUtils.return (Ok ())
+let if_has_admin req tid cont =
+  has_admin_rights req tid >>= (fun admin ->
+      if admin then
+        cont ()
+      else
+        EzAPIServerUtils.return (Error "Error 403")
     )
 
+let event (req, id) () =
+  is_auth req >>= fun auth ->
+      Reader.timeline_of_event id >>= (function
+      | None -> EzAPIServerUtils.return None
+      | Some timeline_id ->
+        has_admin_rights req timeline_id >>= fun rights ->
+        Reader.event auth rights id >>= EzAPIServerUtils.return
+    )
+
+let events (req,timeline_id) () =
+  is_auth req >>= fun auth ->
+  has_admin_rights req timeline_id >>= fun rights ->
+  Reader.events auth rights timeline_id >>= EzAPIServerUtils.return
+
+let title (_,timeline_id) () = Reader.title timeline_id >>= EzAPIServerUtils.return
+
+let add_event (req, timeline_id) event =
+  if_is_auth req (fun () ->
+      if_has_admin req timeline_id (fun () ->
+      Writer.add_event event timeline_id;
+      EzAPIServerUtils.return (Ok ())
+    ))
+    
 let update_event req (id, old_event, event) =
-  is_auth req >>=
-  (fun auth ->
-     if not auth then EzAPIServerUtils.return (Failed "Error 403")
-     else begin
-       Format.printf "Updating event %i with %a@." id Utils.pp_event event;
-       (* Check if the old event has been modified *)
-       Reader.event true id >>=
-       (function
-         | None ->
-           Format.printf "Deleted element while editing@.";
-           EzAPIServerUtils.return (Modified None)
-         | Some should_be_old_event ->
-             Format.printf "Event in the db: %a@. Expected event: %a@."
-               Utils.pp_event should_be_old_event
-               Utils.pp_event old_event
-             ;
-           if old_event = should_be_old_event then begin
-             match Writer.update_event id event with
-             | Ok () ->   EzAPIServerUtils.return Success
-             | Error s -> EzAPIServerUtils.return (Failed s)
-           end else begin
-             Format.printf "Modified element while editing@.";
-             EzAPIServerUtils.return (Modified (Some should_be_old_event))
-           end
-       )
-     end
-  )
+  is_auth req >>= (fun auth ->
+      Reader.timeline_of_event id >>= (function
+        | None -> EzAPIServerUtils.return (Failed "Event does not exist")
+        | Some timeline_id ->
+          has_admin_rights req timeline_id >>= (fun admin ->
+            if not (auth && admin) then
+              EzAPIServerUtils.return (Failed "Error 403")
+            else begin
+              Format.printf "Updating event %i with %a@." id Utils.pp_title event;
+              (* Check if the old event has been modified *)
+              Reader.event true true id >>=
+              (function
+                | None ->
+                  Format.printf "Deleted element while editing@.";
+                  EzAPIServerUtils.return (Modified None)
+                | Some should_be_old_event ->
+                  Format.printf "Event in the db: %a@. Expected event: %a@."
+                    Utils.pp_title should_be_old_event
+                    Utils.pp_title old_event
+                  ;
+                  if old_event = should_be_old_event then begin
+                    match Writer.update_event id event with
+                    | Ok () ->   EzAPIServerUtils.return Success
+                    | Error s -> EzAPIServerUtils.return (Failed s)
+                  end else begin
+                    Format.printf "Modified element while editing@.";
+                    EzAPIServerUtils.return (Modified (Some should_be_old_event))
+                  end
+              )
+            end
+            )
+        )
+    )
 
-let update_title req (old_title, title) =
-  is_auth req >>=
-  (fun auth ->
-     if not auth then EzAPIServerUtils.return (Failed "Error 403")
-     else begin
-       (* Check if the old event has been modified *)
-       Reader.title () >>=
-       (function
-         | None ->
-           Format.printf "Deleted element while editing@.";
-           EzAPIServerUtils.return (Modified None)
-         | Some should_be_old_title ->
-           Format.printf "Title in the db: %a@. Expected title: %a@."
-             Utils.pp_title should_be_old_title
-             Utils.pp_title old_title
-           ;
-           if old_title = should_be_old_title then begin
-             match Writer.update_title title with
-             | Ok () ->   EzAPIServerUtils.return Success
-             | Error s -> EzAPIServerUtils.return (Failed s)
-           end else begin
-             Format.printf "Modified element while editing@.";
-             EzAPIServerUtils.return (Modified (Some should_be_old_title))
-           end
-       )
-     end
-  )
-
-let categories _ () = Reader.categories () >>= EzAPIServerUtils.return
-
-let timeline_data req () =
+let timeline_data (req, tid) () =
   let start_date =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
   let end_date =
@@ -123,22 +121,30 @@ let timeline_data req () =
     match confidential with
     | Some "false" -> Monad_lwt.return false
     | _ -> is_auth req
-  end >>= fun confidential ->
-  Reader.timeline_data
-    ?start_date
-    ?end_date
-    ?groups
-    ?min_ponderation
-    ?max_ponderation
-    ?tags
-    confidential
-    () >>= EzAPIServerUtils.return
+  end >>= fun is_auth ->
+    has_admin_rights req tid >>= (fun has_admin_rights ->
+    Reader.timeline_data
+      ~is_auth
+      ~has_admin_rights
+      ~tid
+      ?start_date
+      ?end_date
+      ?groups
+      ?min_ponderation
+      ?max_ponderation
+      ?tags
+      () >>= EzAPIServerUtils.return)
 
 let remove_event (req, id) () =
-  if_is_auth req
-    (fun () ->
-       let () = Writer.remove_event id in
-       (EzAPIServerUtils.return (Ok ()))
+  if_is_auth req (fun () ->
+      Reader.timeline_of_event id >>= (function
+        | None -> EzAPIServerUtils.return (Error "Event does not exist")
+        | Some timeline_id ->
+          if_has_admin req timeline_id (fun () ->
+              let () = Writer.remove_event id in
+              (EzAPIServerUtils.return (Ok ()))
+            )
+        )
     )
 
 let register_user _ (email, pwdhash) =
@@ -152,18 +158,23 @@ let logout _ (email, cookie) =
 
 let is_auth req () = is_auth req >>= EzAPIServerUtils.return
 
-let export_database req () =
+let export_database (req, timeline_id) () =
   if_is_auth req (fun () ->
-      Reader.title () >>= fun title ->
-      Reader.events true >>= fun events ->
+    if_has_admin req timeline_id (fun () ->
+      Reader.title timeline_id >>= fun title ->
+      Reader.events true true timeline_id >>= fun events ->
       try
-          let events = List.map snd events in
-          let json =
-            Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
-          EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
-        with Failure s -> EzAPIServerUtils.return (Error s)
+        let events = List.map snd events in
+        let json =
+          Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
+        EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
+      with Failure s -> EzAPIServerUtils.return (Error s)
+        )
     )
+
+(*
 let reinitialize _ events =
   Writer.remove_events ();
   List.iter Writer.add_event events;
   EzAPIServerUtils.return true
+*)
