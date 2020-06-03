@@ -216,4 +216,4 @@ let user_timelines : (unit, string list api_result) post_service0 =
     ~name:"create_timeline"
     ~input:Json_encoding.unit
     ~output:(ApiData.str_list_api_result_encoding)
-    Path.(root // "create_timeline")
+    Path.(root // "user_timelines")
