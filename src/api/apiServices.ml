@@ -150,6 +150,14 @@ let remove_event : (int, api_result) service1 =
     ~name:"remove_event"
     ~output:api_result_encoding
     Path.(root // "remove_event" /: (arg_default "event_key"))
+
+let categories : (string, string list) service1 =
+  service
+    ~params:auth_params
+    ~name:"categories"
+    ~output:Json_encoding.(list string)
+    Path.(root // "categories" /: arg_timeline ())
+
 (*
 let register_user : (string * string, api_result) post_service0 =
   post_service
@@ -179,6 +187,13 @@ let is_auth : (unit, bool) post_service0 =
     ~input:(Json_encoding.unit)
     ~output:(Json_encoding.bool)
     Path.(root // "is_auth")
+
+let has_admin_rights : (string, unit, bool) post_service1 =
+  post_service
+    ~name:"has_admin_rights"
+    ~input:(Json_encoding.unit)
+    ~output:(Json_encoding.bool)
+    Path.(root // "is_auth" /: arg_timeline ())
 
 let export_database : (string, api_result) service1 =
   service

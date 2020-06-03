@@ -44,17 +44,32 @@ let dispatch ~path ~args =
 
 let () = Dispatcher.dispatch := dispatch
 
+let timeline_id args cont =
+  match timeline_id_from_args args with
+  | None ->
+    set_in_main_page [txt "Error: Timeline id not found !"];
+    Lwt.return (Error (Xhr_lwt.Str_err "Export database failed: no timeline specified"))
+  | Some timeline -> cont timeline
+  
+
 let main_page ~args =
-  Request.timeline_data ~args (fun events ->
-      Request.is_auth (fun is_auth ->
-          Request.categories (fun categories ->
-              Request.title ~args (fun title ->
-                  let page, init =
-                    Home.page
-                      is_auth args categories title events in
-                  set_in_main_page [page];
-                  init ();
-                  finish ()
+  timeline_id args (fun timeline ->
+      Request.timeline_data ~args timeline (fun events ->
+          Request.is_auth (fun is_auth ->
+              Request.title ~args timeline (fun title ->
+                  Request.categories timeline (fun categories ->
+                      let page, init =
+                        Home.page
+                          is_auth
+                          args
+                          categories
+                          title
+                          events
+                      in
+                      set_in_main_page [page];
+                      init ();
+                      finish ()
+                    )
                 )
             )
         )
@@ -65,26 +80,28 @@ let admin_page_if_trustworthy ~args =
   match List.assoc_opt "action" args with
   | Some "add" ->
     Js_utils.log "Adding an element";
-    Request.categories (fun categories ->
-        let form, get_event =
-          Admin.add_new_event_form categories in
-        let add_button =
-          Ui_utils.simple_button
-            "add-button-trust"
-            (fun _ -> add_action (get_event ()))
-            "Add new event"
-        in
-        let back = Admin.back_button () in
-        set_in_main_page [form; add_button; back];
-        finish ()
+    timeline_id args (fun timeline ->
+      Request.categories timeline (fun categories ->
+          let form, get_event =
+            Admin.add_new_event_form categories in
+          let add_button =
+            Ui_utils.simple_button
+              "add-button-trust"
+              (fun _ -> add_action (get_event ()))
+              "Add new event"
+          in
+          let back = Admin.back_button () in
+          set_in_main_page [form; add_button; back];
+          finish ()
+          )
       )
-  | None | Some "edit" ->
-    begin
+  | None | Some "edit" -> begin
+    timeline_id args (fun timeline ->
       Js_utils.log "Edition or main_page";
       match List.assoc_opt "id" args with
       | None ->
         Js_utils.log "No id provided";
-        Request.events ~args
+        Request.events ~args timeline
           (fun events ->
              set_in_main_page
                (Admin.events_list args events); finish ())
@@ -92,48 +109,48 @@ let admin_page_if_trustworthy ~args =
           try
             Js_utils.log "Editing event %s" i;
             let i = int_of_string i in
-            Request.categories (fun categories ->
-                Request.event ~args i (fun old_event ->
-                    let old_event = Utils.event_to_metaevent old_event in
-                    let form, get_event =
-                      Admin.event_form
-                        old_event
-                        i
-                        categories
-                    in
-                    let edit_button =
-                      Ui_utils.simple_button
-                        "edit-button-trust"
-                        (fun _ ->
-                           update_action
-                             Admin.compare
-                             i
-                             categories
-                             old_event
-                             (get_event ())
-                             (fun _ ->
-                                !Dispatcher.dispatch
-                                  ~path:Home.page_name
-                                  ~args:["id", string_of_int i])
-                        )
-                        "Update event"
-                    in
-                    let remove_button =
-                      Ui_utils.simple_button
-                        "remove-button-trust"
-                        (fun _ -> remove_action args i)
-                        "Remove event"
-                    in
-                    let back = Admin.back_button () in
-                    set_in_main_page [form; edit_button; remove_button; back];
-                    finish ())
+            Request.categories timeline (fun categories ->
+              Request.event ~args i (fun old_event ->
+                let form, get_event =
+                  Admin.event_form
+                    old_event
+                    i
+                    categories
+                in
+                let edit_button =
+                  Ui_utils.simple_button
+                    "edit-button-trust"
+                    (fun _ ->
+                       update_action
+                         Admin.compare
+                         i
+                         categories
+                         old_event
+                         (get_event ())
+                         (fun _ ->
+                            !Dispatcher.dispatch
+                              ~path:Home.page_name
+                              ~args:["id", string_of_int i])
+                    )
+                    "Update event"
+                in
+                let remove_button =
+                  Ui_utils.simple_button
+                    "remove-button-trust"
+                    (fun _ -> remove_action args i)
+                    "Remove event"
+                in
+                let back = Admin.back_button () in
+                set_in_main_page [form; edit_button; remove_button; back];
+                finish ())
               )
           with
             Invalid_argument _ ->
             let msg = Format.sprintf "Invalid event id %s" i in
             set_in_main_page [error_404 ~msg ~path:Admin.page_name ~args ()]; finish ()
         end
-    end
+        )
+  end
   | Some _ -> set_in_main_page [error_404 ~path:Admin.page_name ~args ()]; finish ()
 
 let admin_page_if_not_trustworthy () =
@@ -144,11 +161,15 @@ let admin_page_if_not_trustworthy () =
 
 let admin_page ~args =
   Request.is_auth (fun logged ->
-      Js_utils.log "Logged ? %b" logged;
-      if logged then
-        admin_page_if_trustworthy ~args
-      else
-        admin_page_if_not_trustworthy ()
+      timeline_id args (fun timeline ->
+          Request.has_admin_rights timeline (fun admin ->
+              Js_utils.log "Logged ? %b %b" logged admin;
+              if logged && admin then
+                admin_page_if_trustworthy ~args
+              else
+                admin_page_if_not_trustworthy ()
+            )
+        )
     )
 
 let () =

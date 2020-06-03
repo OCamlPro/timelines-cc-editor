@@ -13,10 +13,12 @@ let start () =
     |> EzAPIServerUtils.register S.update_event H.update_event
     |> EzAPIServerUtils.register S.timeline_data H.timeline_data
     |> EzAPIServerUtils.register S.remove_event H.remove_event
+    |> EzAPIServerUtils.register S.categories H.categories
     (*|> EzAPIServerUtils.register S.register_user H.register_user *)
     |> EzAPIServerUtils.register S.login H.login
     |> EzAPIServerUtils.register S.logout H.logout
     |> EzAPIServerUtils.register S.is_auth H.is_auth
+    |> EzAPIServerUtils.register S.has_admin_rights H.has_admin_rights
     |> EzAPIServerUtils.register S.export_database H.export_database
   in
   let servers = [ Config.api_port, EzAPIServerUtils.API dir ] in

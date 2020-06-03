@@ -83,9 +83,23 @@ let update_event req (id, old_event, event) =
                     Utils.pp_title old_event
                   ;
                   if old_event = should_be_old_event then begin
-                    match Writer.update_event id event with
-                    | Ok () ->   EzAPIServerUtils.return Success
-                    | Error s -> EzAPIServerUtils.return (Failed s)
+                    let is_title =
+                      match old_event.start_date with
+                      | None -> true
+                      | Some _ -> false (* May be a title, but that is not important *)
+                    in
+                    if is_title then begin
+                      match Writer.update_title id event with
+                      | Ok () ->   EzAPIServerUtils.return Success
+                      | Error s -> EzAPIServerUtils.return (Failed s)
+                    end else begin
+                      match Utils.metaevent_to_event event with
+                      | None -> EzAPIServerUtils.return (Failed "Cannot update an event with a title (start date is missing)")
+                      | Some e ->
+                        match Writer.update_event id e with
+                        | Ok () ->   EzAPIServerUtils.return Success
+                        | Error s -> EzAPIServerUtils.return (Failed s)
+                    end
                   end else begin
                     Format.printf "Modified element while editing@.";
                     EzAPIServerUtils.return (Modified (Some should_be_old_event))
@@ -147,6 +161,13 @@ let remove_event (req, id) () =
         )
     )
 
+let categories (req, id) () =
+  is_auth req >>= (fun auth ->
+      has_admin_rights req id >>= (fun rights ->
+          ((Reader.categories auth rights id) >>= EzAPIServerUtils.return)
+        )
+    )
+
 let register_user _ (email, pwdhash) =
   EzAPIServerUtils.return (Writer.register_user email pwdhash)
 
@@ -157,6 +178,8 @@ let logout _ (email, cookie) =
   Reader.Login.logout email cookie >>= EzAPIServerUtils.return
 
 let is_auth req () = is_auth req >>= EzAPIServerUtils.return
+
+let has_admin_rights (req, id) () = has_admin_rights req id >>= EzAPIServerUtils.return
 
 let export_database (req, timeline_id) () =
   if_is_auth req (fun () ->

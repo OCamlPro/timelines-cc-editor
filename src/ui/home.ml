@@ -401,7 +401,7 @@ let page
               Ui_utils.simple_button
                 "add-page"
                 (fun _ ->
-                   Controller.add_action (get_event ());
+                   ignore @@ Controller.add_action (get_event ());
                    ignore @@ !Dispatcher.dispatch ~path:page_name ~args
                 )
                 "Add new event" in

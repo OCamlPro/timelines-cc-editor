@@ -267,7 +267,7 @@ let events_list args events =
       [txt "Logout"] in
   let export =
     div ~a:[a_class ["btn"; "btn-primary"];
-            a_onclick (fun _ -> Controller.export_database args; true)]
+            a_onclick (fun _ -> ignore @@ Controller.export_database args; true)]
       [txt "Export database"] in
   let back_to_home =
     div ~a:[a_class ["btn"; "btn-primary"];

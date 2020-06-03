@@ -664,3 +664,14 @@ let html2pdf ~align id =
     | Some w -> w
   in
   let () = Manip.appendChild (Js_utils.Window.body w) new_div in ()
+
+module StringSet = Set.Make(String)
+
+let categories (event_list : 'a Data_types.meta_event list) : StringSet.t =
+  List.fold_left
+    (fun (acc : StringSet.t) {Data_types.group; _} ->
+       match group with
+       | None -> acc
+       | Some s -> StringSet.add s acc)
+    StringSet.empty
+    event_list

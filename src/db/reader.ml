@@ -238,6 +238,25 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       | [] -> return false
       | _ -> return true
 
+  let categories (is_auth : bool) (has_admin_rights : bool) (tid : string) =
+    events is_auth has_admin_rights tid >>= (fun l ->
+        let s =
+          List.fold_left
+            (fun acc (_, {group; _}) ->
+               match group with
+               | None -> acc
+               | Some g -> StringSet.add g acc)
+            StringSet.empty
+            l
+        in
+        return @@
+        StringSet.fold
+          (fun s acc -> s :: acc)
+          s
+          []
+      )
+
+
   module Login = struct
     let remove_session id =
       with_dbh >>> fun dbh ->

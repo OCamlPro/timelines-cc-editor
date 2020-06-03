@@ -72,28 +72,34 @@ let args_from_session args =
   | Some (email, auth_data) ->
     ("auth_email", email) :: ("auth_data", auth_data) :: args
 
-let timeline_data ~args cont =
+let timeline_data ~args timeline cont =
   let args = args_from_session args in
-  get ~args "timeline_data" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
+  get
+    ~args
+    (Format.sprintf "timeline_data/%s" timeline)
+    (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
-let raw_events ~args cont =
+let event ~args (id : int) cont =
   let args = args_from_session args in
-  get ~args "events" cont
+  get ~args (Format.sprintf "event/%i" id)  (cook Data_encoding.title_encoding cont)
 
-let events ~args cont =
-  raw_events ~args (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
-
-let title ~args cont =
-  get ~args "title" (cook (Json_encoding.(tup1 @@ option (Data_encoding.title_encoding))) cont)
-
-let event ~args id cont =
+let events ~args (tid : string) cont =
   let args = args_from_session args in
-  get ~args (Format.sprintf "event/%i" id)  (cook Data_encoding.event_encoding cont)
+  get
+    ~args
+    (Format.sprintf "events/%s" tid)
+    (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
-let add_event ~args (event : Data_types.event) cont =
+let title ~args tid cont =
+  get
+    ~args
+    (Format.sprintf "title/%s" tid)
+    (cook (Json_encoding.(tup1 @@ option (Data_encoding.title_encoding))) cont)
+
+let add_event ~args (tid : string) (event : Data_types.event) cont =
   let args = args_from_session args in
   post ~args
-    "add_event"
+    (Format.sprintf "add_event/%s" tid)
     Data_encoding.event_encoding event
     ApiData.api_result_encoding cont
 
@@ -104,21 +110,9 @@ let update_event id ~old_event ~new_event cont =
     Json_encoding.(
       tup3
         (tup1 int)
-        Data_encoding.event_encoding Data_encoding.event_encoding)
+        Data_encoding.title_encoding Data_encoding.title_encoding)
     (id, old_event, new_event)
     ApiData.update_event_res_encoding cont
-
-let update_title ~old_title ~new_title cont =
-  let args = args_from_session [] in
-  post ~args
-    "update_title"
-    (Json_encoding.tup2
-       Data_encoding.title_encoding
-       Data_encoding.title_encoding)
-    (old_title, new_title)
-    ApiData.update_title_res_encoding cont
-
-let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)
 
 let remove_event ~args id cont =
   let args = args_from_session args in
@@ -143,6 +137,19 @@ let is_auth cont =
   post ~args:(args_from_session []) "is_auth"
     Json_encoding.unit ()
     Json_encoding.(tup1 bool) cont
+
+let has_admin_rights timeline cont =
+  post
+    ~args:(args_from_session [])
+    (Format.sprintf "has_admin_rights/%s" timeline)
+    Json_encoding.unit ()
+    Json_encoding.(tup1 bool) cont
+
+let categories timeline cont =
+  get
+    ~args:(args_from_session [])
+    (Format.sprintf "categories/%s" timeline)
+    (cook (Json_encoding.(list string)) cont)
 
 let logout cont =
   match Ui_utils.get_auth_data () with

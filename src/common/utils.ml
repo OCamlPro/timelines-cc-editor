@@ -226,3 +226,5 @@ let list_init n f =
     else aux (n - 1) (f (n - 1) :: acc)
   in
   aux n []
+
+module StringSet = Set.Make (String)
