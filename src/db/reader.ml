@@ -46,7 +46,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     let dispose conn =
       PGOCaml.close conn in
     M.pool_create ~check ~validate ~dispose 20 (fun () ->
-      PGOCaml.connect ~database:Config.database ())
+      let open Config in
+      PGOCaml.connect ?host ?port ?user ?password ~database ())
 
   let with_dbh f = M.pool_use dbh_pool f
 
@@ -84,7 +85,18 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
     | _ -> assert false
 
-  let is_auth email cookie =
+  let has_admin_rights (email : string) (tid : string) = 
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT timelines_ FROM users_ WHERE email_=$email" >>=
+    fun l ->
+    return @@
+    List.exists
+      (function
+        | None -> false
+        | Some l -> List.mem (Some tid) l)
+      l
+
+  let is_auth (email : string) (cookie : string) =
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
     function
@@ -96,22 +108,24 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       | saved_cookie :: _ ->
       return @@ String.equal cookie saved_cookie
 
-  let get_session user_id =
+  let get_session (user_id : int32) =
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT cookie_ from sessions_ WHERE user_id_=$user_id" >>=
     function
     | [] -> return None
     | sess :: _ -> return (Some sess)
 
-  let user_exists email =
+  let user_exists (email : string) =
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
     function
     | []      -> return None
     | id :: _ -> return (Some id)
 
-  let event auth id =
+
+  let event (is_auth : bool) (has_admin_rights : bool) id =
     let id = Int32.of_int id in
+    let auth = is_auth && has_admin_rights in
     with_dbh >>> fun dbh ->
       PGSQL(dbh)
       "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
@@ -122,41 +136,36 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       return (Some event)
     | _ -> return None
 
-  let events auth =
+  let events (is_auth : bool) (has_admin_rights : bool) (tid : string) =
+    let auth = is_auth && has_admin_rights in
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
-                WHERE id_ > 0 AND ($auth OR NOT confidential_) ORDER BY id_ DESC" >>=
+                WHERE timeline_id_ = $tid AND ($auth OR NOT confidential_) AND NOT is_title_ \
+                ORDER BY id_ DESC" >>=
     fun l ->
     return @@ List.map line_to_event l
 
-  let title () =
+  let title (tid : string) =
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT headline_, text_ FROM events_ \
-                WHERE id_ = 0" >>=
+                WHERE timeline_id_ = $tid AND is_title_" >>=
     function
     | [] -> return None
     | (headline, text) :: _ -> return (Some (Utils.to_title_event headline text))
 
-  let category_exists group =
-    with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM groups_ WHERE group_ = $group" >>=
-    function
-    | [] -> return false
-    | _  -> return true
-
-  let categories () =
-    with_dbh >>> fun dbh -> PGSQL(dbh) "SELECT * FROM groups_"
-
   let timeline_data
+      ~(is_auth : bool)
+      ~(has_admin_rights : bool) 
+      ~(tid : string)
       ?(start_date      = CalendarLib.Date.mardi_gras 1000)
       ?(end_date        = CalendarLib.Date.mardi_gras 3000)
       ?(min_ponderation = 0)
-      ?(max_ponderation = 100)
+      ?(max_ponderation = 100000)
       ?(groups=[])
       ?(tags=[])
-      auth
       () =
+    let auth = is_auth && has_admin_rights in
     let min_ponderation = Int32.of_int min_ponderation in
     let max_ponderation = Int32.of_int max_ponderation in
     let tags = List.map (fun s -> Some s) tags in
@@ -170,7 +179,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              id_ > 0 AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) \
+             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
              ORDER BY id_ DESC" end
       | _, [] ->
         PGSQL(dbh)
@@ -180,7 +189,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) \
+             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
              ORDER BY id_ DESC"
       | [], _ ->
         PGSQL(dbh)
@@ -189,7 +198,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              id_ > 0 AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) \
+             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
              AND tags_ && $tags::varchar[]
              ORDER BY id_ DESC"
       | _ ->
@@ -200,12 +209,19 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) \
+             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
              AND tags_ && $tags::varchar[]
              ORDER BY id_ DESC"
     in
     req >>= fun l ->
     return @@ List.map (fun l -> (line_to_event ~with_end_date:true l)) l
+
+  let timeline_exists (tid : string) =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT * from timeline_ids_ WHERE id_ = $tid" >>= 
+      function 
+      | [] -> return false
+      | _ -> return true
 
   module Login = struct
     let remove_session id =
