@@ -2679,3 +2679,7 @@ tr:hover.clickable {
 .fade {
     opacity: 1 !important
 }
+
+.last-date{
+    color: grey
+}

@@ -2,17 +2,20 @@ open Js_of_ocaml.Url
 open Lwt
 
 let api () =
-  Http {
-    hu_host = Config.api_url;
-    hu_port = Config.api_port;
-    hu_path = [];
-    hu_path_string = "";
-    hu_arguments = [];
-    hu_fragment = ""
-  }
+  match Js_of_ocaml.Url.Current.get () with
+  | Some u -> u
+  | None ->
+    match Js_of_ocaml.Url.url_of_string "http://localhost:8080" with
+    | Some u -> u
+    | None -> assert false
 
 let get ?(args = []) apifun cont =
   let url = api () in
+  let url = (* Only for standalone !! *)
+    match url with
+    | Http u -> Http {u with hu_path_string = ""}
+    | Https u -> Https {u with hu_path_string = ""}
+    | File f -> File {f with fu_path_string = ""} in
   let () =
     Js_utils.log "GET %s from %s with args [%a]"
       apifun
@@ -24,7 +27,7 @@ let get ?(args = []) apifun cont =
   Xhr_lwt.get ~args ~base:url apifun >>=
   function
     Ok elt ->
-    Js_utils.log "GET %s OK" apifun;
+    Js_utils.log "GET %s OK: %s" apifun elt;
     cont elt
   | Error e ->
     let code, msg = Xhr_lwt.error_content e in
@@ -53,8 +56,12 @@ let cook encoding cont =
          let elt = Json_encoding.destruct encoding json in
          Js_utils.log "Cooking OK";
          elt
-       with e ->
-         Js_utils.log "Error while cooking %s" str;
+       with
+       | e ->
+         Js_utils.log "Error while cooking %s: %s"
+           str
+           (Printexc.to_string e)
+         ;
          raise e in
      cont elt
   )
@@ -90,8 +97,8 @@ let add_event ~args (event : Data_types.event) cont =
     Data_encoding.event_encoding event
     ApiData.api_result_encoding cont
 
-let update_event ~args id ~old_event ~new_event cont =
-  let args = args_from_session args in
+let update_event id ~old_event ~new_event cont =
+  let args = args_from_session ["id", string_of_int id] in
   post ~args
     "update_event"
     Json_encoding.(
@@ -101,8 +108,8 @@ let update_event ~args id ~old_event ~new_event cont =
     (id, old_event, new_event)
     ApiData.update_event_res_encoding cont
 
-let update_title ~args ~old_title ~new_title cont =
-  let args = args_from_session args in
+let update_title ~old_title ~new_title cont =
+  let args = args_from_session [] in
   post ~args
     "update_title"
     (Json_encoding.tup2

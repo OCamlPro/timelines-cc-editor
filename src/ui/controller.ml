@@ -64,15 +64,14 @@ let rec update_action
     (compare :
        int -> string list ->
      date option meta_event option -> date option meta_event -> 'a Ocp_js.elt)
-    (args : (string * string) list)
     (i : int)
     (categories : string list)
     (old_data : date option meta_event)
     (new_data : date option meta_event)
     cont =
-  Js_utils.log "Update...";
+  Js_utils.log "Update... %a -> %a" Utils.pp_title old_data Utils.pp_title new_data;
   if i = 0 then begin
-    Request.update_title ~args ~old_title:old_data ~new_title:new_data (
+    Request.update_title ~old_title:old_data ~new_title:new_data (
       function
       | Success -> cont ()
       | Failed s -> begin
@@ -94,7 +93,7 @@ let rec update_action
   end else begin
     match Utils.metaevent_to_event old_data, Utils.metaevent_to_event new_data with
       Some old_event, Some new_event -> begin
-        Request.update_event ~args i ~old_event ~new_event (
+        Request.update_event i ~old_event ~new_event (
           function
           | Success -> cont ()
           | Failed s -> begin

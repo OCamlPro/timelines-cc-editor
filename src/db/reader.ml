@@ -54,7 +54,19 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let line_to_event ?(with_end_date=true) line =
     match line with
-      (id, Some start_date, end_date, headline, text, url, group, confidential, ponderation) ->
+      (id, Some start_date, end_date, headline, text, url, group, confidential, ponderation, unique_id, last_update, tags) ->
+      let tags = 
+        match tags with 
+          | None -> []
+          | Some p -> 
+            List.fold_left
+              (fun acc -> 
+                 function
+                   | None -> acc
+                   | Some tag -> tag :: acc)
+              []
+              p
+      in
       Int32.to_int id, {
         start_date;
         end_date = if with_end_date then end_date else None;
@@ -64,7 +76,10 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         media = opt (fun url -> {url}) url;
         group;
         confidential;
-        ponderation = Int32.to_int ponderation
+        ponderation = Int32.to_int ponderation;
+        unique_id;
+        last_update; 
+        tags
       }
 
     | _ -> assert false
@@ -98,8 +113,9 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let event auth id =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
-    PGSQL(dbh)
-      "SELECT * FROM events_ \
+      PGSQL(dbh)
+      "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+               confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
        WHERE (id_ = $id) AND ($auth OR NOT confidential_)" >>= function
     | res :: _ ->
       let (_, event) = line_to_event res in
@@ -108,16 +124,19 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let events auth =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ > 0 AND ($auth OR NOT confidential_) ORDER BY id_ DESC" >>=
+    PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
+                WHERE id_ > 0 AND ($auth OR NOT confidential_) ORDER BY id_ DESC" >>=
     fun l ->
     return @@ List.map line_to_event l
 
   let title () =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * FROM events_ WHERE id_ = 0" >>=
+    PGSQL(dbh) "SELECT headline_, text_ FROM events_ \
+                WHERE id_ = 0" >>=
     function
     | [] -> return None
-    | (_,_,_,headline, text,_,_,_,_) :: _ -> return (Some (Utils.to_title_event headline text))
+    | (headline, text) :: _ -> return (Some (Utils.to_title_event headline text))
 
   let category_exists group =
     with_dbh >>> fun dbh ->
@@ -135,29 +154,54 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       ?(min_ponderation = 0)
       ?(max_ponderation = 100)
       ?(groups=[])
+      ?(tags=[])
       auth
       () =
     let min_ponderation = Int32.of_int min_ponderation in
     let max_ponderation = Int32.of_int max_ponderation in
+    let tags = List.map (fun s -> Some s) tags in
     with_dbh >>> fun dbh ->
     let req =
-      match groups with
-        [] -> begin
+      match groups, tags with
+      | [], [] -> begin
           PGSQL(dbh)
-            "SELECT * FROM events_ WHERE \
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              id_ > 0 AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
              AND ($auth OR NOT confidential_) \
              ORDER BY id_ DESC" end
-      | _ ->
+      | _, [] ->
         PGSQL(dbh)
-            "SELECT * FROM events_ WHERE \
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              id_ > 0 AND \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
              AND ($auth OR NOT confidential_) \
+             ORDER BY id_ DESC"
+      | [], _ ->
+        PGSQL(dbh)
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
+             id_ > 0 AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
+             AND ($auth OR NOT confidential_) \
+             AND tags_ && $tags::varchar[]
+             ORDER BY id_ DESC"
+      | _ ->
+        PGSQL(dbh)
+            "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
+             id_ > 0 AND \
+             group_ IN $@groups AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
+             AND ($auth OR NOT confidential_) \
+             AND tags_ && $tags::varchar[]
              ORDER BY id_ DESC"
     in
     req >>= fun l ->

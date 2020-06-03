@@ -96,3 +96,15 @@ OCaml.program("csv-dbparser",
       "data-encoding";
       ];
     });
+
+
+OCaml.program("script",
+  ocaml + {
+    files = [ "script.ml" ];
+    requires = [
+      "database-writer-lib";
+      "database-reader-lib";
+      "timeline-data";
+      "data-encoding";
+      ];
+    });

@@ -44,6 +44,7 @@ let update_event req (id, old_event, event) =
   (fun auth ->
      if not auth then EzAPIServerUtils.return (Failed "Error 403")
      else begin
+       Format.printf "Updating event %i with %a@." id Utils.pp_event event;
        (* Check if the old event has been modified *)
        Reader.event true id >>=
        (function
@@ -109,11 +110,15 @@ let timeline_data req () =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "max_level"  req.req_params in
   let confidential =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "confidential"  req.req_params in
+  let tags =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "tags"  req.req_params in
 
   let start_date = Utils.fopt Utils.string_to_date start_date in
   let end_date = Utils.fopt Utils.string_to_date end_date in
   let min_ponderation = Utils.fopt int_of_string_opt min_ponderation in
   let max_ponderation = Utils.fopt int_of_string_opt max_ponderation in
+  let tags =
+    Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
   begin
     match confidential with
     | Some "false" -> Monad_lwt.return false
@@ -125,6 +130,7 @@ let timeline_data req () =
     ?groups
     ?min_ponderation
     ?max_ponderation
+    ?tags
     confidential
     () >>= EzAPIServerUtils.return
 

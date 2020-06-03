@@ -16,6 +16,7 @@ open Utils
 exception NewLine of string
 
 let to_event
+    ~unique_id
     ~start_date
     ~end_date
     ~typ
@@ -24,7 +25,10 @@ let to_event
     ~confidential
     ~media
     ~title
-    ~text : date option meta_event =
+    ~text
+    ~last_update
+    ~tags
+  : date option meta_event =
 
   let text =
     let title =
@@ -46,10 +50,13 @@ let to_event
     group = typ;
     media;
     ponderation;
-    confidential
+    confidential;
+    unique_id;
+    last_update;
+    tags
   }
 
-let line_to_event (header : Header.t) line =
+let line_to_event line_cpt (header : Header.t) line =
   let data = String.split_on_char '\t' line in
   (*Format.printf "Splitted data = %a@."
     (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
@@ -101,6 +108,10 @@ let line_to_event (header : Header.t) line =
   let media        = Header.media       header data in
   let title        = Header.title       header data in
   let text         = Header.text        header data in
+  let unique_id    =
+    match title with
+    | None -> ("id-" ^ string_of_int line_cpt)
+    | Some t -> Utils.short_title t in
   to_event
     ~start_date
     ~end_date
@@ -111,6 +122,9 @@ let line_to_event (header : Header.t) line =
     ~title
     ~text
     ~confidential
+    ~unique_id
+    ~last_update:None
+    ~tags:[]
 
 let date_encoding =
   Json_encoding.(
@@ -150,11 +164,11 @@ let group_encoding = Json_encoding.string
 let meta_event_encoding start_date_encoding =
   Json_encoding.(
     conv
-      (fun {start_date; end_date; text; group; media; ponderation; confidential} ->
-           (start_date, end_date, text, group, media, ponderation, confidential))
-      (fun (start_date, end_date, text, group, media, ponderation, confidential) ->
-           {start_date; end_date; text; group; media; ponderation; confidential})
-      (obj7
+      (fun {start_date; end_date; text; group; media; ponderation; confidential; unique_id; last_update; tags} ->
+           (start_date, end_date, text, group, media, ponderation, confidential, unique_id, last_update, tags))
+      (fun (start_date, end_date, text, group, media, ponderation, confidential, unique_id, last_update, tags) ->
+           {start_date; end_date; text; group; media; ponderation; confidential; unique_id; last_update; tags})
+      (obj10
          (req "start_date"   start_date_encoding)
          (opt "end_date"     date_encoding)
          (req "text"         text_encoding)
@@ -162,17 +176,13 @@ let meta_event_encoding start_date_encoding =
          (opt "media"        media_encoding)
          (req "ponderation"  int)
          (req "confidential" bool)
+         (req "unique_id"    string)
+         (opt "last_update"  date_encoding)
+         (req "tags"         (list string))
       )
   )
 
 let event_encoding = meta_event_encoding date_encoding
-
-let id_event_encoding =
-  Json_encoding.(
-    merge_objs
-      (obj1 @@ req "unique_id" string)
-      event_encoding;
-  )
 
 let title_encoding = meta_event_encoding (Json_encoding.option date_encoding)
 
@@ -189,7 +199,7 @@ let timeline_encoding =
 let id_timeline_encoding =
   Json_encoding.(
     obj2
-      (req "events" (list id_event_encoding))
+      (req "events" (list event_encoding))
       (opt "title" title_encoding))
 
 
@@ -200,22 +210,17 @@ let file_to_events f =
   (* Format.printf "Header = %a@." Header.pp header;*)
   let events =
     let l = ref [] in
+    let cpt = ref 0 in
     let () =
       try
         while true do
           let line = input_line chan in
           (* Format.printf "Line %s@." line;*)
           try
-            match metaevent_to_event @@ line_to_event header line with
+            cpt := !cpt + 1;
+            match metaevent_to_event @@ line_to_event !cpt header line with
             | None -> Format.printf "Event %s has no start date" line
             | Some event -> l := (event :: !l)
-            (* Format.printf
-              "Event of line %s started on %a and ended on %s@."
-              line
-              (CalendarLib.Printer.Date.fprint "%D") event.start_date
-              (match event.end_date with
-               | None -> ""
-               | Some i -> Format.asprintf "and ended on %a" (CalendarLib.Printer.Date.fprint  "%D") i) *)
           with
             Failure s -> Format.printf "Failing at line %s: %s@." line s
           | NewLine s -> begin
@@ -247,11 +252,13 @@ let str_to_events ~log_error str =
       let header = Header.header_to_map header in
       let events =
         let l = ref [] in
+        let cpt = ref 0 in
         let () =
           List.iter
             (fun line ->
+               cpt := !cpt + 1;
                try
-                 match metaevent_to_event @@ line_to_event header line with
+                 match metaevent_to_event @@ line_to_event !cpt header line with
                  | None -> Format.printf "Event %s has no start date" line
                  | Some new_event -> l := new_event :: !l
                with

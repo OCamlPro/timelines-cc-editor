@@ -3,8 +3,8 @@ open Bootstrap_helpers
 open Grid
 open Form
 open Js_utils
-open Js_of_ocaml_tyxml.Tyxml_js.Html
 open Ocp_js
+
 let link ?(args=[]) path =
   match args with
   | [] -> path
@@ -602,3 +602,65 @@ let dynamic_checkbox
   in
   let getter () = !ref_checked in
   html_elt, getter
+
+let get_hostname () =
+  match Jsloc.url () with
+  | Http h | Https h -> h.hu_host
+  | File f -> "__unknown_hostname_for_file__"
+
+let get_path () =
+  match Jsloc.url () with
+  | Http h | Https h -> h.hu_path_string
+  | File f -> f.fu_path_string
+
+let get_fragment () =
+  match Jsloc.url () with
+  | Http h | Https h -> h.hu_fragment
+  | File f -> f.fu_fragment
+
+let display_url () =
+  let display_u u =
+    Js_utils.log
+      "{ host = %s;\n\
+         port = %i;\n\
+         path = %s;\n\
+         args = %s;\n\
+         fragment = %s\n\
+       }"
+      u.Url.hu_host
+      u.hu_port
+      u.hu_path_string
+      (link ~args:u.hu_arguments "")
+      u.hu_fragment in
+  match Jsloc.url () with
+  | Http u -> Js_utils.log "http"; display_u u;
+  | Https u -> Js_utils.log "https"; display_u u;
+  | File _ -> Js_utils.log "file"
+
+type align = H | V
+
+let html2pdf ~align id =
+  let slide_style, main_style =
+    match align with
+    | V -> "", ""
+    | H ->
+      "display: inline-block; white-space: normal",
+      "position: absolute;\
+       overflow-x: scroll;\
+       overflow-y: hidden;\
+       white-space: nowrap"
+  in
+  let slides =
+    List.map
+      (fun d ->
+         div
+           ~a:[a_style slide_style]
+           [Js_utils.Manip.clone ~deep:true d])
+      (Js_utils.Manip.by_class "tl-slide") in
+  let new_div = div ~a:[a_style main_style] slides in
+  let w =
+    match Ocp_js.Js.Opt.to_option @@ Js_utils.window_open "" "" with
+    | None -> assert false
+    | Some w -> w
+  in
+  let () = Manip.appendChild (Js_utils.Window.body w) new_div in ()

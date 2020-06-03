@@ -46,7 +46,6 @@ let edit_button (events : (int * event) list) title categories =
                         (fun self ->
                            Controller.update_action
                              Admin.compare
-                             args
                              id
                              categories
                              title
@@ -83,7 +82,6 @@ let edit_button (events : (int * event) list) title categories =
                         (fun self ->
                            Controller.update_action
                              Admin.compare
-                             args
                              id
                              categories
                              event
@@ -99,8 +97,17 @@ let edit_button (events : (int * event) list) title categories =
                              )
                         )
                         "Update event" in
+                    let back_button = 
+                      Ui_utils.simple_button
+                        "back-from-edit"
+                        (fun _ -> 
+                             match Manip.by_id "timeline-page-unsplit" with
+                               | None -> () 
+                               | Some b -> Ui_utils.click b
+                        ) 
+                       "Back" in
                     let split_content =
-                      [form; add_button; back_button ()] in
+                      [form; add_button; back_button] in
                     Manip.replaceChildren split split_content; true
                 end
               with Invalid_argument s ->
@@ -135,15 +142,15 @@ let display_timeline update_action is_auth args categories title (events : (int 
   let events = List.map (
       fun (i,e) ->
         let id = Ui_utils.slide_id_from_id i in
-        id, {e with end_date = None}) events in
+        {e with end_date = None; unique_id = id}) events in
   let cmd =
-    let timeline = (events, title) in
-    let json = Json_encoding.construct (Data_encoding.id_timeline_encoding) timeline in
+    let timeline = {events; title} in
+    let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
     let yoj  = Json_repr.to_yojson json in
     let str  = Yojson.Safe.to_string yoj in
     let () = Js_utils.log "yojson to send: %s" str in
       Format.asprintf
-        "window.timeline = new TL.Timeline('timeline-embed',%s)"
+        "window.timeline = new TL.Timeline('home-timeline-embed',%s)"
         str in
   let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
   ()
@@ -153,10 +160,12 @@ let form is_auth args categories =
     let content = List.assoc_opt key args in
     Ui_utils.placeholder ~id:key ?content ~title ~name:key ~input_type ()
   in
-  let start_date, get_start_date = form_with_content "From" "start-date" (Other `Date) in
-  let end_date,   get_end_date   = form_with_content "To"   "end-date"   (Other `Date) in
-  let precision,  get_precision  =
-    form_with_content "Precision" "max_level" (Number (Some 0, None)) in
+  let start_date, get_start_date = form_with_content "From" "start_date" (Other `Date) in
+  let end_date,   get_end_date   = form_with_content "To"   "end_date"   (Other `Date) in
+  let precision,  get_min_precision  =
+    form_with_content "Precision (min)" "min_level" (Number (Some 0, None)) in
+  let precision,  get_max_precision  =
+    form_with_content "Precision (max)" "max_level" (Number (Some 0, None)) in
   let user_view,  get_user_view =
     let test_user_view =
       match List.assoc_opt "confidential" args with
@@ -208,6 +217,8 @@ let form is_auth args categories =
          ], getter
       )
       categories in
+  let tags, get_tags =
+    form_with_content "Tags (separate with ',')" "tags" (Other `Text) in
   let button =
     let action _ =
       let args =
@@ -219,8 +230,12 @@ let form is_auth args categories =
           match get_end_date () with
           | None -> []
           | Some d -> ["end_date", d] in
-        let precision =
-          match get_precision () with
+        let min_precision =
+          match get_min_precision () with
+          | None -> []
+          | Some p -> ["min_level", p] in
+        let max_precision =
+          match get_max_precision () with
           | None -> []
           | Some p -> ["max_level", p] in
         let confidential =
@@ -229,10 +244,10 @@ let form is_auth args categories =
           else
             ["confidential", "true"]
         in
-        let min_level =
-          match List.assoc_opt "min_level" args with
-          | None -> []
-          | Some i -> ["min_level", i] in
+        let tags = 
+          match get_tags () with
+            | None -> []
+            | Some t -> ["tags", t] in
         let categories =
           List.flatten @@
           List.map2
@@ -242,7 +257,7 @@ let form is_auth args categories =
             categories
             category_getters
         in
-        start_date @ end_date @ confidential @ min_level @ precision @ categories 
+        start_date @ end_date @ confidential @ min_precision @ max_precision @ categories @ tags
       in
       ignore @@ !Dispatcher.dispatch ~path:page_name ~args; true in
     div
@@ -255,7 +270,7 @@ let form is_auth args categories =
     [h4 [txt "Categories"]] @
     category_html @
     [h4 [txt "Other filters"]] @
-    [start_date] @ [end_date] @ [precision] @
+    [start_date] @ [end_date] @ [precision] @ [tags] @
     [button]
   )
 
@@ -281,10 +296,11 @@ module EventPanelAuth = Panel.MakePageTable(
     let name = "events"
     let theads () =
       tr ~a:[] [
+        th ~a:[ a_style "width:10%" ]   [txt "Id"];
         th ~a:[ a_style "width:25%" ]   [txt "Date"];
         th ~a:[ a_style "width:37.5%" ] [txt "Headline"];
-        th ~a:[ a_style "width:12.5%" ] [txt "Ponderation"];
-        th ~a:[ a_style "width:12.5%" ] [txt "Confidential"];
+        th ~a:[ a_style "width:7.5%" ]  [txt "Ponderation"];
+        th ~a:[ a_style "width:7.5%" ]  [txt "Confidential"];
         th ~a:[ a_style "width:12.5%" ] [txt ""];
       ]
   end
@@ -328,10 +344,11 @@ let make_panel_lines_auth (events : (int * event) list) =
            Format.asprintf "%a"
              (CalendarLib.Printer.Date.fprint "%d/%m/%Y") start_date in
          tr ~a:[a_class ["clickable"]] [
-           td ~a:(a "width:25%") [txt date];
+           td ~a:(a "width:10%")   [txt (string_of_int id)];
+           td ~a:(a "width:25%")   [txt date];
            td ~a:(a "width:37.5%") [txt headline];
-           td ~a:(a "width:12.5%") [txt @@ string_of_int ponderation];
-           td ~a:(a "width:12.5%") [txt @@ string_of_bool confidential];
+           td ~a:(a "width:7.5%")  [txt @@ string_of_int ponderation];
+           td ~a:(a "width:7.5%")  [txt @@ string_of_bool confidential];
            td [
              Ui_utils.simple_button
                ("edit-table-" ^ string_of_int id)
@@ -417,7 +434,7 @@ let page
       div ~a:[a_id "timeline-page"][
         div ~a:[a_class [row]] [
           div ~a:[a_class [clg12];
-                  a_id "timeline-embed";
+                  a_id "home-timeline-embed";
                   a_style" height: 600px"][]
         ];
         div ~a:[a_class [row]] [
@@ -555,12 +572,13 @@ let page
                ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.assoc_remove "id" args);
                Ocp_js.Js._true))
           Ocp_js.Js._true |> ignore in
-      let () = (* Adding links to timeline lower part *)
+      let () = (* Adding links to timeline lower part & updating logos *)
         let lower_links = List.rev @@ Manip.by_class "tl-timemarker" in
         try
           Js_utils.log "Events ordered: %i ; Lower links: %i" (List.length order) (List.length lower_links);
           List.iter2
             (fun i elt ->
+               (* Adding links *)
                Ocp_js.Dom.addEventListener
                  (Manip.get_elt "click" elt)
                  (Ocp_js.Dom.Event.make "click")
@@ -569,28 +587,61 @@ let page
                         Ui_utils.url page_name (Ui_utils.assoc_add_unique "id" (string_of_int i) args) in
                       Ui_utils.push url;
                       Ocp_js.Js._true))
-                 Ocp_js.Js._true |> ignore
+                 Ocp_js.Js._true |> ignore;
+               (* Updating images *)
+               let event = List.assoc i events in 
+               match event.media with
+               | None | Some {url = ""} -> ()
+               | Some {url} ->
+                 let im = img ~a:[a_style "max-height: 11px"] ~src:url ~alt:"" () in
+                 match Manip.children elt with
+                   _timespan :: content_container :: _ -> begin
+                     match Manip.children content_container with
+                       container :: _ -> begin
+                         match Manip.children container with
+                           media_container :: _ ->
+                           Manip.replaceChildren media_container [im]
+                         | _ -> ()
+                       end
+                     | _ -> ()
+                   end
+                 | _ -> ()
             )
             order
             lower_links
         with Invalid_argument s -> Js_utils.log "Error in lower part listeners: %s" s
       in
 
-      (* Adding edit button *)
-      let () =
-        if is_auth then begin
-          let edit_button, cancel_button = edit_button events title categories in
-          let div_buttons =
-            div ~a:[a_style "position: sticky; z-index:10; height:0px; top: 0"]
-              [edit_button; cancel_button] in
-          let timeline = Js_utils.find_component "page-content" in
-          match Manip.children timeline with
-          | [] -> Manip.appendChildren timeline [div_buttons]
-          | before :: _ -> Manip.appendChildren ~before timeline [div_buttons]
-        end
-      in
-      ()
-    end in
+      let top_buttons =
+        let edit_buttons = 
+          if is_auth then begin
+            let edit_button, cancel_button = edit_button events title categories in
+            [div [edit_button; cancel_button]]
+          end else [] in 
+        let export_vertical = [
+          div
+            ~a:[
+              a_class ["btn"; "btn-primary"];
+              a_id "export-pdf";
+              a_onclick (fun _ -> Ui_utils.html2pdf ~align:V "slides-pdf"; true)
+            ] [txt "Raw Timeline (Vertical)"]
+        ] in 
+        let export_hori = [
+          div
+            ~a:[
+              a_class ["btn"; "btn-primary"];
+              a_id "export-pdf";
+              a_onclick (fun _ -> Ui_utils.html2pdf ~align:H "slides-pdf"; true)
+            ] [txt "Raw Timeline (Horizontal)"]
+        ] in
+        div ~a:[a_class ["row"]; a_style "position: sticky; z-index:10; height:0px;  top: 0"]
+          (edit_buttons @ export_vertical @ export_hori) in
+      let timeline = Js_utils.find_component "page-content" in
+      match Manip.children timeline with
+      | [] -> Manip.appendChild timeline top_buttons
+      | before :: _ -> Manip.appendChild ~before timeline top_buttons
+    end
+    in
     EventPanel.paginate_all
       ~urlarg_page:"" ~urlarg_size:"" table_elts;
     ignore (Js_of_ocaml.Js.Unsafe.eval_string

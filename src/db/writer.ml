@@ -20,13 +20,17 @@ let add_event (e : event) =
   let group = e.group in
   let ponderation = Int32.of_int e.ponderation in
   let confidential = e.confidential in
+  let unique_id = e.unique_id in
+  let last_update = e.last_update in
+  let tags = List.map (fun s -> Some s) e.tags in
   let () =
     PGSQL(dbh)
       "INSERT INTO \
        events_(start_date_, end_date_, headline_, text_, \
-       media_, group_, confidential_, ponderation_) \
+       media_, group_, confidential_, ponderation_, unique_id_, last_update_, tags_) \
        VALUES($start_date, $?end_date, $headline,$text,\
-       $?media,$?group, $confidential, $ponderation)" in
+       $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update, $tags)"
+  in
   match group with
   | None -> ()
   | Some group -> add_category group; ()
@@ -59,9 +63,14 @@ let update_event (i: int) (e : event) =
     let group = e.group in
     let ponderation = Int32.of_int e.ponderation in
     let confidential = e.confidential in
+    let unique_id = e.unique_id in
+    let last_update = e.last_update in
+    let tags = List.map (fun s -> Some s) e.tags in
     let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
                          headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
-                         confidential_=$confidential, ponderation_=$ponderation WHERE id_=$i";
+                         confidential_=$confidential, ponderation_=$ponderation, \
+                         unique_id_=$unique_id, last_update_=$?last_update, \
+                         tags_=$tags WHERE id_=$i";
       match group with
       | None -> ()
       | Some group -> add_category group in
@@ -76,9 +85,12 @@ let update_title (e : title) =
   let group = e.group in
   let ponderation = Int32.of_int e.ponderation in
   let confidential = e.confidential in
+  let last_update = e.last_update in
+  let tags = List.map (fun s -> Some s) e.tags in
   let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$?start_date, end_date_=$?end_date, \
                        headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
-                       confidential_=$confidential, ponderation_=$ponderation WHERE id_=0";
+                       confidential_=$confidential, ponderation_=$ponderation, \
+                       last_update_=$?last_update, tags_=$tags WHERE id_=0";
     match group with
     | None -> ()
     | Some group -> add_category group in

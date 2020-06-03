@@ -8,7 +8,7 @@ workflow:
   rules:
     - if: $CI_MERGE_REQUEST_ID                     # Run on MRs
     - if: $CI_COMMIT_TAG                           # Run on tags
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH  # Run on master
+    - if: $CI_COMMIT_BRANCH == "standalone"        # Run on standalone
 
 # Customize the build rules and the artifacts here
 build:
@@ -42,7 +42,10 @@ build:
   echo "\
   FROM bitnami/nginx:latest
   ADD --chown=www-data www.tar.gz /app
+  ADD --chown=www-data http://d4.dune.network:6789/timeline_data?min_level=10 /app/timeline_data
+  ADD --chown=www-data http://d4.dune.network:6789/title /app/title
   USER 0
+  RUN sed -i '/X-Frame-Options/d' /opt/bitnami/nginx/conf/nginx.conf
   RUN chmod a+rX-w -R /app
   USER 1001
   " > /kaniko/Dockerfile
@@ -91,7 +94,6 @@ make-image:
       root /app;
       location / {
         index index.html;
-        proxy_hide_header X-Frame-Options;
       }
     }
   ingress:
@@ -164,15 +166,30 @@ deploy-prod:
    environment:
      name: prod
      url: https://${PUBLIC_HOST}
+     on_stop: stop-deploy-prod
    rules:
-     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-       when: manual
+     - when: manual
        allow_failure: true
 
 stop-deploy-dev:
   <<: *deploy-job
   environment:
     name: dev
+    action: stop
+  interruptible: false
+  script:
+    - helm uninstall "$POD_NAME"
+  rules:
+    - when: manual
+      allow_failure: true
+
+stop-deploy-prod:
+  <<: *deploy-job
+  variables:
+    <<: *deploy-variables
+    PUBLIC_HOST: ${CI_PROJECT_NAME}.ocamlpro.com
+  environment:
+    name: prod
     action: stop
   interruptible: false
   script:

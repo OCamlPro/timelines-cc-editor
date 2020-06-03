@@ -44,9 +44,7 @@ OCaml.program("ocptimeline-js", ocaml + {
 
 OCaml.program("ocptimeline-js-website", ocaml + {
    files = [
-   	 "dispatcher.ml";
    	 "ui_utils.ml", pp_js;
-	 "panel.ml", pp_js;
 	 "request.ml";
 	 "main_simple.ml", pp_js;
 	 ];

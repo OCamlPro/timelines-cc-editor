@@ -16,6 +16,24 @@ let to_text headline text =
     text
   }
 
+let short_title str =
+  let allowed_char c =
+    let code = Char.code c in
+    if (code >= 65 && code <= 90)  || (* between 'A' and 'Z' *)
+       (code >= 97 && code <= 122) || (* between 'a' and 'z' *)
+       (code >= 48 && code <= 57)  (* between '0' and '9' *)
+    then c
+    else
+      match c with
+      | '.' | '-' | '_' -> c
+      | _ -> '-' in
+  if str = "" then
+    "__no_title__id__"
+  else
+    let short =
+      String.sub str 0 (min (String.length str) 60) in
+    String.map allowed_char short
+
 let to_title_event headline text = {
   start_date = None;
   end_date = None;
@@ -23,7 +41,10 @@ let to_title_event headline text = {
   group = None;
   media = None;
   ponderation = 0;
-  confidential = false
+  confidential = false;
+  unique_id = "timeline-title-" ^ (short_title headline);
+  last_update = None;
+  tags = []
 }
 
 let to_title line =
@@ -41,7 +62,10 @@ let metaevent_to_event meta : event option =
       media = meta.media;
       group = meta.group;
       confidential = meta.confidential;
-      ponderation = meta.ponderation
+      ponderation = meta.ponderation;
+      unique_id = meta.unique_id;
+      last_update = meta.last_update;
+      tags = meta.tags
     }
 
 let event_to_metaevent e = {
@@ -51,7 +75,10 @@ let event_to_metaevent e = {
       media = e.media;
       group = e.group;
       confidential = e.confidential;
-      ponderation = e.ponderation
+      ponderation = e.ponderation;
+      unique_id = e.unique_id;
+      last_update = e.last_update;
+      tags = e.tags
     }
 
 let to_date year month day =
@@ -85,6 +112,7 @@ let opt f = function
 
 
 module StringMap = Map.Make (String)
+module IntMap = Map.Make (struct type t = int let compare = (-) end)
 
 let fold_lefti f =
   let i = ref (-1) in
@@ -145,7 +173,9 @@ let pp_event fmt (e : event) =
      media = %a;\n\
      group = %a\n\
      confidential = %b\n\
-     ponderation = %i}"
+     ponderation = %i;\n\
+     last_update = %a;\n\
+     tags = %a}"
     (CalendarLib.Printer.Date.fprint "%D") e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -153,6 +183,10 @@ let pp_event fmt (e : event) =
     (pp_opt (fun fmt   -> Format.fprintf fmt "%s")) e.group
     e.confidential
     e.ponderation
+    (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.last_update
+    (Format.pp_print_list
+      ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") 
+      (fun fmt -> Format.fprintf fmt "%s")) e.tags
 
 let pp_title fmt (e : title) =
   Format.fprintf fmt
@@ -162,7 +196,9 @@ let pp_title fmt (e : title) =
      media = %a;\n\
      group = %a\n\
      confidential = %b\n\
-     ponderation = %i}"
+     ponderation = %i;\n\
+     last_update = %a\n\
+     tags = %a}"
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -170,6 +206,10 @@ let pp_title fmt (e : title) =
     (pp_opt (fun fmt   -> Format.fprintf fmt "%s")) e.group
     e.confidential
     e.ponderation
+    (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.last_update
+    (Format.pp_print_list
+      ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") 
+      (fun fmt -> Format.fprintf fmt "%s")) e.tags
 
 let hd_opt = function
     [] -> None

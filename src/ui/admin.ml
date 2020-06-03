@@ -14,8 +14,10 @@ let title        i = "title-"       ^ i
 let media        i = "media-"       ^ i
 let group        i = "group-"       ^ i
 let text         i = "text-"        ^ i
+let unique_id    i = "unique-id-"   ^ i
 let confidential i = "confid-"      ^ i
 let ponderation  i = "ponderation-" ^ i
+let tags         i = "tags-"        ^ i
 let valid        i = "button-"      ^ i
 
 let back_button () =
@@ -70,6 +72,15 @@ let event_form
        ~name:"headline"
        () in
 
+  let unique_id, get_unique_id =
+    placeholder
+      ~readonly
+      ~id:(unique_id idl)
+      ~content:e.unique_id
+      ~title:"Unique id"
+      ~name:"unique-id"
+       () in
+
   let media, get_media =
     let content = match e.media with None -> "" | Some e -> e.url in
     placeholder
@@ -119,6 +130,17 @@ let event_form
       ~content:(string_of_int e.ponderation)
       ~input_type:(Number (Some 0, None))
       () in
+
+  let tags, get_tags =
+    placeholder
+      ~readonly
+      ~id:(tags idl)
+      ~title:"Tags (separate with ,)"
+      ~name:"tags"
+      ~content:(String.concat "," e.tags)
+      () in
+  
+  
   let get_event () =
     let start_date =
       match get_start_date () with
@@ -134,22 +156,48 @@ let event_form
       match get_confidential () with
       | None | Some "false" -> false
       | Some "true" -> true
-      | Some thingelse -> failwith ("bool_of_str " ^ thingelse) in
+      | Some thingelse ->
+        let error =
+          Format.sprintf "Confidentiality must be 'true' or 'false': %s is invalid" thingelse
+        in failwith error in
 
     let ponderation =
       match get_ponderation () with
       | None -> 0
-      | Some i -> try int_of_string i with _ -> failwith ("Bad ponderation in UI:" ^ i) in
-    Data_encoding.to_event
-      ~start_date
-      ~end_date
-      ~typ:(get_group ())
-      ~confidential
-      ~ponderation
-      ~media:(get_media ())
-      ~title:(get_headline ())
-      ~text:(get_text ())
-      ~typ2:None
+      | Some i -> try int_of_string i with _ ->
+        failwith ("Ponderation must be an integer: " ^ i ^ " is invalid") in
+
+    let title = get_headline () in
+
+    let unique_id =
+      match get_unique_id () with
+      | Some i -> i
+      | None ->
+        match title with
+        | None -> failwith "You must either provide a unique ID or a title"
+        | Some t -> Utils.short_title t
+    in
+ 
+    let tag_list = 
+      match get_tags () with
+      | None -> []
+      | Some t -> String.split_on_char ',' t in
+
+    let event =
+      Data_encoding.to_event
+        ~start_date
+        ~end_date
+        ~typ:(get_group ())
+        ~confidential
+        ~ponderation
+        ~media:(get_media ())
+        ~title
+        ~text:(get_text ())
+        ~typ2:None
+        ~unique_id
+        ~last_update:(Some (CalendarLib.Date.today ()))
+        ~tags:tag_list
+    in Js_utils.log "New event: %a" Utils.pp_title event; event
 
   in
   let html =
@@ -163,8 +211,10 @@ let event_form
         end_date;
         media;
         headline;
+        unique_id;
         group;
         text;
+        tags;
         ponderation;
         confidential;
       ]
@@ -179,7 +229,10 @@ let empty_event_form id action =
     media = None;
     group = None;
     confidential = false;
-    ponderation = 0
+    ponderation = 0;
+    unique_id = "";
+    last_update = None;
+    tags = []
   }
   in
   event_form empty_event id action
@@ -245,12 +298,11 @@ let rec compare
       ] in
       let new_event =
         let form, get_new_event = event_form new_event id categories in
-        let args = Ui_utils.get_args () in
         let update_button =
           Ui_utils.simple_button
             "compare-update"
             (fun _ ->
-               Controller.update_action compare args id categories event (get_new_event ())
+               Controller.update_action compare id categories event (get_new_event ())
                  (fun () ->
                     Js_utils.log "Event updated";
                     !Dispatcher.dispatch
