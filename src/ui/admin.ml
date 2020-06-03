@@ -221,7 +221,7 @@ let event_form
     ) in
   html, get_event
 
-let empty_event_form id action =
+let empty_event_form action =
   let empty_event = {
     start_date = Some (CalendarLib.Date.today ());
     end_date = None;
@@ -235,7 +235,7 @@ let empty_event_form id action =
     tags = []
   }
   in
-  event_form empty_event id action
+  event_form empty_event 0 action
 
 let event_short_row (i, event) =
   let stri = string_of_int i in
@@ -278,9 +278,7 @@ let events_list args events =
   List.map event_short_row events
 
 let add_new_event_form categories =
-  empty_event_form
-    0
-    categories
+  empty_event_form categories
 
 let rec compare
     (id : int)

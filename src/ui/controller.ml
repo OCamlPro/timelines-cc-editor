@@ -120,3 +120,5 @@ let export_database args =
         Ui_utils.download "database.csv" str; finish ()
           )
       )
+
+let create_timeline = Request.create_timeline

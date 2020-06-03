@@ -195,6 +195,15 @@ let export_database (req, timeline_id) () =
         )
     )
 
+let create_timeline req title =
+  if_is_auth req (fun () ->
+    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
+    | None ->
+      EzAPIServerUtils.return (Error "[create_timeline] Error: email should be in params")
+    | Some email ->
+      EzAPIServerUtils.return @@ Writer.create_timeline email title
+  )
+
 (*
 let reinitialize _ events =
   Writer.remove_events ();

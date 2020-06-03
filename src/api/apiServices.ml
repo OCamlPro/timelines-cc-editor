@@ -114,7 +114,7 @@ let title : (string, Data_types.title option) service1 =
     ~output:(Json_encoding.(tup1 @@ option Data_encoding.title_encoding))
     Path.(root // "title" /: arg_timeline ())
 
-let add_event : (string, Data_types.event, api_result) post_service1 =
+let add_event : (string, Data_types.event, unit api_result) post_service1 =
   post_service
     ~params:auth_params
     ~name:"add_event"
@@ -144,7 +144,7 @@ let timeline_data : (string, (int * Data_types.title) list) service1 =
     ])
     Path.(root // "timeline_data" /: arg_timeline ())
 
-let remove_event : (int, api_result) service1 =
+let remove_event : (int, unit api_result) service1 =
   service
     ~params:auth_params
     ~name:"remove_event"
@@ -195,9 +195,16 @@ let has_admin_rights : (string, unit, bool) post_service1 =
     ~output:(Json_encoding.bool)
     Path.(root // "is_auth" /: arg_timeline ())
 
-let export_database : (string, api_result) service1 =
+let export_database : (string, unit api_result) service1 =
   service
     ~params:auth_params
     ~name:"export_database"
     ~output:ApiData.api_result_encoding
     Path.(root // "export_database" /: arg_timeline ())
+
+let create_timeline : (title, string api_result) post_service0 =
+  post_service
+    ~name:"create_timeline"
+    ~input:(Data_encoding.title_encoding)
+    ~output:(ApiData.str_api_result_encoding)
+    Path.(root // "create_timeline")

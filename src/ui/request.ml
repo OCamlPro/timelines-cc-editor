@@ -2,20 +2,29 @@ open Js_of_ocaml.Url
 open Lwt
 
 let api () =
+  Http {
+    hu_host = "d4.dune.network";
+    hu_port = Config.api_port;
+    hu_path = [];
+    hu_path_string = "d4.dune.network:23456";
+    hu_arguments = [];
+    hu_fragment = ""    
+  }
+(*
   match Js_of_ocaml.Url.Current.get () with
   | Some u -> u
   | None ->
     match Js_of_ocaml.Url.url_of_string "http://localhost:8080" with
     | Some u -> u
-    | None -> assert false
+    | None -> assert false *)
 
 let get ?(args = []) apifun cont =
-  let url = api () in
+  let url = api () in (*
   let url = (* Only for standalone !! *)
-    match url with
+    match url wit<h
     | Http u -> Http {u with hu_path_string = ""}
     | Https u -> Https {u with hu_path_string = ""}
-    | File f -> File {f with fu_path_string = ""} in
+    | File f -> File {f with fu_path_string = ""} in *) 
   let () =
     Js_utils.log "GET %s from %s with args [%a]"
       apifun
@@ -158,3 +167,10 @@ let logout cont =
     post ~args:[] "logout"
       (Json_encoding.(tup2 string string)) (email, auth_data)
       (Json_encoding.unit) cont
+
+let create_timeline title cont =
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "create_timeline")
+    Data_encoding.title_encoding title
+    ApiData.str_api_result_encoding cont

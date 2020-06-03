@@ -20,6 +20,7 @@ let start () =
     |> EzAPIServerUtils.register S.is_auth H.is_auth
     |> EzAPIServerUtils.register S.has_admin_rights H.has_admin_rights
     |> EzAPIServerUtils.register S.export_database H.export_database
+    |> EzAPIServerUtils.register S.create_timeline H.create_timeline
   in
   let servers = [ Config.api_port, EzAPIServerUtils.API dir ] in
   Lwt_main.run (
