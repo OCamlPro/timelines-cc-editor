@@ -171,13 +171,16 @@ let event_form
 
     let unique_id =
       match get_unique_id () with
+      | None
+      | Some "" -> begin
+          match title with
+          | None
+          | Some "" -> failwith "You must either provide a unique ID or a title"
+          | Some t -> Utils.short_title t
+        end
       | Some i -> i
-      | None ->
-        match title with
-        | None -> failwith "You must either provide a unique ID or a title"
-        | Some t -> Utils.short_title t
     in
- 
+
     let tag_list = 
       match get_tags () with
       | None -> []

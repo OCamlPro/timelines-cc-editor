@@ -10,9 +10,10 @@ let timeline_div timeline =
   ]
 
 let new_timeline_button () =
-  Ui_utils.split_button "timeline-page" 6 "Create a new timeline" "Cancel"
+  Ui_utils.split_button "page-content" 6 "Create a new timeline" "Cancel"
     ~action_at_split:(fun () ->
-        match Ui_utils.get_split_from_splitted "timeline-page" with
+        Js_utils.debug "Initialting timeline creation";
+        match Ui_utils.get_split_from_splitted "page-content" with
         | None -> false
         | Some split -> begin
             let form, get_title = Admin.empty_event_form [] in
@@ -35,7 +36,7 @@ let new_timeline_button () =
               Ui_utils.simple_button
                 "back-from-edit"
                 (fun _ -> 
-                   match Manip.by_id "timeline-page-unsplit" with
+                   match Manip.by_id "page-content-unsplit" with
                    | None -> () 
                    | Some b -> Ui_utils.click b
                 ) 

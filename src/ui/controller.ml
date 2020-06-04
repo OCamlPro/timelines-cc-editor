@@ -30,10 +30,13 @@ let logout () =
 
 let register_account log pwd =
   ignore @@
-  Request.register_user log pwd (fun _ ->
-      Js_utils.log "Registering account@.";
-      ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
-      finish ()
+  Request.register_user log pwd (function
+      | Ok () ->
+        Js_utils.alert "Account successfully registered! You can now log in.";
+        finish ()
+      | Error e ->
+        Js_utils.alert ("Error: " ^e);
+        error e
     )
 
 let add_action event =

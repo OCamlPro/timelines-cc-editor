@@ -114,6 +114,7 @@ let create_timeline (email : string) (title : title) =
   match Reader.user_exists email with
   | Some _ -> (* User exists, now checking if the timeline already exists *)
     let timeline_id = title.unique_id in
+    Format.eprintf "Timeline id before check: %s@." timeline_id;
     let timeline_id = String.map (function ' ' -> '-' | c -> c) timeline_id in
     let timeline_id =
       if Reader.timeline_exists timeline_id then
@@ -124,13 +125,16 @@ let create_timeline (email : string) (title : title) =
           else new_name
         in loop 2
       else timeline_id
+    Format.eprintf "Timeline id after check: %s@." timeline_id;
     in begin
-      match add_title title timeline_id with
-      | Ok _ -> 
-        PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline_id)";
-        PGSQL(dbh) "INSERT INTO timeline_ids_(id_) VALUES ($timeline_id)";
-        Ok timeline_id
-      | Error e -> Error e
+      try
+        match add_title title timeline_id with
+        | Ok _ ->
+          PGSQL(dbh) "INSERT INTO timeline_ids_(id_) VALUES ($timeline_id)";
+          PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline_id)";
+          Ok timeline_id
+        | Error e -> Error e
+      with e -> Error (Printexc.to_string e)
     end
   | None ->
     Error ("User " ^ email ^ " does not exist")
