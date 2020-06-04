@@ -88,7 +88,7 @@ let sql_downgrade_7_to_6 = [
 ]
 
 let sql_upgrade_6_to_7 =  [
-  {| ALTER TABLE events_ ADD COLUMN timeline_id_ VARCHAR UNIQUE NOT NULL |};
+  {| ALTER TABLE events_ ADD COLUMN timeline_id_ VARCHAR NOT NULL |};
   {| ALTER TABLE events_ ADD COLUMN is_title_ BOOLEAN NOT NULL |};
   {| ALTER TABLE users_  ADD COLUMN timelines_ VARCHAR[] |};
   {| CREATE TABLE timeline_ids_ (
