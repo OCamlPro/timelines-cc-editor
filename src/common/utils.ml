@@ -175,7 +175,8 @@ let pp_event fmt (e : event) =
      confidential = %b\n\
      ponderation = %i;\n\
      last_update = %a;\n\
-     tags = %a}"
+     tags = %a;\n\
+     unique_id = %s;}"
     (CalendarLib.Printer.Date.fprint "%D") e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -187,6 +188,7 @@ let pp_event fmt (e : event) =
     (Format.pp_print_list
       ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") 
       (fun fmt -> Format.fprintf fmt "%s")) e.tags
+    e.unique_id
 
 let pp_title fmt (e : title) =
   Format.fprintf fmt
@@ -198,7 +200,8 @@ let pp_title fmt (e : title) =
      confidential = %b\n\
      ponderation = %i;\n\
      last_update = %a\n\
-     tags = %a}"
+     tags = %a;\n\
+     unique_id = %s;}"
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.start_date
     (pp_opt (CalendarLib.Printer.Date.fprint "%D")) e.end_date
     e.text.headline e.text.text
@@ -210,6 +213,7 @@ let pp_title fmt (e : title) =
     (Format.pp_print_list
       ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") 
       (fun fmt -> Format.fprintf fmt "%s")) e.tags
+    e.unique_id
 
 let hd_opt = function
     [] -> None
