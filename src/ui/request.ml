@@ -106,14 +106,14 @@ let title ~args tid cont =
   get
     ~args
     (Format.sprintf "title/%s" tid)
-    (cook (Json_encoding.(tup1 @@ option (Data_encoding.title_encoding))) cont)
+    (cook (Json_encoding.(tup1 @@ option (tup2 int Data_encoding.title_encoding))) cont)
 
 let add_event ~args (tid : string) (event : Data_types.event) cont =
   let args = args_from_session args in
   post ~args
     (Format.sprintf "add_event/%s" tid)
     Data_encoding.event_encoding event
-    ApiData.unit_api_result_encoding cont
+    ApiData.str_api_result_encoding cont
 
 let update_event id ~old_event ~new_event cont =
   let args = args_from_session ["id", string_of_int id] in

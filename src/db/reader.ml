@@ -163,11 +163,11 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let title (tid : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT headline_, text_ FROM events_ \
+    PGSQL(dbh) "SELECT id_, headline_, text_ FROM events_ \
                 WHERE timeline_id_ = $tid AND is_title_" >>=
     function
     | [] -> return None
-    | (headline, text) :: _ -> return (Some (Utils.to_title_event headline text))
+    | (id, headline, text) :: _ -> return (Some (Int32.to_int id, Utils.to_title_event headline text))
 
   let used_unique_id id =
     with_dbh >>> fun dbh ->

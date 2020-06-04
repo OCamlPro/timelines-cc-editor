@@ -1,3 +1,4 @@
+
 open EzAPI
 open Data_types
 open Data_encoding
@@ -107,19 +108,19 @@ let events : (string, (int * Data_types.event) list) service1 =
     ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
     Path.(root // "events" /: arg_timeline ())
 
-let title : (string, Data_types.title option) service1 =
+let title : (string, (int * Data_types.title) option) service1 =
   service
     ~params:auth_params
     ~name:"title"
-    ~output:(Json_encoding.(tup1 @@ option Data_encoding.title_encoding))
+    ~output:(Json_encoding.(tup1 @@ option (tup2 int Data_encoding.title_encoding)))
     Path.(root // "title" /: arg_timeline ())
 
-let add_event : (string, Data_types.event, unit api_result) post_service1 =
+let add_event : (string, Data_types.event, string api_result) post_service1 =
   post_service
     ~params:auth_params
     ~name:"add_event"
     ~input:Data_encoding.event_encoding
-    ~output:unit_api_result_encoding
+    ~output:str_api_result_encoding
     Path.(root // "add_event" /: arg_timeline ())
 
 let update_event : (int * Data_types.title * Data_types.title, update_event_res) post_service0 =

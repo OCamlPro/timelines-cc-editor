@@ -57,8 +57,7 @@ let title (_,timeline_id) () = Reader.title timeline_id >>= EzAPIServerUtils.ret
 let add_event (req, timeline_id) event =
   if_is_auth req (fun () ->
       if_has_admin req timeline_id (fun () ->
-      Writer.add_event event timeline_id;
-      EzAPIServerUtils.return (Ok ())
+      EzAPIServerUtils.return @@ Writer.add_event event timeline_id
     ))
     
 let update_event req (id, old_event, event) =
@@ -90,14 +89,14 @@ let update_event req (id, old_event, event) =
                     in
                     if is_title then begin
                       match Writer.update_title id event with
-                      | Ok () ->   EzAPIServerUtils.return Success
+                      | Ok s ->   EzAPIServerUtils.return (Success s)
                       | Error s -> EzAPIServerUtils.return (Failed s)
                     end else begin
                       match Utils.metaevent_to_event event with
                       | None -> EzAPIServerUtils.return (Failed "Cannot update an event with a title (start date is missing)")
                       | Some e ->
                         match Writer.update_event id e with
-                        | Ok () ->   EzAPIServerUtils.return Success
+                        | Ok s ->   EzAPIServerUtils.return (Success s)
                         | Error s -> EzAPIServerUtils.return (Failed s)
                     end
                   end else begin
@@ -188,6 +187,10 @@ let export_database (req, timeline_id) () =
       Reader.events true true timeline_id >>= fun events ->
       try
         let events = List.map snd events in
+        let title =
+          match title with
+          | None -> None
+          | Some (_, t) -> Some t in
         let json =
           Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
         EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")

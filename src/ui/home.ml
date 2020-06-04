@@ -13,7 +13,7 @@ let back_button () =
     (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.get_args ()))
     "Back"
 
-let edit_button (events : (int * event) list) title categories =
+let edit_button (events : (int * event) list) (title : (int * title) option) categories =
     Ui_utils.split_button "timeline-page" 8 "Edit slide" "Cancel"
       ~action_at_split:(fun () ->
           match Ui_utils.get_split_from_splitted "timeline-page" with
@@ -23,93 +23,61 @@ let edit_button (events : (int * event) list) title categories =
               try
                 (* We will now check in which context the button has been clicked:
                    was it while on the title page or on an event page ? *)
-                let id = (* if id = 0, then it is the title *)
+                let id, event =
                   match List.assoc_opt "id" args with
                   | None -> begin
                       match title with
-                      | None -> fst @@ List.hd @@ List.rev events (* The id of the first event *)
-                      | Some _ -> 0
+                      | None ->
+                        let id, e = List.hd @@ List.rev events in
+                        id, Utils.event_to_metaevent e
+                      | Some t -> t
                     end
-                  | Some id -> int_of_string id in
-                if id = 0 then begin (* Title case *)
-                  match title with
-                  | None -> assert false (* Previous test checks that *)
-                  | Some title ->
-                    let form, get_title =
-                      Admin.event_form
-                        title
-                        id
-                        categories in
-                    let add_button =
-                      Ui_utils.simple_button
-                        "edit-add"
-                        (fun self ->
-                           Controller.update_action
-                             Admin.compare
-                             id
-                             categories
-                             title
-                             (get_title ())
-                             (fun () ->
-                                Js_utils.log "Going back to main page %s with %i arguments"
-                                  page_name
-                                  (List.length args)
-                                ;
-                                !Dispatcher.dispatch
-                                  ~path:page_name
-                                  ~args
-                             )
-                        )
-                        "Update title" in
-                    let split_content =
-                      [form; add_button; back_button ()] in
-                    Manip.replaceChildren split split_content; true
-                end else begin
-                  match List.assoc_opt id events with
-                  | None ->
-                    alert (Format.sprintf "Event %i not found" id);
-                    raise (Invalid_argument "edit_button")
-                  | Some event ->
-                    let event = Utils.event_to_metaevent event in
-                    let form, get_event =
-                      Admin.event_form
-                        event
-                        id
-                        categories in
-                    let add_button =
-                      Ui_utils.simple_button
-                        "edit-add"
-                        (fun self ->
-                           Controller.update_action
-                             Admin.compare
-                             id
-                             categories
-                             event
-                             (get_event ())
-                             (fun () ->
-                                Js_utils.log "Going back to main page %s with %i arguments"
-                                  page_name
-                                  (List.length args)
-                                ;
-                                !Dispatcher.dispatch
-                                  ~path:page_name
-                                  ~args
-                             )
-                        )
-                        "Update event" in
-                    let back_button = 
-                      Ui_utils.simple_button
-                        "back-from-edit"
-                        (fun _ -> 
-                             match Manip.by_id "timeline-page-unsplit" with
-                               | None -> () 
-                               | Some b -> Ui_utils.click b
-                        ) 
-                       "Back" in
-                    let split_content =
-                      [form; add_button; back_button] in
-                    Manip.replaceChildren split split_content; true
-                end
+                  | Some id ->
+                    let id = int_of_string id in
+                    match List.assoc_opt id events with
+                    | None ->
+                      alert (Format.sprintf "Event %i not found" id);
+                      raise (Invalid_argument "edit-event")
+                    | Some e -> id, Utils.event_to_metaevent e
+                in
+                let form, get_event =
+                  Admin.event_form
+                    event
+                    id
+                    categories in
+                let add_button =
+                  Ui_utils.simple_button
+                    "edit-add"
+                    (fun self ->
+                       Controller.update_action
+                         Admin.compare
+                         id
+                         categories
+                         event
+                         (get_event ())
+                         (fun () ->
+                            Js_utils.log "Going back to main page %s with %i arguments"
+                              page_name
+                              (List.length args)
+                            ;
+                            !Dispatcher.dispatch
+                              ~path:page_name
+                              ~args
+                         )
+                    )
+                    "Update event" in
+                let back_button = 
+                  Ui_utils.simple_button
+                    "back-from-edit"
+                    (fun _ -> 
+                       match Manip.by_id "timeline-page-unsplit" with
+                       | None -> () 
+                       | Some b -> Ui_utils.click b
+                    ) 
+                    "Back" in
+                let split_content =
+                  [form; add_button; back_button] in
+                Manip.replaceChildren split split_content; true
               with Invalid_argument s ->
                 Js_utils.log "Error while splitting in edition: %s" s;
                 false
@@ -137,12 +105,22 @@ let id_current_event has_title (order : int list) =
       Js_utils.log "Error while searching for id, writing 0 instead";
       0
 
-let display_timeline update_action is_auth args categories title (events : (int * event) list) :
+let display_timeline
+    update_action
+    is_auth
+    args
+    categories
+    (title : (int * title) option)
+    (events : (int * event) list) :
   unit =
   let events = List.map (
       fun (i,e) ->
         let id = Ui_utils.slide_id_from_id i in
         {e with end_date = None; unique_id = id}) events in
+  let title =
+    match title with
+    | None -> None
+    | Some (_, t) -> Some t in
   let cmd =
     let timeline = {events; title} in
     let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
@@ -366,7 +344,7 @@ let make_panel_lines_auth (events : (int * event) list) =
 let page
     is_auth args
     categories
-    title
+    (title : (int * title) option)
     (events : (int * event) list) =
   let (module EventPanel : EventPanelType) =
     if is_auth then

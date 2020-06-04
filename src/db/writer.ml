@@ -17,13 +17,19 @@ let add_event (e : event) (tid : string) =
   let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
   let last_update = e.last_update in
   let tags = List.map (fun s -> Some s) e.tags in
-  PGSQL(dbh)
-    "INSERT INTO \
-     events_(start_date_, end_date_, headline_, text_, \
-     media_, group_, confidential_, ponderation_, unique_id_, \
-     last_update_, tags_, timeline_id_, is_title_) \
-     VALUES($start_date, $?end_date, $headline,$text,\
-     $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update, $tags, $tid, false)"
+  try
+    let () = 
+      PGSQL(dbh)
+        "INSERT INTO \
+         events_(start_date_, end_date_, headline_, text_, \
+         media_, group_, confidential_, ponderation_, unique_id_, \
+         last_update_, tags_, timeline_id_, is_title_) \
+         VALUES($start_date, $?end_date, $headline,$text,\
+         $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update, $tags, $tid, false)" in
+      Ok unique_id
+  with
+    _ -> Error "[Writer.add_event] Error while adding event in DB"
+      
 
 
 let add_title (t : title) (tid : string) =
@@ -53,13 +59,16 @@ let update_event (i: int) (e : event) =
     let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
     let last_update = e.last_update in
     let tags = List.map (fun s -> Some s) e.tags in
-    let () =
-      PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
-                  headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
-                  confidential_=$confidential, ponderation_=$ponderation, \
-                  unique_id_=$unique_id, last_update_=$?last_update, \
-                  tags_=$tags WHERE id_=$i" in
-    Ok ()
+    try
+      let () =
+        PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
+                    headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
+                    confidential_=$confidential, ponderation_=$ponderation, \
+                    unique_id_=$unique_id, last_update_=$?last_update, \
+                    tags_=$tags WHERE id_=$i" in
+      Ok unique_id
+    with
+      _ -> Error "[Writer.update_event] Error while updating event in DB"
 
 let update_title (i: int) (e : title) =
     let i = Int32.of_int i in
@@ -74,13 +83,16 @@ let update_title (i: int) (e : title) =
     let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
     let last_update = e.last_update in
     let tags = List.map (fun s -> Some s) e.tags in
+    try
     let () =
       PGSQL(dbh) "UPDATE events_ SET start_date_=$?start_date, end_date_=$?end_date, \
                   headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
                   confidential_=$confidential, ponderation_=$ponderation, \
                   unique_id_=$unique_id, last_update_=$?last_update, \
                   tags_=$tags WHERE id_=$i" in
-    Ok ()
+      Ok unique_id
+    with
+      _ -> Error "[Writer.update_title] Error while updating title in DB"
 
 let remove_event (id : int) =
   let id = Int32.of_int id in

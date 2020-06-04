@@ -675,3 +675,12 @@ let categories (event_list : 'a Data_types.meta_event list) : StringSet.t =
        | Some s -> StringSet.add s acc)
     StringSet.empty
     event_list
+
+let add_arg_unique key bnd arg =
+  let rec loop = function
+      [] -> [key, bnd]
+    | (hd, hd') :: tl ->
+      if hd = key then
+        (key, bnd) :: tl
+      else (hd, hd') :: (loop tl)
+  in loop arg

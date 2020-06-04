@@ -18,7 +18,7 @@ let () =
       | Some title -> ignore @@ Writer.add_title title in
     let () =
       List.iter
-        (fun e -> Writer.add_event e timeline_name)
+        (fun e -> ignore @@ Writer.add_event e timeline_name)
         (List.rev events)
     in
     exit 0
@@ -31,7 +31,7 @@ let () =
         let events = List.map snd events in
         let json =
           Json_encoding.construct
-            Data_encoding.timeline_encoding Data_types.{title = Some title; events} in
+            Data_encoding.timeline_encoding Data_types.{title = Some (snd @@ title); events} in
         Data_encoding.write_json json (file ^ ".json")
     end
   | Some "--to-csv" -> begin
@@ -46,7 +46,7 @@ let () =
         let title =
           match title with
           | None -> sep
-          | Some title -> Data_encoding.title_to_csv ~sep title
+          | Some title -> Data_encoding.title_to_csv ~sep (snd title)
         in
         let header = Data_encoding.header ~sep in
         let events =

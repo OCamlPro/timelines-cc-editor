@@ -23,7 +23,7 @@ let str_list_api_result_encoding : string list api_result Json_encoding.encoding
 
 (* Updates require a "Modified" case *)
 type 'start_date update_meta_event_res =
-  | Success
+  | Success of string
   | Modified of 'start_date Data_types.meta_event option
   | Failed of string
 
@@ -36,7 +36,7 @@ let update_meta_event_res_encoding start_encoding =
       (tup1 string)
       (function Failed s -> Some s | _ -> None)
       (fun s -> Failed s);
-    case (tup1 unit) (function Success -> Some () | _ -> None) (fun () -> Success);
+    case (tup1 string) (function Success s -> Some s | _ -> None) (fun s -> Success s);
   ]
 
 type update_event_res = CalendarLib.Date.t option update_meta_event_res

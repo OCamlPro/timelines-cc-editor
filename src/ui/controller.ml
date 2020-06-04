@@ -52,7 +52,7 @@ let add_action event =
     | Some timeline ->
       Request.add_event ~args timeline event
         (function
-          | Ok () -> !Dispatcher.dispatch ~path:"home" ~args:[]
+          | Ok s -> !Dispatcher.dispatch ~path:"home" ~args
           | Error s ->
             let err = "Add new event action failed: " ^ s in
             Js_utils.alert err;
@@ -84,7 +84,7 @@ let rec update_action
   begin
     Request.update_event i ~old_event ~new_event (
       function
-      | Success -> cont ()
+      | Success _ -> cont ()
       | Failed s -> begin
           Js_utils.log "Update failed: %s" s;
           Lwt.return
@@ -114,7 +114,7 @@ let export_database args =
         let title =
           match title with
           | None -> sep
-          | Some title -> Data_encoding.title_to_csv ~sep title in
+          | Some (_, title) -> Data_encoding.title_to_csv ~sep title in
         let header = Data_encoding.header ~sep in
         let events =
           List.fold_left
