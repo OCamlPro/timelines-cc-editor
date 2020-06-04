@@ -35,9 +35,19 @@ let edit_button (events : (int * event) list) (title : (int * title) option) cat
                   | Some id ->
                     let id = int_of_string id in
                     match List.assoc_opt id events with
-                    | None ->
-                      alert (Format.sprintf "Event %i not found" id);
-                      raise (Invalid_argument "edit-event")
+                    | None -> begin
+                      match title with
+                        | None ->
+                          alert (Format.sprintf "Event %i not found" id);
+                          raise (Invalid_argument "edit-event")
+                        | Some (tit_id, title) ->
+                          if id = tit_id then
+                            tit_id, title
+                          else begin
+                            alert (Format.sprintf "Event/Title of id %i not found" id);
+                            raise (Invalid_argument "edit-event")
+                          end
+                    end
                     | Some e -> id, Utils.event_to_metaevent e
                 in
                 let form, get_event =
@@ -85,25 +95,27 @@ let edit_button (events : (int * event) list) (title : (int * title) option) cat
         )
       ~action_at_unsplit:(fun () -> true)
 
-let id_current_event has_title (order : int list) =
+let id_current_event title (order : int list) =
   let args = Ui_utils.get_args () in
   match List.assoc_opt "id" args with
   | None -> begin
-      if has_title then 0 else
-      try
-        let id = List.hd @@ List.rev order in
-        Js_utils.log "Id of last event: %i" id;
-        id
-      with
-        _ -> 0
+      match title with
+      | Some (id, _) -> id
+      | None ->
+        try
+          let id = List.hd @@ List.rev order in
+          Js_utils.log "Id of last event: %i" id;
+          id
+        with
+          _ -> -1
     end
   | Some i -> try
       let res = int_of_string i in
       Js_utils.log "Current event id: %i" res;
       res
     with _ ->
-      Js_utils.log "Error while searching for id, writing 0 instead";
-      0
+      Js_utils.log "Error while searching for id, writing -1 instead";
+      -1
 
 let display_timeline
     update_action
@@ -350,7 +362,6 @@ let page
     if is_auth then
       (module EventPanelAuth)
     else (module EventPanelNoAuth) in
-  let has_title = match title with None -> false | Some _ -> true in
   let events =
     List.sort
       (fun
@@ -478,7 +489,9 @@ let page
               loop (cpt - 1) tl in
         let cpt_init =
           let len = List.length order in
-          if has_title then len else len - 1 in
+          match title with
+          | None -> len - 1
+          | Some _ -> len in
         loop cpt_init order
       in
       Js_utils.log "To go to next, %i steps are required" id_at_pos;
@@ -487,9 +500,12 @@ let page
     let prev_event id events =
       let rec loop = function
         | [] -> assert false
-        | [_] ->
-          Js_utils.log "This is the first event";
-          if has_title then Some 0 else None
+        | [_] -> begin
+            Js_utils.log "This is the first event";
+            match title with
+            | None -> None
+            | Some (id, _) -> Some id
+          end
         | i :: ((nxt :: _) as tl) ->
           if i = id then begin
             Some nxt
@@ -500,26 +516,35 @@ let page
       loop events in
     let next_event id events =
       let events = List.rev events in
-      if id = 0 then
-        Some (List.hd events)
-      else
-        prev_event id events in
+      match title with
+      | None -> prev_event id events
+      | Some (title_id, _) ->
+        if id = title_id then
+          Some (List.hd events)
+        else
+          prev_event id events in
     let () = begin
       let push_next () =
-        let current_id = id_current_event has_title order in
+        Js_utils.log "Next event";
+        let current_id = id_current_event title order in
+        Js_utils.log "Current event: %i" current_id;
         match next_event current_id order with
         | None -> Js_utils.log "No next event"
         | Some new_id ->
           let new_args = Ui_utils.assoc_add_unique "id" (string_of_int new_id) args in
           let new_url = Ui_utils.url page_name new_args in
+          Js_utils.log "Next event: %i" new_id;
           Ui_utils.push new_url in
       let push_prev () =
-        let current_id = id_current_event has_title order in
+        Js_utils.log "Prev event";
+        let current_id = id_current_event title order in
+        Js_utils.log "Current event: %i" current_id;
         match prev_event current_id order with
         | None -> Js_utils.log "No prev event"
         | Some new_id ->
           let new_args = Ui_utils.assoc_add_unique "id" (string_of_int new_id) args in
           let new_url = Ui_utils.url page_name new_args in
+          Js_utils.log "Prev event: %i" new_id;
           Ui_utils.push new_url
       in
       let () =
