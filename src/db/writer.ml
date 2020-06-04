@@ -14,7 +14,7 @@ let add_event (e : event) (tid : string) =
   let group = e.group in
   let ponderation = Int32.of_int e.ponderation in
   let confidential = e.confidential in
-  let unique_id = e.unique_id in
+  let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
   let last_update = e.last_update in
   let tags = List.map (fun s -> Some s) e.tags in
   PGSQL(dbh)

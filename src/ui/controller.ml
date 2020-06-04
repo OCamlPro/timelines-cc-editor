@@ -53,7 +53,10 @@ let add_action event =
       Request.add_event ~args timeline event
         (function
           | Ok () -> !Dispatcher.dispatch ~path:"home" ~args:[]
-          | Error s -> Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
+          | Error s ->
+            let err = "Add new event action failed: " ^ s in
+            Js_utils.alert err;
+            Lwt.return (Error (Xhr_lwt.Str_err err))
         )
 
 let remove_action args i =

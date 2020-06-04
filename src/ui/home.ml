@@ -390,10 +390,10 @@ let page
       events
   in
   let add_button, back_button =
-    Ui_utils.split_button "timeline-add-home-button" 8 "Add new event" "Cancel"
+    Ui_utils.split_button "timeline-page" 8 "Add new event" "Cancel"
       ~action_at_split:(fun () ->
           match Ui_utils.get_split_from_splitted "timeline-page" with
-          | None -> false
+          | None -> Js_utils.log "Error: split page not found"; false
           | Some split ->
             let form, get_event =
               Admin.add_new_event_form categories in
@@ -401,8 +401,7 @@ let page
               Ui_utils.simple_button
                 "add-page"
                 (fun _ ->
-                   ignore @@ Controller.add_action (get_event ());
-                   ignore @@ !Dispatcher.dispatch ~path:page_name ~args
+                   ignore @@ Controller.add_action (get_event ())
                 )
                 "Add new event" in
             let split_content =
