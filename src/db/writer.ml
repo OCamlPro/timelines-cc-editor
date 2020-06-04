@@ -21,9 +21,9 @@ let add_event (e : event) (tid : string) =
     "INSERT INTO \
      events_(start_date_, end_date_, headline_, text_, \
      media_, group_, confidential_, ponderation_, unique_id_, \
-     last_update_, tags_, timeline_id_) \
+     last_update_, tags_, timeline_id_, is_title_) \
      VALUES($start_date, $?end_date, $headline,$text,\
-     $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update, $tags, $tid)"
+     $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update, $tags, $tid, false)"
 
 
 let add_title (t : title) (tid : string) =
@@ -34,8 +34,8 @@ let add_title (t : title) (tid : string) =
   | None ->
     let () =
       PGSQL(dbh)
-        "INSERT INTO events_(headline_, text_, confidential_, ponderation_, timeline_id_, unique_id_) \
-         VALUES($headline, $text, false, 0, $tid, $unique_id)"
+        "INSERT INTO events_(headline_, text_, confidential_, ponderation_, timeline_id_, unique_id_, is_title_) \
+         VALUES($headline, $text, false, 0, $tid, $unique_id, true)"
     in Ok ()
   | Some _ ->
     Error ("Timeline " ^ tid  ^ "already has a title!")
