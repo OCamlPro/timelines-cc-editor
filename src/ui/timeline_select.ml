@@ -23,15 +23,17 @@ let new_timeline_button () =
                 (fun self ->
                    let title = get_title () in
                    Controller.create_timeline title (function
-                       | Ok timeline -> 
+                       | Ok timeline ->
+                         alert "Timelile successfully created!";
                          !Dispatcher.dispatch
                            ~path:"home"
                            ~args:["timeline", timeline]
                        | Error s ->
+                         Js_utils.alert s;
                          Lwt.return (Ok (Js_utils.alert s))
                      )
                 )
-                "Update event" in
+                "Create timeline" in
             let back_button = 
               Ui_utils.simple_button
                 "back-from-edit"

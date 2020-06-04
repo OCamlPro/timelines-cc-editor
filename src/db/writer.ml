@@ -29,12 +29,13 @@ let add_event (e : event) (tid : string) =
 let add_title (t : title) (tid : string) =
   let headline = t.text.headline in
   let text = t.text.text in
+  let unique_id = t.unique_id in
   match Reader.title tid with
   | None ->
     let () =
       PGSQL(dbh)
-        "INSERT INTO events_(headline_, text_, confidential_, ponderation_, timeline_id_) \
-         VALUES($headline, $text, false, 0, $tid)"
+        "INSERT INTO events_(headline_, text_, confidential_, ponderation_, timeline_id_, unique_id_) \
+         VALUES($headline, $text, false, 0, $tid, $unique_id)"
     in Ok ()
   | Some _ ->
     Error ("Timeline " ^ tid  ^ "already has a title!")
