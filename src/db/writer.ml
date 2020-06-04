@@ -121,7 +121,7 @@ let create_timeline (email : string) (title : title) =
       if Reader.timeline_exists timeline_id then
         let rec loop (id : int) =
           let new_name = (timeline_id ^ "-" ^ (string_of_int id)) in
-          if Reader.timeline_exists timeline_id then
+          if Reader.timeline_exists new_name then
            loop (id + 1)
           else new_name
         in loop 2
