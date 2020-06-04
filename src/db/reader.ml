@@ -169,6 +169,14 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     | [] -> return None
     | (headline, text) :: _ -> return (Some (Utils.to_title_event headline text))
 
+  let used_unique_id id =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT unique_id_ FROM events_ WHERE unique_id_ = $id" >>= (function
+        | [] -> return false
+        | _ -> return true
+      )
+      
+
   let timeline_data
       ~(is_auth : bool)
       ~(has_admin_rights : bool) 

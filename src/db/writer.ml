@@ -29,7 +29,7 @@ let add_event (e : event) (tid : string) =
 let add_title (t : title) (tid : string) =
   let headline = t.text.headline in
   let text = t.text.text in
-  let unique_id = t.unique_id in
+  let unique_id = Utils.check_unique_id Reader.used_unique_id t.unique_id in
   match Reader.title tid with
   | None ->
     let () =
@@ -50,7 +50,7 @@ let update_event (i: int) (e : event) =
     let group = e.group in
     let ponderation = Int32.of_int e.ponderation in
     let confidential = e.confidential in
-    let unique_id = e.unique_id in
+    let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
     let last_update = e.last_update in
     let tags = List.map (fun s -> Some s) e.tags in
     let () =
@@ -71,7 +71,7 @@ let update_title (i: int) (e : title) =
     let group = e.group in
     let ponderation = Int32.of_int e.ponderation in
     let confidential = e.confidential in
-    let unique_id = e.unique_id in
+    let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
     let last_update = e.last_update in
     let tags = List.map (fun s -> Some s) e.tags in
     let () =
@@ -117,15 +117,7 @@ let create_timeline (email : string) (title : title) =
     let timeline_id = title.unique_id in
     Format.eprintf "Timeline id before check: %s@." timeline_id;
     let timeline_id = String.map (function ' ' -> '-' | c -> c) timeline_id in
-    let timeline_id =
-      if Reader.timeline_exists timeline_id then
-        let rec loop (id : int) =
-          let new_name = (timeline_id ^ "-" ^ (string_of_int id)) in
-          if Reader.timeline_exists new_name then
-           loop (id + 1)
-          else new_name
-        in loop 2
-      else timeline_id in
+    let timeline_id = Utils.check_unique_id Reader.timeline_exists timeline_id in
     Format.eprintf "Timeline id after check: %s@." timeline_id;
     begin
       try

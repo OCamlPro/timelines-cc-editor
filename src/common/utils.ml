@@ -228,3 +228,14 @@ let list_init n f =
   aux n []
 
 module StringSet = Set.Make (String)
+
+let check_unique_id check_is_used id =
+  if check_is_used id then
+    let rec loop (i : int) =
+      let new_name = (id ^ "-" ^ (string_of_int i)) in
+      if check_is_used new_name then
+        loop (i + 1)
+      else new_name
+    in loop 2
+  else id
+  
