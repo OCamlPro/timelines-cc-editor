@@ -124,9 +124,9 @@ let create_timeline (email : string) (title : title) =
            loop (id + 1)
           else new_name
         in loop 2
-      else timeline_id
+      else timeline_id in
     Format.eprintf "Timeline id after check: %s@." timeline_id;
-    in begin
+    begin
       try
         match add_title title timeline_id with
         | Ok _ ->
