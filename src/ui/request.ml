@@ -48,12 +48,15 @@ let post ~args apifun input_encoding input output_encoding cont =
   let url = api () in
   let () = Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) apifun in
   Xhr_lwt.post ~args ~base:url input_encoding output_encoding apifun input >>=
-  function
-    Ok elt -> cont elt
-  | Error e ->
-    let code, msg = Xhr_lwt.error_content e in
-    Js_utils.log "Error %i while getting to api: %s" code msg;
-    Lwt.return (Error e)
+  (fun res ->
+     Js_utils.log "POST %s returned something" apifun;
+     match res with
+     | Ok elt -> cont elt
+     | Error e ->
+       let code, msg = Xhr_lwt.error_content e in
+       Js_utils.log "Error %i while getting to api: %s" code msg;
+       Lwt.return (Error e)
+  )
 
 let cook encoding cont =
   (fun str ->
@@ -173,7 +176,7 @@ let create_timeline title cont =
     ~args:(args_from_session [])
     (Format.sprintf "create_timeline")
     Data_encoding.title_encoding title
-    ApiData.str_api_result_encoding cont
+    (Json_encoding.tup1 ApiData.str_api_result_encoding) cont
 
 let user_timelines cont =
   post 
