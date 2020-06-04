@@ -20,10 +20,10 @@ let ponderation  i = "ponderation-" ^ i
 let tags         i = "tags-"        ^ i
 let valid        i = "button-"      ^ i
 
-let back_button () =
+let back_button timeline =
   Ui_utils.simple_button
     "admin-back"
-    (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:[])
+    (fun _ -> Dispatcher.(validate_dispatch @@ !dispatch ~path:page_name ~timeline ~args:[] ()))
     "Back"
 
 let event_form
@@ -257,12 +257,13 @@ let event_short_row (i, event) =
     div ~a:[a_class [clg2]] [edit_link]
   ]
 
-let events_list args events =
+let events_list timeline args events =
   let add_link =
     div ~a:[
       a_class ["btn"; "btn-primary"];
       a_onclick (fun _ ->
-          ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:["action", "add"]; true)
+          Dispatcher.validate_dispatch
+            (!Dispatcher.dispatch ~path:"admin" ~timeline ~args:["action", "add"] ()); true)
     ] [txt "Create event"] in
   let logout =
     div ~a:[a_class ["btn"; "btn-primary"];
@@ -273,9 +274,13 @@ let events_list args events =
             a_onclick (fun _ -> ignore @@ Controller.export_database args; true)]
       [txt "Export database"] in
   let back_to_home =
-    div ~a:[a_class ["btn"; "btn-primary"];
-            a_onclick (fun _ ->
-                ignore @@ !Dispatcher.dispatch ~path:"home" ~args:[]; true)] [txt "Home"] in
+    div ~a:[
+      a_class ["btn"; "btn-primary"];
+      a_onclick (fun _ ->
+          Dispatcher.validate_dispatch
+            (!Dispatcher.dispatch ~path:"home" ~timeline ~args:[] ()); true)
+    ]
+      [txt "Home"] in
 
   (div ~a:[a_class [row]] [add_link; logout; export; back_to_home]) ::
   List.map event_short_row events
@@ -284,6 +289,7 @@ let add_new_event_form categories =
   empty_event_form categories
 
 let rec compare
+    (timeline : string)
     (id : int)
     (categories : string list)
     (old_event : date option meta_event option)
@@ -303,19 +309,25 @@ let rec compare
           Ui_utils.simple_button
             "compare-update"
             (fun _ ->
-               Controller.update_action compare id categories event (get_new_event ())
+               Controller.update_action
+                 (compare timeline)
+                 id
+                 categories
+                 event (get_new_event ())
                  (fun () ->
                     Js_utils.log "Event updated";
                     !Dispatcher.dispatch
                       ~path:page_name
+                      ~timeline
                       ~args:[]
+                      ()                               
                  )
             )
             "Update event"
         in [
           form;
           update_button;
-          back_button ()
+          back_button timeline
         ]
       in prefix, old_event, new_event
     | None -> (* The event has been deleted *)
@@ -330,7 +342,7 @@ let rec compare
             "comapre-add"
             (fun _ -> Controller.add_action (get_new_event ()))
             "Add new event"
-        in [form; add_button; back_button ()] in
+        in [form; add_button; back_button timeline] in
       prefix, old_event, new_event
   in
   div [prefix;
@@ -342,7 +354,7 @@ let rec compare
 
 (* Login utilities *)
 
-let admin_page_login () =
+let admin_page_login ?(allow_registration=false) () =
   let login, get_login =
     placeholder
       ~id:"login"
@@ -376,7 +388,7 @@ let admin_page_login () =
           )
       ] [txt "Login"] in
 
-  let register_button =
+  let register_button () =
     div
       ~a:[
         a_class ["btn";"btn-primary"];
@@ -391,9 +403,16 @@ let admin_page_login () =
                false
           )
       ] [txt "Register"] in
-  form [
-    login;
-    pwd;
-    login_button;
-    register_button
-  ]
+  if allow_registration then
+    form [
+      login;
+      pwd;
+      login_button;
+      register_button ()
+    ]
+  else 
+    form [
+      login;
+      pwd;
+      login_button
+    ]

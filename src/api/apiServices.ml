@@ -218,3 +218,11 @@ let user_timelines : (unit, string list api_result) post_service0 =
     ~input:Json_encoding.unit
     ~output:(ApiData.str_list_api_result_encoding)
     Path.(root // "user_timelines")
+
+let allow_user : (string * string, unit api_result) post_service0 =
+  post_service
+    ~params:auth_params
+    ~name:"allow_user"
+    ~input:(Json_encoding.(tup2 string string))
+    ~output:(ApiData.unit_api_result_encoding)
+    Path.(root // "allow_user")

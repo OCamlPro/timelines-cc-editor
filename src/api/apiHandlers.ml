@@ -216,6 +216,13 @@ let user_timelines req () =
       Reader.user_timelines email >>= fun l -> EzAPIServerUtils.return (Ok l)
     )
 
+let allow_user req (email, timeline_id) =
+  if_is_auth req (fun () ->
+      if_has_admin req timeline_id (fun () ->
+          EzAPIServerUtils.return @@ Writer.allow_user_to_timeline email timeline_id
+        )
+    )
+
 (*
 let reinitialize _ events =
   Writer.remove_events ();

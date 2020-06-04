@@ -27,11 +27,15 @@ let error_404 ?(msg="Unknown page") ~path ~args () =
 
 let finish () = Lwt.return (Ok ())
 
-let dispatch ~path ~args =
+let dispatch ?timeline ~path ~args () =
   try
     match Hashtbl.find pages path with
     | exception Not_found -> set_in_main_page [error_404 ~path ~args ()]; finish ()
     | f ->
+      let args =
+        match timeline with
+        | None -> args
+        | Some t -> Ui_utils.add_arg_unique "timeline" t args in
       let url = Ui_utils.url path args in
       Ui_utils.push url;
       Js_utils.log "Pushing %s" url;
@@ -60,6 +64,7 @@ let main_page ~args =
                   Request.categories timeline (fun categories ->
                       let page, init =
                         Home.page
+                          timeline
                           is_auth
                           args
                           categories
@@ -75,7 +80,7 @@ let main_page ~args =
         )
     )
 
-let admin_page_if_trustworthy ~args =
+let admin_page_if_trustworthy ~timeline ~args =
   Js_utils.log "Admin page: trustworthy version";
   match List.assoc_opt "action" args with
   | Some "add" ->
@@ -90,7 +95,7 @@ let admin_page_if_trustworthy ~args =
               (fun _ -> add_action (get_event ()))
               "Add new event"
           in
-          let back = Admin.back_button () in
+          let back = Admin.back_button timeline in
           set_in_main_page [form; add_button; back];
           finish ()
           )
@@ -104,7 +109,7 @@ let admin_page_if_trustworthy ~args =
         Request.events ~args timeline
           (fun events ->
              set_in_main_page
-               (Admin.events_list args events); finish ())
+               (Admin.events_list timeline args events); finish ())
       | Some i -> begin
           try
             Js_utils.log "Editing event %s" i;
@@ -122,7 +127,7 @@ let admin_page_if_trustworthy ~args =
                     "edit-button-trust"
                     (fun _ ->
                        update_action
-                         Admin.compare
+                         (Admin.compare timeline)
                          i
                          categories
                          old_event
@@ -130,7 +135,9 @@ let admin_page_if_trustworthy ~args =
                          (fun _ ->
                             !Dispatcher.dispatch
                               ~path:Home.page_name
-                              ~args:["id", string_of_int i])
+                              ~timeline
+                              ~args:["id", string_of_int i]
+                              ())
                     )
                     "Update event"
                 in
@@ -140,7 +147,7 @@ let admin_page_if_trustworthy ~args =
                     (fun _ -> remove_action args i)
                     "Remove event"
                 in
-                let back = Admin.back_button () in
+                let back = Admin.back_button timeline in
                 set_in_main_page [form; edit_button; remove_button; back];
                 finish ())
               )
@@ -165,7 +172,7 @@ let admin_page ~args =
           Request.has_admin_rights timeline (fun admin ->
               Js_utils.log "Logged ? %b %b" logged admin;
               if logged && admin then
-                admin_page_if_trustworthy ~args
+                admin_page_if_trustworthy ~args ~timeline
               else
                 admin_page_if_not_trustworthy ()
             )
@@ -187,7 +194,9 @@ let select_page ~args =
            )
        end
        else begin
-         Dispatcher.set_in_main_page [Admin.admin_page_login ()];
+         Dispatcher.set_in_main_page [
+           Admin.admin_page_login ~allow_registration:true ()
+         ];
          finish ()
        end
     )

@@ -10,10 +10,10 @@ let page_name = "home"
 let back_button () =
   Ui_utils.simple_button
     "home-back"
-    (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.get_args ()))
+    (fun _ -> ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.get_args ()) ())
     "Back"
 
-let edit_button (events : (int * event) list) (title : (int * title) option) categories =
+let edit_button timeline (events : (int * event) list) (title : (int * title) option) categories =
     Ui_utils.split_button "timeline-page" 8 "Edit slide" "Cancel"
       ~action_at_split:(fun () ->
           match Ui_utils.get_split_from_splitted "timeline-page" with
@@ -60,7 +60,7 @@ let edit_button (events : (int * event) list) (title : (int * title) option) cat
                     "edit-add"
                     (fun self ->
                        Controller.update_action
-                         Admin.compare
+                         (Admin.compare timeline)
                          id
                          categories
                          event
@@ -72,7 +72,9 @@ let edit_button (events : (int * event) list) (title : (int * title) option) cat
                             ;
                             !Dispatcher.dispatch
                               ~path:page_name
+                              ~timeline
                               ~args
+                              ()
                          )
                     )
                     "Update event" in
@@ -171,10 +173,10 @@ let form is_auth args categories =
         ~id:"user-view"
         ~oncheck:(fun _ ->
             let args = Ui_utils.assoc_add_unique "confidential" "false" args in
-            ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+            Dispatcher.validate_dispatch @@ !Dispatcher.dispatch ~path:page_name ~args ())
         ~onuncheck:(fun _ ->
             let args = Ui_utils.assoc_add_unique "confidential" "true" args in
-            ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+            Dispatcher.validate_dispatch @@ !Dispatcher.dispatch ~path:page_name ~args ())
     in
     div ~a:[a_class [row]][
       div ~a:[a_class [clg3]] [txt "Public view"];
@@ -196,10 +198,10 @@ let form is_auth args categories =
              ~id:"user-view"
              ~oncheck:(fun _ ->
                  let args = Ui_utils.assoc_add "group" category args in
-                 ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+                 Dispatcher.validate_dispatch @@ !Dispatcher.dispatch ~path:page_name ~args ())
              ~onuncheck:(fun _ ->
                  let args = Ui_utils.assoc_remove_with_binding "group" category args in
-                 ignore @@ !Dispatcher.dispatch ~path:page_name ~args)
+                 Dispatcher.validate_dispatch @@ !Dispatcher.dispatch ~path:page_name ~args ())
          in
          div ~a:[a_class [row]][
            div ~a:[a_class [clg3]] [txt category];
@@ -249,7 +251,7 @@ let form is_auth args categories =
         in
         start_date @ end_date @ confidential @ min_precision @ max_precision @ categories @ tags
       in
-      ignore @@ !Dispatcher.dispatch ~path:page_name ~args; true in
+      Dispatcher.validate_dispatch @@ !Dispatcher.dispatch ~path:page_name ~args (); true in
     div
       ~a:[
         a_class ["btn";"btn-primary"];
@@ -298,7 +300,7 @@ module EventPanelAuth = Panel.MakePageTable(
 
 module type EventPanelType = module type of EventPanelNoAuth
 
-let make_panel_lines (events : (int * event) list) =
+let make_panel_lines timeline (events : (int * event) list) =
   match events with
   | [] -> [ tr [ td ~a: [ a_colspan 9 ] [ txt "No event" ]]]
   | _ ->
@@ -307,7 +309,8 @@ let make_panel_lines (events : (int * event) list) =
          let onclick () =
            let args = Ui_utils.get_args () in
            let new_args = Ui_utils.assoc_add_unique "id" (string_of_int id) args in
-           ignore @@ !Dispatcher.dispatch ~path:page_name ~args:new_args
+           Dispatcher.validate_dispatch @@
+           !Dispatcher.dispatch ~path:page_name ~timeline ~args:new_args ()
          in
          tr ~a:[a_onclick (fun _ -> onclick (); true); a_class ["clickable"]] [
            td [txt @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%d/%m/%Y") start_date];
@@ -316,7 +319,7 @@ let make_panel_lines (events : (int * event) list) =
       )
       events
 
-let make_panel_lines_auth (events : (int * event) list) =
+let make_panel_lines_auth timeline (events : (int * event) list) =
   match events with
   | [] -> [ tr [ td ~a: [ a_colspan 9 ] [ txt "No event" ]]]
   | _ ->
@@ -325,7 +328,7 @@ let make_panel_lines_auth (events : (int * event) list) =
          let onclick () =
            let args = Ui_utils.get_args () in
            let new_args = Ui_utils.assoc_add_unique "id" (string_of_int id) args in
-           ignore @@ !Dispatcher.dispatch ~path:page_name ~args:new_args
+           Dispatcher.validate_dispatch @@ !Dispatcher.dispatch ~path:page_name ~args:new_args ()
          in
          let a style = (a_style style) :: [
            a_onclick (fun _ -> onclick (); true);
@@ -343,9 +346,12 @@ let make_panel_lines_auth (events : (int * event) list) =
              Ui_utils.simple_button
                ("edit-table-" ^ string_of_int id)
                (fun _ ->
+                  Dispatcher.validate_dispatch @@
                   !Dispatcher.dispatch
                     ~path:Admin.page_name
+                    ~timeline
                     ~args:["action", "edit"; "id", string_of_int id]
+                    ()
                )
                "Edit"
            ]
@@ -354,10 +360,11 @@ let make_panel_lines_auth (events : (int * event) list) =
       events
 
 let page
-    is_auth args
-    categories
-    (title : (int * title) option)
-    (events : (int * event) list) =
+  timeline
+  is_auth args
+  categories
+  (title : (int * title) option)
+  (events : (int * event) list) =
   let (module EventPanel : EventPanelType) =
     if is_auth then
       (module EventPanelAuth)
@@ -404,17 +411,37 @@ let page
         match Ui_utils.Session.get_value "email" with
         | None -> ""
         | Some name -> name in
-      div [
-        div [txt ("Hello " ^ user)];
-        div ~a:[a_class ["btn"; "btn-primary"];
-                a_onclick (fun _ ->
-                    ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[]; true)
-               ] [txt "Admin page"];
+      let hello =
+        div [txt ("Hello " ^ user)] in
+      let admin_page =
+        div
+          ~a:[a_class ["btn"; "btn-primary"];
+              a_onclick (fun _ ->
+                  Dispatcher.validate_dispatch @@
+                  !Dispatcher.dispatch ~path:"admin" ~timeline ~args:[] (); true)
+             ] [
+          txt "Admin page"
+        ]
+      in
+      let logout =       
         div ~a:[a_class ["btn"; "btn-primary"];
                 a_onclick (fun _ -> Controller.logout (); true)
-               ] [txt "Logout"];
-        add_button; back_button
-      ]
+               ] [txt "Logout"] in
+      let select =
+        div
+          ~a:[a_class ["btn"; "btn-primary"];
+              a_onclick (fun _ ->
+                  Dispatcher.validate_dispatch @@
+                  !Dispatcher.dispatch ~path:"" ~args:[] (); true)
+             ]
+          [txt "Back to selection"] in
+        div [
+          hello;
+          admin_page;
+          logout;
+          select;
+          div [add_button; back_button]
+        ]
     else
       Admin.admin_page_login () in
   let default_page =
@@ -436,9 +463,9 @@ let page
   let table_elts =
     let make_lines =
       if is_auth then
-        make_panel_lines_auth
+        make_panel_lines_auth timeline
       else
-        make_panel_lines in
+        make_panel_lines timeline in
     make_lines events |> Array.of_list in
   let init () =
     display_timeline Controller.update_action is_auth args categories title events;
@@ -571,7 +598,11 @@ let page
           (Manip.get_elt "click" reinit)
           (Ocp_js.Dom.Event.make "click")
           (Ocp_js.Dom.handler (fun e ->
-               ignore @@ !Dispatcher.dispatch ~path:page_name ~args:(Ui_utils.assoc_remove "id" args);
+               ignore @@
+               !Dispatcher.dispatch
+                 ~path:page_name
+                 ~timeline
+                 ~args:(Ui_utils.assoc_remove "id" args);
                Ocp_js.Js._true))
           Ocp_js.Js._true |> ignore in
       let () = (* Adding links to timeline lower part & updating logos *)
@@ -617,7 +648,7 @@ let page
       let top_buttons =
         let edit_buttons = 
           if is_auth then begin
-            let edit_button, cancel_button = edit_button events title categories in
+            let edit_button, cancel_button = edit_button timeline events title categories in
             [div [edit_button; cancel_button]]
           end else [] in 
         let export_vertical = [

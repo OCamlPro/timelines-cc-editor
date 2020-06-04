@@ -8,4 +8,4 @@ let () =
     match Jsloc.url () with
       Http h | Https h -> h.hu_path_string, h.hu_arguments
     | File _ -> "file?", [] in
-  ignore @@ Pages.dispatch path_str args
+  ignore @@ Pages.dispatch path_str args ()

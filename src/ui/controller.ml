@@ -9,24 +9,24 @@ let timeline_id_from_args = List.assoc_opt "timeline"
 let login log pwd =
   ignore @@
   Request.login log pwd (function
-      | Some auth_data -> begin
-          Js_utils.log "Login OK!@.";
-          Ui_utils.auth_session log auth_data;
-          Js_utils.reload ();
-          finish ()
-        end
-      | None -> begin
-          Js_utils.alert "Wrong login/password@.";
-          error ("Wrong login")
-        end)
+    | Some auth_data -> begin
+        Js_utils.log "Login OK!@.";
+        Ui_utils.auth_session log auth_data;
+        Js_utils.reload ();
+        finish ()
+      end
+    | None -> begin
+        Js_utils.alert "Wrong login/password@.";
+        error ("Wrong login")
+      end)
 
 let logout () =
   ignore @@
   Request.logout
     (fun _ ->
        Ui_utils.logout_session ();
-       Js_utils.reload ();
-       finish ())
+       !Dispatcher.dispatch ~path:"" ~args:[] ()
+    )
 
 let register_account log pwd =
   ignore @@
@@ -52,7 +52,7 @@ let add_action event =
     | Some timeline ->
       Request.add_event ~args timeline event
         (function
-          | Ok s -> !Dispatcher.dispatch ~path:"home" ~args
+          | Ok s -> !Dispatcher.dispatch ~path:"home" ~timeline ~args ()
           | Error s ->
             let err = "Add new event action failed: " ^ s in
             Js_utils.alert err;
@@ -67,7 +67,7 @@ let remove_action args i =
       ~args
       i
       (fun _ ->
-         ignore @@ !Dispatcher.dispatch ~path:"admin" ~args:[];
+         ignore @@ !Dispatcher.dispatch ~path:(Ui_utils.get_path ()) ~args:[] ();
          finish ())
   else ()
 
@@ -84,7 +84,7 @@ let rec update_action
   begin
     Request.update_event i ~old_event ~new_event (
       function
-      | Success _ -> cont ()
+      | Success -> cont ()
       | Failed s -> begin
           Js_utils.log "Update failed: %s" s;
           Lwt.return

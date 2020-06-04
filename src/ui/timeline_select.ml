@@ -4,10 +4,12 @@ open Bootstrap_helpers.Grid
 
 let timeline_div timeline =
   let gototimeline _ =
-    ignore @@
-    !Dispatcher.dispatch
-      ~path:"home"
-      ~args:["timeline", timeline];
+    Dispatcher.validate_dispatch (
+      !Dispatcher.dispatch
+        ~path:"home"
+        ~timeline
+        ~args:[]
+        ());
     true
   in
   div
@@ -39,7 +41,9 @@ let new_timeline_button () =
                          alert "Timeline successfully created!";
                          !Dispatcher.dispatch
                            ~path:"home"
-                           ~args:["timeline", timeline]
+                           ~timeline
+                           ~args:[]
+                           ()
                        | Error s ->
                          Js_utils.alert s;
                          Lwt.return (Ok (Js_utils.alert s))

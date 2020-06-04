@@ -136,11 +136,28 @@ let create_timeline (email : string) (title : title) =
         match add_title title timeline_id with
         | Ok _ ->
           PGSQL(dbh) "INSERT INTO timeline_ids_(id_) VALUES ($timeline_id)";
-          PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline_id)";
+          PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline_id) \
+                      WHERE email_=$email";
           Ok timeline_id
         | Error e -> Error e
       with e -> Error (Printexc.to_string e)
     end
   | None ->
-    Error ("User " ^ email ^ " does not exist")
+    Error ("User " ^ email ^ " does not exist")  
+
+let allow_user_to_timeline (email : string) (timeline : string) =
+  if Reader.timeline_exists timeline then
+    match Reader.user_exists email with
+    | Some _ ->
+      let tlist = Reader.user_timelines email in
+      if List.mem timeline tlist then
+        Ok ()
+      else
+        let () = PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline) \
+                             WHERE email_=$email"
+        in Ok ()
+    | None -> Error "User does not exist!"
+  else Error "Timeine does not exist."
+        
+  
   
