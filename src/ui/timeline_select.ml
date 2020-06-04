@@ -3,10 +3,22 @@ open Js_utils
 open Bootstrap_helpers.Grid
 
 let timeline_div timeline =
+  let gototimeline _ =
+    ignore @@
+    !Dispatcher.dispatch
+      ~path:"home"
+      ~args:["timeline", timeline];
+    true
+  in
   div
     ~a:[a_class ["timeline-case"; clg4]] [
-    div ~a:[a_class ["timeline-name"]]      [txt timeline];
-    div ~a:[a_class ["btn"; "btn-primary"]; a_id ("select-button-"^timeline)] [txt "Select"];
+    div ~a:[a_class ["timeline-name"]]
+      [txt timeline];
+    div ~a:[
+      a_class ["btn"; "btn-primary"];
+      a_onclick gototimeline
+    ]
+      [txt "Select"];
   ]
 
 let new_timeline_button () =
@@ -24,7 +36,7 @@ let new_timeline_button () =
                    let title = get_title () in
                    Controller.create_timeline title (function
                        | Ok timeline ->
-                         alert "Timelile successfully created!";
+                         alert "Timeline successfully created!";
                          !Dispatcher.dispatch
                            ~path:"home"
                            ~args:["timeline", timeline]
