@@ -605,6 +605,24 @@ let page
                  ~args:(Ui_utils.assoc_remove "id" args);
                Ocp_js.Js._true))
           Ocp_js.Js._true |> ignore in
+      let () = (* Key press *)
+        Ocp_js.Dom_html.(
+          addEventListener
+            document
+            Event.keydown
+            (handler (fun e ->
+                 let () =
+                 match e##.keyCode with
+                 | 37 -> (* Left *)
+                   push_prev ()
+                 | 39 -> (* Right *)
+                   push_next ()
+                 | _ -> () in Ocp_js.Js._true
+               ) 
+            )
+        )
+          Ocp_js.Js._true |> ignore
+      in
       let () = (* Adding links to timeline lower part & updating logos *)
         let lower_links = List.rev @@ Manip.by_class "tl-timemarker" in
         try

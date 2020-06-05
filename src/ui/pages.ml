@@ -209,9 +209,22 @@ let select_page ~args =
          finish ()
        end
     )
+    
+let view_page ~args =
+  timeline_id args (fun timeline ->
+    Request.timeline_data ~args timeline (fun events ->
+      Request.title ~args timeline (fun title ->
+        let () = View.make_page
+          events
+          title in
+        Lwt.return (Ok ())
+      )
+    )
+  )        
   
 
 let () =
   add_page ""              select_page;
   add_page Home.page_name  main_page;
-  add_page Admin.page_name admin_page
+  add_page Admin.page_name admin_page;
+  add_page View.page_name  view_page
