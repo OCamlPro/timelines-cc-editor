@@ -191,3 +191,25 @@ let allow_user user timeline cont =
     (Format.sprintf "user_timelines")
     Json_encoding.(tup2 string string) (user, timeline)
     ApiData.unit_api_result_encoding cont
+
+let timeline_users timeline cont = 
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "timeline_users/%s" timeline)
+    Json_encoding.unit ()
+    ApiData.str_list_api_result_encoding cont
+
+let remove_user timeline cont = 
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "remove_user")
+    Json_encoding.unit ()
+    ApiData.unit_api_result_encoding cont
+
+let remove_timeline timeline cont = 
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "remove_timeline/%s" timeline)
+    Json_encoding.unit ()
+    ApiData.unit_api_result_encoding cont
+
