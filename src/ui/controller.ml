@@ -142,4 +142,34 @@ let allow_user user timeline =
        Js_utils.alert (Format.sprintf "Error while adding user: %s" s);
        Lwt.return (Ok ())
     )
-  
+
+let goto_selection () =
+  Dispatcher.validate_dispatch @@
+  !Dispatcher.dispatch ~path:"" ~args:[] ()
+
+let remove_timeline timeline =
+  if Js_utils.confirm "Are you sure you want to delete your timeline? Everything will be lost!" then
+    ignore (
+      Request.remove_timeline timeline (
+        function 
+          | Ok () -> goto_selection (); Lwt.return (Ok ())
+          | Error s -> 
+            Js_utils.alert "Error while deleting timeline."; 
+            Lwt.return (Error (Xhr_lwt.Str_err s))
+       )
+    )
+
+let remove_account () =
+  if
+    Js_utils.confirm 
+      "Are you sure you want to delete your account? \
+       Every timeline you exclusively own will be deleted and you will lose all \
+       your admin priviledges." then
+  ignore @@ 
+  Request.remove_user () (
+    function 
+      | Ok () -> logout (); Lwt.return (Ok ())
+      | Error s -> 
+        Js_utils.alert "Error while deleting account."; 
+        Lwt.return (Error (Xhr_lwt.Str_err s))
+    )

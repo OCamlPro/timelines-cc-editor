@@ -66,6 +66,12 @@ let new_timeline_button () =
       )
     ~action_at_unsplit:(fun () -> true)
 
+let delete_account () =
+  div
+    ~a:[a_class ["btn"; "btn-danger"];
+        a_onclick (fun _ -> Controller.remove_account (); true)]
+       [txt "Remove account"]
+
 let timelines_list timelines =
   let rec loop = function
     | [] -> []
@@ -77,4 +83,5 @@ let timelines_list timelines =
       timeline_div hd3 :: loop tl
   in
   let ok, cancel = new_timeline_button () in  
-  div ((div [ok; cancel]) :: loop timelines)
+  let remove = delete_account () in
+  div ((div [ok; cancel; remove]) :: loop timelines)

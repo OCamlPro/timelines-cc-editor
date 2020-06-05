@@ -175,7 +175,8 @@ let remove_timeline tid =
 
 let remove_user email =
   match Reader.user_exists email with
-  | Some _ -> begin
+  | Some i -> begin
+    let () = Reader.Login.remove_session i in
     let user_timelines = Reader.user_timelines email in
     let () =
       PGSQL(dbh) "UPDATE timeline_ids_ SET users_=array_remove(users_, $email)";

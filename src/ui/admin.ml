@@ -281,7 +281,18 @@ let events_list timeline args events =
             (!Dispatcher.dispatch ~path:"home" ~timeline ~args:[] ()); true)
     ]
       [txt "Home"] in
-  (div ~a:[a_class [row]] [add_link; logout; export; back_to_home]) ::
+  let select =
+    div
+      ~a:[a_class ["btn"; "btn-primary"];
+          a_onclick (fun _ -> Controller.goto_selection (); true)
+         ]
+         [txt "Back to timeline selection"] in
+  let remove_account =
+    div
+      ~a:[a_class ["btn"; "btn-danger"];
+          a_onclick (fun _ -> Controller.remove_timeline timeline; true)]
+         [txt "Remove timeline"] in
+  (div ~a:[a_class [row]] [add_link; logout; export; back_to_home; select; remove_account]) ::
   List.map event_short_row events
 
 let current_users timeline args users =
