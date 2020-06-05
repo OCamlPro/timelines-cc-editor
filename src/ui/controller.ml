@@ -134,5 +134,12 @@ let user_timelines = Request.user_timelines
 let allow_user user timeline =
   ignore @@
   Request.allow_user user timeline
-    (fun _ -> Js_utils.reload (); Lwt.return (Ok ()))
+    (function 
+     | Ok () -> 
+       Js_utils.log "User allowed";
+       Lwt.return (Ok ())
+     | Error s -> 
+       Js_utils.alert (Format.sprintf "Error while adding user: %s" s);
+       Lwt.return (Ok ())
+    )
   

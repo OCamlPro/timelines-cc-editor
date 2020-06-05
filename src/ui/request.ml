@@ -188,7 +188,7 @@ let user_timelines cont =
 let allow_user user timeline cont =
   post 
     ~args:(args_from_session [])
-    (Format.sprintf "user_timelines")
+    (Format.sprintf "allow_user")
     Json_encoding.(tup2 string string) (user, timeline)
     ApiData.unit_api_result_encoding cont
 
