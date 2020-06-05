@@ -194,7 +194,7 @@ let has_admin_rights : (string, unit, bool) post_service1 =
     ~name:"has_admin_rights"
     ~input:(Json_encoding.unit)
     ~output:(Json_encoding.bool)
-    Path.(root // "is_auth" /: arg_timeline ())
+    Path.(root // "has_admin_rights" /: arg_timeline ())
 
 let export_database : (string, unit api_result) service1 =
   service
