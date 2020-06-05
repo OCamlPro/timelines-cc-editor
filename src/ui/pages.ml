@@ -92,7 +92,7 @@ let admin_page_if_trustworthy ~timeline ~args =
           let add_button =
             Ui_utils.simple_button
               "add-button-trust"
-              (fun _ -> add_action (get_event ()))
+              (fun _ -> Controller.add_action args timeline (get_event ()))
               "Add new event"
           in
           let back = Admin.back_button timeline in

@@ -382,7 +382,7 @@ let rec compare
         let add_button =
           Ui_utils.simple_button
             "comapre-add"
-            (fun _ -> Controller.add_action (get_new_event ()))
+            (fun _ -> Controller.add_action [] timeline (get_new_event ()))
             "Add new event"
         in [form; add_button; back_button timeline] in
       prefix, old_event, new_event

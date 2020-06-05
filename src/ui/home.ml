@@ -397,7 +397,7 @@ let page
               Ui_utils.simple_button
                 "add-page"
                 (fun _ ->
-                   ignore @@ Controller.add_action (get_event ())
+                   ignore @@ Controller.add_action args timeline (get_event ())
                 )
                 "Add new event" in
             let split_content =

@@ -9,9 +9,10 @@ let api_result_encoding (param : 'a Json_encoding.encoding) : 'a api_result Json
       [
         (* Let the error case at the beginning. *)
         case 
-          (tup2 string unit)
-          (function | Error s -> Some (s, ()) | _ -> None)
-          (fun (s, ()) -> Error s); 
+          (tup2 string string)
+          (function | Error s -> Some (s, "__error__") | _ -> None)
+          (fun (s, str) ->
+             if str = "__error__" then Error s else assert false); 
         case param (function | Ok s -> Some s | _ -> None) (fun s -> Ok s);
       ]
   )

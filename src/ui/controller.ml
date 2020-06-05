@@ -39,20 +39,22 @@ let register_account log pwd =
         error e
     )
 
-let add_action event =
+let add_action args timeline event =
   match Utils.metaevent_to_event event with
   | None ->
+    Js_utils.alert "Start date is missing";
     Lwt.return (Error (Xhr_lwt.Str_err "Start date is missing"));
   | Some event ->
     Js_utils.log "Adding event %a" Utils.pp_event event;
-    let args = Ui_utils.get_args () in
     match timeline_id_from_args args with
     | None ->
       Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: no timeline specified")))
     | Some timeline ->
       Request.add_event ~args timeline event
         (function
-          | Ok s -> !Dispatcher.dispatch ~path:"home" ~timeline ~args ()
+          | Ok s ->
+            Js_utils.log "Event added";
+            !Dispatcher.dispatch ~path:"home" ~timeline ~args ()
           | Error s ->
             let err = "Add new event action failed: " ^ s in
             Js_utils.alert err;
