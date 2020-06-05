@@ -72,6 +72,13 @@ let delete_account () =
         a_onclick (fun _ -> Controller.remove_account (); true)]
        [txt "Remove account"]
 
+let logout () =
+  div
+    ~a:[a_class ["btn"; "btn-primary"];
+        a_onclick (fun _ -> Controller.logout (); true)]
+       [txt "Logout"]
+  
+
 let timelines_list timelines =
   let rec loop = function
     | [] -> []
@@ -84,4 +91,5 @@ let timelines_list timelines =
   in
   let ok, cancel = new_timeline_button () in  
   let remove = delete_account () in
-  div ((div [ok; cancel; remove]) :: loop timelines)
+  let logout = logout () in
+  div ((div [ok; cancel; logout; remove;]) :: loop timelines)

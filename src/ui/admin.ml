@@ -287,12 +287,12 @@ let events_list timeline args events =
           a_onclick (fun _ -> Controller.goto_selection (); true)
          ]
          [txt "Back to timeline selection"] in
-  let remove_account =
+  let remove_timeline =
     div
       ~a:[a_class ["btn"; "btn-danger"];
           a_onclick (fun _ -> Controller.remove_timeline timeline; true)]
          [txt "Remove timeline"] in
-  (div ~a:[a_class [row]] [add_link; logout; export; back_to_home; select; remove_account]) ::
+  (div ~a:[a_class [row]] [add_link; logout; export; back_to_home; select; remove_timeline]) ::
   List.map event_short_row events
 
 let current_users timeline args users =

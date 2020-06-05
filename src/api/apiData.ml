@@ -7,10 +7,12 @@ let api_result_encoding (param : 'a Json_encoding.encoding) : 'a api_result Json
   Json_encoding.(
     union
       [
-        case param (function | Ok s -> Some s | _ -> None) (fun s -> Ok s);
+        (* Let the error case at the beginning. *)
         case 
           (tup2 string unit)
-          (function | Error s -> Some (s, ()) | _ -> None) (fun (s, ()) -> Error s)
+          (function | Error s -> Some (s, ()) | _ -> None)
+          (fun (s, ()) -> Error s); 
+        case param (function | Ok s -> Some s | _ -> None) (fun s -> Ok s);
       ]
   )
 
