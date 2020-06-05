@@ -92,7 +92,8 @@ let sql_upgrade_6_to_7 =  [
   {| ALTER TABLE events_ ADD COLUMN is_title_ BOOLEAN NOT NULL |};
   {| ALTER TABLE users_  ADD COLUMN timelines_ VARCHAR[] |};
   {| CREATE TABLE timeline_ids_ (
-     id_ VARCHAR PRIMARY KEY NOT NULL
+     id_ VARCHAR PRIMARY KEY NOT NULL,
+     users_ VARCHAR[]
   )|};
   {| DROP TABLE groups_ |};
 ]

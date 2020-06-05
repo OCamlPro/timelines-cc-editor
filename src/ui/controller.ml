@@ -130,3 +130,9 @@ let export_database args =
 let create_timeline = Request.create_timeline
 
 let user_timelines = Request.user_timelines
+
+let allow_user user timeline =
+  ignore @@
+  Request.allow_user user timeline
+    (fun _ -> Js_utils.reload (); Lwt.return (Ok ()))
+  

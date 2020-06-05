@@ -112,17 +112,6 @@ let update_pwd email pwdhash =
     in
     Ok ()
 
-let register_user email pwdhash =
-  match Reader.user_exists email with
-  | Some _ ->
-    Error ("User " ^ email ^ " already exists")
-  | None -> begin
-      let () =
-        PGSQL(dbh) "INSERT INTO users_(email_, name_, pwhash_) VALUES ($email, $email, '')"
-      in (* Now we get the id of the user *)
-      update_pwd email pwdhash
-    end
-
 let create_timeline (email : string) (title : title) =
   match Reader.user_exists email with
   | Some _ -> (* User exists, now checking if the timeline already exists *)
@@ -130,12 +119,13 @@ let create_timeline (email : string) (title : title) =
     Format.eprintf "Timeline id before check: %s@." timeline_id;
     let timeline_id = String.map (function ' ' -> '-' | c -> c) timeline_id in
     let timeline_id = Utils.check_unique_id Reader.timeline_exists timeline_id in
+    let users = [Some email] in
     Format.eprintf "Timeline id after check: %s@." timeline_id;
     begin
       try
         match add_title title timeline_id with
         | Ok _ ->
-          PGSQL(dbh) "INSERT INTO timeline_ids_(id_) VALUES ($timeline_id)";
+          PGSQL(dbh) "INSERT INTO timeline_ids_(id_, users_) VALUES ($timeline_id, $users)";
           PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline_id) \
                       WHERE email_=$email";
           Ok timeline_id
@@ -158,6 +148,47 @@ let allow_user_to_timeline (email : string) (timeline : string) =
         in Ok ()
     | None -> Error "User does not exist!"
   else Error "Timeine does not exist."
-        
-  
-  
+
+let register_user email pwdhash =
+  match Reader.user_exists email with
+  | Some _ ->
+    Error ("User " ^ email ^ " already exists")
+  | None -> begin
+      let () =
+        PGSQL(dbh) "INSERT INTO users_(email_, name_, pwhash_) VALUES ($email, $email, '')"
+      in (* Now we get the id of the user *)
+      update_pwd email pwdhash
+    end
+
+let remove_timeline tid =
+  if Reader.timeline_exists tid then begin
+    PGSQL(dbh) "UPDATE users_ SET timelines_=array_remove(timelines_, $tid)";
+    PGSQL(dbh) "DELETE FROM timeline_ids_ WHERE id_ = $tid";
+    PGSQL(dbh) "DELETE FROM events_ WHERE timeline_id_ = $tid";
+    Ok ()
+  end
+  else
+    Error "Timeline does not exist"
+
+let remove_user email =
+  match Reader.user_exists email with
+  | Some _ -> begin
+    let user_timelines = Reader.user_timelines email in
+    let () =
+      PGSQL(dbh) "UPDATE timeline_ids_ SET users_=array_remove(users_, $email)";
+      PGSQL(dbh) "DELETE FROM users_ WHERE email_ = $email" in
+    (* If a timeline has no more user, it is deleted *)
+    let rec remove_unused_timelines = function
+    | [] -> Ok ()
+    | tid :: tl ->
+      match Reader.timeline_users tid with
+      | [] -> begin
+        match remove_timeline tid with
+        | Ok () -> remove_unused_timelines tl
+        | e -> e
+      end
+      | _ -> remove_unused_timelines tl 
+    in 
+    remove_unused_timelines user_timelines
+    end
+  | None -> Error "User does not exist"

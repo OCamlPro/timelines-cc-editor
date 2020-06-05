@@ -108,8 +108,9 @@ let admin_page_if_trustworthy ~timeline ~args =
         Js_utils.log "No id provided";
         Request.events ~args timeline
           (fun events ->
+             Request.
              set_in_main_page
-               (Admin.events_list timeline args events); finish ())
+               (Admin.admin_main_page timeline args events); finish ())
       | Some i -> begin
           try
             Js_utils.log "Editing event %s" i;

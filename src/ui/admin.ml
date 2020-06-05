@@ -281,9 +281,40 @@ let events_list timeline args events =
             (!Dispatcher.dispatch ~path:"home" ~timeline ~args:[] ()); true)
     ]
       [txt "Home"] in
-
   (div ~a:[a_class [row]] [add_link; logout; export; back_to_home]) ::
   List.map event_short_row events
+
+let current_users timeline args users =
+  let form, get_user =
+    placeholder ~id:"new-admin" ~name:"New administrator" ()
+  in
+  let button_add_admin =
+    div ~a:[
+      a_class ["btn"; "btn-primary"];
+      a_onclick
+        (fun _ ->
+           let new_user = get_user () in
+           match new_user with
+           | None -> false
+           | Some new_user ->
+             Controller.allow_user
+               new_user
+               timeline;
+             true
+        )
+    ] [txt "Add new user"] in
+  let users = List.map (fun u -> li [txt u]) users in
+  div [
+    div [form; button_add_admin];
+    h3 [txt "Current administrators:"];
+    ul users
+  ]
+
+let admin_main_page timeline args events users =
+  div ~a:[a_class [row]] [
+    div ~a:[a_class [clg6]] (events_list   timeline args events);
+    div ~a:[a_class [clg6]] [current_users timeline args users];      
+  ]
 
 let add_new_event_form categories =
   empty_event_form categories
