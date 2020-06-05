@@ -143,8 +143,11 @@ let allow_user_to_timeline (email : string) (timeline : string) =
       if List.mem timeline tlist then
         Ok ()
       else
-        let () = PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline) \
-                             WHERE email_=$email"
+        let () = 
+          PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline) \
+                      WHERE email_=$email";
+          PGSQL(dbh) "UPDATE timeline_ids_ SET users_ = array_append(users_, $email) \
+                      WHERE id_=$timeline";
         in Ok ()
     | None -> Error "User does not exist!"
   else Error "Timeine does not exist."

@@ -135,7 +135,7 @@ let allow_user user timeline =
   ignore @@
   Request.allow_user user timeline
     (function 
-     | Ok () -> 
+     | Ok () -> (* todo: check why this branch is always taken *)
        Js_utils.log "User allowed";
        Lwt.return (Ok ())
      | Error s -> 
