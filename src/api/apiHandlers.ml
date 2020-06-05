@@ -223,6 +223,30 @@ let allow_user req (email, timeline_id) =
         )
     )
 
+let timeline_users (req,tid) () =
+  if_is_auth req (fun () ->
+    if_has_admin req tid (fun () ->
+      Reader.timeline_users tid >>= fun l -> EzAPIServerUtils.return (Ok l)
+    )
+  )
+
+let remove_user req () =
+  if_is_auth req (fun () ->
+    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
+    | None ->
+      EzAPIServerUtils.return (Error "[user_timelines] Error: email should be in params")
+    | Some email -> EzAPIServerUtils.return @@ Writer.remove_user email
+  )
+
+let remove_timeline (req,tid) () =
+  if_is_auth req (fun () -> 
+    if_has_admin req tid (fun () ->
+      EzAPIServerUtils.return @@ Writer.remove_timeline tid
+    )
+  )
+
+
+
 (*
 let reinitialize _ events =
   Writer.remove_events ();

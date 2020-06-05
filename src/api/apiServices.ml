@@ -226,3 +226,27 @@ let allow_user : (string * string, unit api_result) post_service0 =
     ~input:(Json_encoding.(tup2 string string))
     ~output:(ApiData.unit_api_result_encoding)
     Path.(root // "allow_user")
+
+let timeline_users : (string, unit, string list api_result) post_service1 =
+  post_service
+    ~params:auth_params
+    ~name:"timeline_user"
+    ~input:Json_encoding.unit
+    ~output:(ApiData.str_list_api_result_encoding)
+    Path.(root // "timeline_users"/: arg_timeline ())
+
+let remove_user : (unit, unit api_result) post_service0 =
+  post_service
+    ~params:auth_params
+    ~name:"remove_user"
+    ~input:Json_encoding.unit
+    ~output:(ApiData.unit_api_result_encoding)
+    Path.(root // "remove_user")
+
+let remove_timeline : (string, unit, unit api_result) post_service1 =
+  post_service
+    ~params:auth_params
+    ~name:"remove_timeline"
+    ~input:Json_encoding.unit
+    ~output:(ApiData.unit_api_result_encoding)
+    Path.(root // "remove_timeline"/: arg_timeline ())

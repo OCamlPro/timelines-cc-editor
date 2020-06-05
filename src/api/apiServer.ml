@@ -23,6 +23,9 @@ let start () =
     |> EzAPIServerUtils.register S.create_timeline H.create_timeline
     |> EzAPIServerUtils.register S.user_timelines H.user_timelines
     |> EzAPIServerUtils.register S.allow_user H.allow_user
+    |> EzAPIServerUtils.register S.timeline_users H.timeline_users
+    |> EzAPIServerUtils.register S.remove_user H.remove_user
+    |> EzAPIServerUtils.register S.remove_timeline H.remove_timeline
   in
   let servers = [ Config.api_port, EzAPIServerUtils.API dir ] in
   Lwt_main.run (
