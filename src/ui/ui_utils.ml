@@ -518,12 +518,12 @@ let unsplit_page id_splitted =
     Manip.replaceChildren page first_page_children
 
 let split_button
-    id
-    i
-    split_button_text
-    unsplit_button_text
-    ~(action_at_split : unit -> bool)
-    ~(action_at_unsplit : unit -> bool) =
+    id (* The id of the page to split *)
+    i  (* The size of the split (i/12 of the page) *)
+    split_button_text (* Text of the split button *)
+    unsplit_button_text (* Text of the unsplit button *)
+    ~(action_at_split : unit -> bool) (* Action when split *)
+    ~(action_at_unsplit : unit -> bool) (* Action when unsplit *) = 
   let split_button_id = id ^ "-split" in
   let unsplit_button_id = id ^ "-unsplit" in
   let split_button =
@@ -664,3 +664,23 @@ let html2pdf ~align id =
     | Some w -> w
   in
   let () = Manip.appendChild (Js_utils.Window.body w) new_div in ()
+
+module StringSet = Set.Make(String)
+
+let categories (event_list : 'a Data_types.meta_event list) : StringSet.t =
+  List.fold_left
+    (fun (acc : StringSet.t) {Data_types.group; _} ->
+       match group with
+       | None -> acc
+       | Some s -> StringSet.add s acc)
+    StringSet.empty
+    event_list
+
+let add_arg_unique key bnd arg =
+  let rec loop = function
+      [] -> [key, bnd]
+    | (hd, hd') :: tl ->
+      if hd = key then
+        (key, bnd) :: tl
+      else (hd, hd') :: (loop tl)
+  in loop arg

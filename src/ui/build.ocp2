@@ -8,6 +8,8 @@ OCaml.program("ocptimeline-js", ocaml + {
 	 "controller.ml", pp_js;
 	 "admin.ml", pp_js;
 	 "home.ml", pp_js;
+	 "timeline_select.ml", pp_js;
+	 "view.ml", pp_js;
 	 "pages.ml", pp_js;
 	 "main.ml", pp_js;
 	 ];
@@ -41,7 +43,7 @@ OCaml.program("ocptimeline-js", ocaml + {
     }
     ]
     });
-
+(*
 OCaml.program("ocptimeline-js-website", ocaml + {
    files = [
    	 "ui_utils.ml", pp_js;
@@ -77,4 +79,4 @@ OCaml.program("ocptimeline-js-website", ocaml + {
         ]
     }
     ]
-    });
+    }); *)

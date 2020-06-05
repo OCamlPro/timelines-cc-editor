@@ -11,7 +11,7 @@ init:
 	bash opam_build.sh
 	bash build_deps.sh
 
-build: parser db api js website
+build: parser db api js
 
 include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 
@@ -31,11 +31,6 @@ js:
 	ocp-build ocptimeline-js
 	mkdir -p www/js
 	cp _obuild/ocptimeline-js/ocptimeline-js.js www/js/
-
-website:
-	ocp-build ocptimeline-js-website
-	mkdir -p www/js
-	cp _obuild/ocptimeline-js-website/ocptimeline-js-website.js www/js/
 
 clean:
 	rm -rf _obuild/*

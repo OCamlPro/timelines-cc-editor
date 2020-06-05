@@ -1,17 +1,11 @@
 open Data_types
 open Utils
 
-let dbh : _ PGOCaml.t PGOCaml.monad = PGOCaml.connect ~database:Config.database ()
+let dbh : _ PGOCaml.t PGOCaml.monad =
+  let open Config in
+  PGOCaml.connect ?host ?password ?port ?user ~database ()
 
-let add_category str =
-  let open Db_intf.Default_monad in
-  if not (str = "") then
-    Reader.category_exists str >>= (fun group_exists ->
-        if not group_exists
-        then PGSQL(dbh) "INSERT INTO groups_(group_) VALUES ($str)";
-      )
-
-let add_event (e : event) =
+let add_event (e : event) (tid : string) =
   let start_date = e.start_date in
   let end_date = e.end_date in
   let headline = e.text.headline in
@@ -20,40 +14,39 @@ let add_event (e : event) =
   let group = e.group in
   let ponderation = Int32.of_int e.ponderation in
   let confidential = e.confidential in
-  let unique_id = e.unique_id in
+  let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
   let last_update = e.last_update in
   let tags = List.map (fun s -> Some s) e.tags in
-  let () =
-    PGSQL(dbh)
-      "INSERT INTO \
-       events_(start_date_, end_date_, headline_, text_, \
-       media_, group_, confidential_, ponderation_, unique_id_, last_update_, tags_) \
-       VALUES($start_date, $?end_date, $headline,$text,\
-       $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update, $tags)"
-  in
-  match group with
-  | None -> ()
-  | Some group -> add_category group; ()
+  try
+    let () = 
+      PGSQL(dbh)
+        "INSERT INTO \
+         events_(start_date_, end_date_, headline_, text_, \
+         media_, group_, confidential_, ponderation_, unique_id_, \
+         last_update_, tags_, timeline_id_, is_title_) \
+         VALUES($start_date, $?end_date, $headline,$text,\
+         $?media,$?group, $confidential, $ponderation, $unique_id, $?last_update, $tags, $tid, false)" in
+      Ok unique_id
+  with
+    _ -> Error "[Writer.add_event] Error while adding event in DB"
+      
 
-let add_title (t : title) =
+
+let add_title (t : title) (tid : string) =
   let headline = t.text.headline in
   let text = t.text.text in
-  let () =
-    match Reader.title () with
-      None -> ()
-    | Some _ ->
-      PGSQL(dbh) "DELETE FROM events_ where id_ = 0"
-  in
-  let () =
-    PGSQL(dbh)
-      "INSERT INTO events_(id_, headline_, text_, confidential_, ponderation_) \
-       VALUES(0, $headline, $text, false, 0)"
-  in Ok ()
+  let unique_id = Utils.check_unique_id Reader.used_unique_id t.unique_id in
+  match Reader.title tid with
+  | None ->
+    let () =
+      PGSQL(dbh)
+        "INSERT INTO events_(headline_, text_, confidential_, ponderation_, timeline_id_, unique_id_, is_title_) \
+         VALUES($headline, $text, false, 0, $tid, $unique_id, true)"
+    in Ok ()
+  | Some _ ->
+    Error ("Timeline " ^ tid  ^ "already has a title!")
 
 let update_event (i: int) (e : event) =
-  if i = 0 then
-    Error "Id 0 is reserved for the title"
-  else
     let i = Int32.of_int i in
     let start_date = e.start_date in
     let end_date = e.end_date in
@@ -66,43 +59,44 @@ let update_event (i: int) (e : event) =
     let unique_id = e.unique_id in
     let last_update = e.last_update in
     let tags = List.map (fun s -> Some s) e.tags in
-    let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
-                         headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
-                         confidential_=$confidential, ponderation_=$ponderation, \
-                         unique_id_=$unique_id, last_update_=$?last_update, \
-                         tags_=$tags WHERE id_=$i";
-      match group with
-      | None -> ()
-      | Some group -> add_category group in
-    Ok ()
+    try
+      let () =
+        PGSQL(dbh) "UPDATE events_ SET start_date_=$start_date, end_date_=$?end_date, \
+                    headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
+                    confidential_=$confidential, ponderation_=$ponderation, \
+                    unique_id_=$unique_id, last_update_=$?last_update, \
+                    tags_=$tags WHERE id_=$i" in
+      Ok unique_id
+    with
+      _ -> Error "[Writer.update_event] Error while updating event in DB"
 
-let update_title (e : title) =
-  let start_date = e.start_date in
-  let end_date = e.end_date in
-  let headline = e.text.headline in
-  let text = e.text.text in
-  let media = opt (fun m -> m.url) e.media in
-  let group = e.group in
-  let ponderation = Int32.of_int e.ponderation in
-  let confidential = e.confidential in
-  let last_update = e.last_update in
-  let tags = List.map (fun s -> Some s) e.tags in
-  let () = PGSQL(dbh) "UPDATE events_ SET start_date_=$?start_date, end_date_=$?end_date, \
-                       headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
-                       confidential_=$confidential, ponderation_=$ponderation, \
-                       last_update_=$?last_update, tags_=$tags WHERE id_=0";
-    match group with
-    | None -> ()
-    | Some group -> add_category group in
-  Ok ()
+let update_title (i: int) (e : title) =
+    let i = Int32.of_int i in
+    let start_date = e.start_date in
+    let end_date = e.end_date in
+    let headline = e.text.headline in
+    let text = e.text.text in
+    let media = opt (fun m -> m.url) e.media in
+    let group = e.group in
+    let ponderation = Int32.of_int e.ponderation in
+    let confidential = e.confidential in
+    let unique_id = e.unique_id in
+    let last_update = e.last_update in
+    let tags = List.map (fun s -> Some s) e.tags in
+    try
+    let () =
+      PGSQL(dbh) "UPDATE events_ SET start_date_=$?start_date, end_date_=$?end_date, \
+                  headline_=$headline, text_=$text, media_=$?media, group_=$?group, \
+                  confidential_=$confidential, ponderation_=$ponderation, \
+                  unique_id_=$unique_id, last_update_=$?last_update, \
+                  tags_=$tags WHERE id_=$i" in
+      Ok unique_id
+    with
+      _ -> Error "[Writer.update_title] Error while updating title in DB"
 
-let remove_event id =
+let remove_event (id : int) =
   let id = Int32.of_int id in
   PGSQL(dbh) "DELETE from events_ where id_ = $id"
-
-let remove_events () =
-  PGSQL(dbh) "DELETE from events_";
-  PGSQL(dbh) "DELETE from groups_"
 
 let update_pwd email pwdhash =
   match Reader.user_exists email with
@@ -118,6 +112,46 @@ let update_pwd email pwdhash =
     in
     Ok ()
 
+let create_timeline (email : string) (title : title) =
+  match Reader.user_exists email with
+  | Some _ -> (* User exists, now checking if the timeline already exists *)
+    let timeline_id = title.unique_id in
+    Format.eprintf "Timeline id before check: %s@." timeline_id;
+    let timeline_id = String.map (function ' ' -> '-' | c -> c) timeline_id in
+    let timeline_id = Utils.check_unique_id Reader.timeline_exists timeline_id in
+    let users = [Some email] in
+    Format.eprintf "Timeline id after check: %s@." timeline_id;
+    begin
+      try
+        match add_title title timeline_id with
+        | Ok _ ->
+          PGSQL(dbh) "INSERT INTO timeline_ids_(id_, users_) VALUES ($timeline_id, $users)";
+          PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline_id) \
+                      WHERE email_=$email";
+          Ok timeline_id
+        | Error e -> Error e
+      with e -> Error (Printexc.to_string e)
+    end
+  | None ->
+    Error ("User " ^ email ^ " does not exist")  
+
+let allow_user_to_timeline (email : string) (timeline : string) =
+  if Reader.timeline_exists timeline then
+    match Reader.user_exists email with
+    | Some _ ->
+      let tlist = Reader.user_timelines email in
+      if List.mem timeline tlist then
+        Ok ()
+      else
+        let () = 
+          PGSQL(dbh) "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline) \
+                      WHERE email_=$email";
+          PGSQL(dbh) "UPDATE timeline_ids_ SET users_ = array_append(users_, $email) \
+                      WHERE id_=$timeline";
+        in Ok ()
+    | None -> Error "User does not exist!"
+  else Error "Timeine does not exist."
+
 let register_user email pwdhash =
   match Reader.user_exists email with
   | Some _ ->
@@ -128,3 +162,37 @@ let register_user email pwdhash =
       in (* Now we get the id of the user *)
       update_pwd email pwdhash
     end
+
+let remove_timeline tid =
+  if Reader.timeline_exists tid then begin
+    PGSQL(dbh) "UPDATE users_ SET timelines_=array_remove(timelines_, $tid)";
+    PGSQL(dbh) "DELETE FROM timeline_ids_ WHERE id_ = $tid";
+    PGSQL(dbh) "DELETE FROM events_ WHERE timeline_id_ = $tid";
+    Ok ()
+  end
+  else
+    Error "Timeline does not exist"
+
+let remove_user email =
+  match Reader.user_exists email with
+  | Some i -> begin
+    let () = Reader.Login.remove_session i in
+    let user_timelines = Reader.user_timelines email in
+    let () =
+      PGSQL(dbh) "UPDATE timeline_ids_ SET users_=array_remove(users_, $email)";
+      PGSQL(dbh) "DELETE FROM users_ WHERE email_ = $email" in
+    (* If a timeline has no more user, it is deleted *)
+    let rec remove_unused_timelines = function
+    | [] -> Ok ()
+    | tid :: tl ->
+      match Reader.timeline_users tid with
+      | [] -> begin
+        match remove_timeline tid with
+        | Ok () -> remove_unused_timelines tl
+        | e -> e
+      end
+      | _ -> remove_unused_timelines tl 
+    in 
+    remove_unused_timelines user_timelines
+    end
+  | None -> Error "User does not exist"

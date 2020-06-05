@@ -2,20 +2,29 @@ open Js_of_ocaml.Url
 open Lwt
 
 let api () =
+  Http {
+    hu_host = "d4.dune.network";
+    hu_port = Config.api_port;
+    hu_path = [];
+    hu_path_string = "";
+    hu_arguments = [];
+    hu_fragment = ""    
+  }
+(*
   match Js_of_ocaml.Url.Current.get () with
   | Some u -> u
   | None ->
     match Js_of_ocaml.Url.url_of_string "http://localhost:8080" with
     | Some u -> u
-    | None -> assert false
+    | None -> assert false *)
 
 let get ?(args = []) apifun cont =
-  let url = api () in
+  let url = api () in (*
   let url = (* Only for standalone !! *)
-    match url with
+    match url wit<h
     | Http u -> Http {u with hu_path_string = ""}
     | Https u -> Https {u with hu_path_string = ""}
-    | File f -> File {f with fu_path_string = ""} in
+    | File f -> File {f with fu_path_string = ""} in *) 
   let () =
     Js_utils.log "GET %s from %s with args [%a]"
       apifun
@@ -37,14 +46,17 @@ let get ?(args = []) apifun cont =
 let post ~args apifun input_encoding input output_encoding cont =
   let () = Js_utils.log "POST %s" apifun in
   let url = api () in
-  let () = Js_utils.log "Calling API at %s" (Js_of_ocaml.Url.string_of_url url) in
+  let () = Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) apifun in
   Xhr_lwt.post ~args ~base:url input_encoding output_encoding apifun input >>=
-  function
-    Ok elt -> cont elt
-  | Error e ->
-    let code, msg = Xhr_lwt.error_content e in
-    Js_utils.log "Error %i while getting to api: %s" code msg;
-    Lwt.return (Error e)
+  (fun res ->
+     Js_utils.log "POST %s returned something" apifun;
+     match res with
+     | Ok elt -> cont elt
+     | Error e ->
+       let code, msg = Xhr_lwt.error_content e in
+       Js_utils.log "Error %i while getting to api: %s" code msg;
+       Lwt.return (Error e)
+  )
 
 let cook encoding cont =
   (fun str ->
@@ -72,30 +84,36 @@ let args_from_session args =
   | Some (email, auth_data) ->
     ("auth_email", email) :: ("auth_data", auth_data) :: args
 
-let timeline_data ~args cont =
+let timeline_data ~args timeline cont =
   let args = args_from_session args in
-  get ~args "timeline_data" (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
+  get
+    ~args
+    (Format.sprintf "timeline_data/%s" timeline)
+    (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
-let raw_events ~args cont =
+let event ~args (id : int) cont =
   let args = args_from_session args in
-  get ~args "events" cont
+  get ~args (Format.sprintf "event/%i" id)  (cook Data_encoding.title_encoding cont)
 
-let events ~args cont =
-  raw_events ~args (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
-
-let title ~args cont =
-  get ~args "title" (cook (Json_encoding.(tup1 @@ option (Data_encoding.title_encoding))) cont)
-
-let event ~args id cont =
+let events ~args (tid : string) cont =
   let args = args_from_session args in
-  get ~args (Format.sprintf "event/%i" id)  (cook Data_encoding.event_encoding cont)
+  get
+    ~args
+    (Format.sprintf "events/%s" tid)
+    (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
 
-let add_event ~args (event : Data_types.event) cont =
+let title ~args tid cont =
+  get
+    ~args
+    (Format.sprintf "title/%s" tid)
+    (cook (Json_encoding.(tup1 @@ option (tup2 int Data_encoding.title_encoding))) cont)
+
+let add_event ~args (tid : string) (event : Data_types.event) cont =
   let args = args_from_session args in
   post ~args
-    "add_event"
+    (Format.sprintf "add_event/%s" tid)
     Data_encoding.event_encoding event
-    ApiData.api_result_encoding cont
+    ApiData.str_api_result_encoding cont
 
 let update_event id ~old_event ~new_event cont =
   let args = args_from_session ["id", string_of_int id] in
@@ -104,21 +122,9 @@ let update_event id ~old_event ~new_event cont =
     Json_encoding.(
       tup3
         (tup1 int)
-        Data_encoding.event_encoding Data_encoding.event_encoding)
+        Data_encoding.title_encoding Data_encoding.title_encoding)
     (id, old_event, new_event)
     ApiData.update_event_res_encoding cont
-
-let update_title ~old_title ~new_title cont =
-  let args = args_from_session [] in
-  post ~args
-    "update_title"
-    (Json_encoding.tup2
-       Data_encoding.title_encoding
-       Data_encoding.title_encoding)
-    (old_title, new_title)
-    ApiData.update_title_res_encoding cont
-
-let categories cont = get "categories" (cook (Json_encoding.(list string)) cont)
 
 let remove_event ~args id cont =
   let args = args_from_session args in
@@ -130,7 +136,7 @@ let register_user email password cont =
   Js_utils.log "Hash: %s@." hash;
   post ~args:[] "register_user"
     Json_encoding.(tup2 string string) (email, hash)
-    ApiData.api_result_encoding cont
+    ApiData.unit_api_result_encoding cont
 
 let login email password cont =
   let hash = Ui_utils.hash password (* todo: change this *) in
@@ -144,6 +150,19 @@ let is_auth cont =
     Json_encoding.unit ()
     Json_encoding.(tup1 bool) cont
 
+let has_admin_rights timeline cont =
+  post
+    ~args:(args_from_session [])
+    (Format.sprintf "has_admin_rights/%s" timeline)
+    Json_encoding.unit ()
+    Json_encoding.(tup1 bool) cont
+
+let categories timeline cont =
+  get
+    ~args:(args_from_session [])
+    (Format.sprintf "categories/%s" timeline)
+    (cook (Json_encoding.(list string)) cont)
+
 let logout cont =
   match Ui_utils.get_auth_data () with
   | None -> Lwt.return @@ Error (Xhr_lwt.Str_err "Error: not logged in")
@@ -151,3 +170,46 @@ let logout cont =
     post ~args:[] "logout"
       (Json_encoding.(tup2 string string)) (email, auth_data)
       (Json_encoding.unit) cont
+
+let create_timeline title cont =
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "create_timeline")
+    Data_encoding.title_encoding title
+    (Json_encoding.tup1 ApiData.str_api_result_encoding) cont
+
+let user_timelines cont =
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "user_timelines")
+    Json_encoding.unit ()
+    ApiData.str_list_api_result_encoding cont
+
+let allow_user user timeline cont =
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "allow_user")
+    Json_encoding.(tup2 string string) (user, timeline)
+    ApiData.unit_api_result_encoding cont
+
+let timeline_users timeline cont = 
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "timeline_users/%s" timeline)
+    Json_encoding.unit ()
+    ApiData.str_list_api_result_encoding cont
+
+let remove_user timeline cont = 
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "remove_user")
+    Json_encoding.unit ()
+    ApiData.unit_api_result_encoding cont
+
+let remove_timeline timeline cont = 
+  post 
+    ~args:(args_from_session [])
+    (Format.sprintf "remove_timeline/%s" timeline)
+    Json_encoding.unit ()
+    ApiData.unit_api_result_encoding cont
+

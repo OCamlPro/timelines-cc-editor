@@ -77,6 +77,28 @@ let sql_upgrade_5_to_6 =  [
   {| ALTER TABLE events_ ADD COLUMN tags_ VARCHAR[] |}
 ]
 
+let sql_downgrade_7_to_6 = [
+  {| ALTER TABLE events_ DROP COLUMN timeline_id_ |};
+  {| ALTER TABLE events_ DROP COLUMN is_title_ |};
+  {| ALTER TABLE users_  DROP COLUMN timelines_   |};
+  {| DROP TABLE timeline_ids_ |};
+  {| CREATE TABLE groups_ (
+     group_ VARCHAR(100) PRIMARY KEY NOT NULL
+  )|};
+]
+
+let sql_upgrade_6_to_7 =  [
+  {| ALTER TABLE events_ ADD COLUMN timeline_id_ VARCHAR NOT NULL |};
+  {| ALTER TABLE events_ ADD COLUMN is_title_ BOOLEAN NOT NULL |};
+  {| ALTER TABLE users_  ADD COLUMN timelines_ VARCHAR[] |};
+  {| CREATE TABLE timeline_ids_ (
+     id_ VARCHAR PRIMARY KEY NOT NULL,
+     users_ VARCHAR[]
+  )|};
+  {| DROP TABLE groups_ |};
+]
+
+
 
 let ( upgrades, downgrades ) =
   let rev_versions = ref [] in
@@ -92,6 +114,7 @@ let ( upgrades, downgrades ) =
         sql_upgrade_3_to_4, sql_downgrade_4_to_3;
         sql_upgrade_4_to_5, sql_downgrade_5_to_4;
         sql_upgrade_5_to_6, sql_downgrade_6_to_5;
+        sql_upgrade_6_to_7, sql_downgrade_7_to_6;
       ]
   in
   (versions, !rev_versions)
