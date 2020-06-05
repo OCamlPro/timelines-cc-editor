@@ -106,11 +106,19 @@ let admin_page_if_trustworthy ~timeline ~args =
       match List.assoc_opt "id" args with
       | None ->
         Js_utils.log "No id provided";
-        Request.events ~args timeline
-          (fun events ->
-             Request.
-             set_in_main_page
-               (Admin.admin_main_page timeline args events); finish ())
+        Request.events ~args timeline (fun events ->
+          Request.timeline_users timeline (fun users ->
+            let users = 
+              match users with 
+              | Ok u -> u
+              | Error _ -> Js_utils.log "Error while requesting users"; [] in
+            set_in_main_page [
+              Admin.admin_main_page 
+                timeline
+                args
+                events
+                users
+              ]; finish ()))
       | Some i -> begin
           try
             Js_utils.log "Editing event %s" i;
