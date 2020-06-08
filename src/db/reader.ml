@@ -55,7 +55,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let line_to_event ?(with_end_date=true) line : int * title =
     match line with
-      (id, start_date, end_date, headline, text, url, group, confidential, ponderation, unique_id, last_update, tags) ->
+      (id, start_date, end_date, headline, text, url, group, confidential,
+       ponderation, unique_id, last_update, tags) ->
       let tags = 
         match tags with 
           | None -> []
@@ -120,27 +121,25 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     | []      -> return None
     | id :: _ -> return (Some id)
 
-
-  let event (is_auth : bool) (has_admin_rights : bool) (id : int) =
+  (* Check confidentiality before using this function *)
+  let event (id : int) =
     let id = Int32.of_int id in
-    let auth = is_auth && has_admin_rights in
     with_dbh >>> fun dbh ->
       PGSQL(dbh)
       "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
-       WHERE (id_ = $id) AND ($auth OR NOT confidential_)" >>= function
+       WHERE (id_ = $id)" >>= function
     | res :: _ ->
       let (_, event) = line_to_event res in
       return (Some event)
     | _ -> return None
 
-  let events (is_auth : bool) (has_admin_rights : bool) (tid : string) =
-    let auth = is_auth && has_admin_rights in
+  let events (with_confidential : bool) (tid : string) =
     with_dbh >>> fun dbh ->
     PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
-                WHERE timeline_id_ = $tid AND ($auth OR NOT confidential_) AND NOT is_title_ \
-                ORDER BY id_ DESC" >>=
+                WHERE timeline_id_ = $tid AND ($with_confidential OR NOT confidential_) AND \
+                NOT is_title_ ORDER BY id_ DESC" >>=
     fun l ->
     return @@
     List.fold_left (fun acc l ->
@@ -177,20 +176,19 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         | [] -> return false
         | _ -> return true
       )
-      
+
+  exception TwoTitles
 
   let timeline_data
-      ~(is_auth : bool)
-      ~(has_admin_rights : bool) 
+      ~(with_confidential : bool)
       ~(tid : string)
-      ?(start_date      = CalendarLib.Date.mardi_gras 1000)
-      ?(end_date        = CalendarLib.Date.mardi_gras 3000)
+      ?(start_date      = CalendarLib.Date.from_jd 0)
+      ?(end_date        = CalendarLib.Date.mardi_gras max_int)
       ?(min_ponderation = 0)
       ?(max_ponderation = 100000)
       ?(groups=[])
       ?(tags=[])
       () =
-    let auth = is_auth && has_admin_rights in
     let min_ponderation = Int32.of_int min_ponderation in
     let max_ponderation = Int32.of_int max_ponderation in
     let tags = List.map (fun s -> Some s) tags in
@@ -200,12 +198,12 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       | [], [] -> begin
           PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
-             id_ > 0 AND \
+                confidential_, ponderation_, unique_id_, last_update_, tags_
+             FROM events_ WHERE \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
-             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
-             ORDER BY id_ DESC" end
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
+             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid \
+             ORDER BY id_ ASC" end
       | _, [] ->
         PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
@@ -213,19 +211,18 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              id_ > 0 AND \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
-             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
-             ORDER BY id_ DESC"
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
+             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid \
+             ORDER BY id_ ASC"
       | [], _ ->
         PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              id_ > 0 AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
-             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
-             AND tags_ && $tags::varchar[]
-             ORDER BY id_ DESC"
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
+             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
+             tags_ && $tags::varchar[] ORDER BY id_ ASC"
       | _ ->
         PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
@@ -233,13 +230,28 @@ module Reader_generic (M : Db_intf.MONAD) = struct
              id_ > 0 AND \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
-             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) \
-             AND ($auth OR NOT confidential_) AND timeline_id_ = $tid \
-             AND tags_ && $tags::varchar[]
-             ORDER BY id_ DESC"
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
+             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
+             tags_ && $tags::varchar[] ORDER BY id_ ASC"
     in
-    req >>= fun l ->
-    return @@ List.map (fun l -> (line_to_event ~with_end_date:true l)) l
+    req >>= (fun l ->
+        try
+          let title = ref None in
+          let events =
+            List.fold_left (
+              fun acc l ->
+                let id, event = line_to_event ~with_end_date:true l in
+                match Utils.metaevent_to_event event with
+                | Some e -> (id, e) :: acc
+                | None -> (* Should be a title *)
+                  match !title with
+                  | None -> title := Some (id, event); acc
+                  | Some _ -> raise TwoTitles
+            ) [] l
+          in return (Ok (!title, events))
+        with TwoTitles -> return (Error "Two titles in database")
+      )
+
 
   let timeline_exists (tid : string) =
     with_dbh >>> fun dbh ->
@@ -248,8 +260,9 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       | [] -> return false
       | _ -> return true
 
-  let categories (is_auth : bool) (has_admin_rights : bool) (tid : string) =
-    events is_auth has_admin_rights tid >>= (fun l ->
+  (* todo : full sql *)
+  let categories (with_confidential : bool) (tid : string) =
+    events with_confidential tid >>= (fun l ->
         let s =
           List.fold_left
             (fun acc (_, {group; _}) ->
@@ -299,6 +312,45 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         )
         []
         l
+
+  let is_public (tid : string) =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT public_ FROM timeline_ids_ WHERE id_=$tid" >>=
+      function
+      | [] ->     return @@ Error ("Timeline do not exist")
+      | b :: _ -> return @@ Ok b
+
+  let view
+    ?(start_date      = CalendarLib.Date.from_jd 0)
+    ?(end_date        = CalendarLib.Date.mardi_gras max_int)
+    ?(min_ponderation = 0)
+    ?(max_ponderation = 100000)
+    ?(groups=[])
+    ?(tags=[])
+    (tid : string) =
+    with_dbh >>> fun dbh ->
+    PGSQL(dbh) "SELECT id_ FROM timeline_ids_ WHERE digest(id_, 'sha256') = $tid" >>=
+    function
+    | [] -> return @@ Error ("Timeline do not exist")
+    | tid :: _ ->
+      timeline_data
+        ~with_confidential:false
+        ~tid
+        ~start_date
+        ~end_date
+        ~min_ponderation
+        ~max_ponderation
+        ~groups
+        ~tags
+        ()
+
+  let get_view_token (tid : string) =
+    timeline_exists tid >>=
+    fun exists ->
+    if exists then
+      PGSQL(dbh) "SELECT digest($tid, 'sha256)"
+    else
+      return @@ Error ("Timeline do not exist")
 
   module Login = struct
     let remove_session id =

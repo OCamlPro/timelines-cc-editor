@@ -1,8 +1,8 @@
-
 open EzAPI
 open Data_types
 open Data_encoding
 open ApiData
+open Json_encoding
 
 let tup1_int = EzEncoding.tup1_int
 
@@ -98,21 +98,21 @@ let event : (int, Data_types.title option) service1 =
   service
     ~params:auth_params
     ~name:"event"
-    ~output:(Json_encoding.option Data_encoding.title_encoding)
+    ~output:(option Data_encoding.title_encoding)
     Path.(root // "event" /: (arg_default "event_key"))
 
 let events : (string, (int * Data_types.event) list) service1 =
   service
     ~params:auth_params
     ~name:"events"
-    ~output:(Json_encoding.(list (tup2 int Data_encoding.event_encoding)))
+    ~output:(list (tup2 int Data_encoding.event_encoding))
     Path.(root // "events" /: arg_timeline ())
 
-let title : (string, (int * Data_types.title) option) service1 =
+let title : (string, (int * Data_types.title) api_result) service1 =
   service
     ~params:auth_params
     ~name:"title"
-    ~output:(Json_encoding.(tup1 @@ option (tup2 int Data_encoding.title_encoding)))
+    ~output:(title_api_result_encoding)
     Path.(root // "title" /: arg_timeline ())
 
 let add_event : (string, Data_types.event, string api_result) post_service1 =
@@ -127,14 +127,16 @@ let update_event : (int * Data_types.title * Data_types.title, update_event_res)
   post_service
     ~params:auth_params
     ~name:"update_event"
-    ~input:(Json_encoding.tup3 tup1_int Data_encoding.title_encoding Data_encoding.title_encoding)
+    ~input:(tup3 tup1_int Data_encoding.title_encoding Data_encoding.title_encoding)
     ~output:update_event_res_encoding
     Path.(root // "update_event")
 
-let timeline_data : (string, (int * Data_types.title) list) service1 =
+let timeline_data :
+  (string,
+   (((int * Data_types.title) option) * ((int * Data_types.event) list)) api_result) service1 =
   service
     ~name:"timeline_data"
-    ~output:(Json_encoding.(list (tup2 int Data_encoding.title_encoding)))
+    ~output:ApiData.timeline_data_api_result_encoding
     ~params:(auth_params @ [
       date_param "start_date";
       date_param "end_date";
@@ -156,44 +158,44 @@ let categories : (string, string list) service1 =
   service
     ~params:auth_params
     ~name:"categories"
-    ~output:Json_encoding.(list string)
+    ~output:(list string)
     Path.(root // "categories" /: arg_timeline ())
 
 let register_user : (string * string, unit api_result) post_service0 =
   post_service
     ~name:"register_user"
-    ~input:(Json_encoding.(tup2 string string))
+    ~input:(tup2 string string)
     ~output:unit_api_result_encoding
     Path.(root // "register_user")
 
 let login : (string * string, string option) post_service0 =
   post_service
     ~name:"login"
-    ~input:(Json_encoding.(tup2 string string))
-    ~output:Json_encoding.(option string)
+    ~input:(tup2 string string)
+    ~output:(option string)
     Path.(root // "login")
 
 let logout : (string * string, unit) post_service0 =
   post_service
     ~name:"login"
-    ~input:(Json_encoding.(tup2 string string))
-    ~output:Json_encoding.unit
+    ~input:(tup2 string string)
+    ~output:unit
     Path.(root // "logout")
 
 
 let is_auth : (unit, bool) post_service0 =
   post_service
     ~name:"is_auth"
-    ~input:(Json_encoding.unit)
-    ~output:(Json_encoding.bool)
+    ~input:unit
+    ~output:bool
     Path.(root // "is_auth")
 
 let has_admin_rights : (string, unit, bool) post_service1 =
   post_service
     ~params:auth_params
     ~name:"has_admin_rights"
-    ~input:(Json_encoding.unit)
-    ~output:(Json_encoding.bool)
+    ~input:unit
+    ~output:bool
     Path.(root // "has_admin_rights" /: arg_timeline ())
 
 let export_database : (string, unit api_result) service1 =
@@ -203,11 +205,11 @@ let export_database : (string, unit api_result) service1 =
     ~output:ApiData.unit_api_result_encoding
     Path.(root // "export_database" /: arg_timeline ())
 
-let create_timeline : (title, string api_result) post_service0 =
+let create_timeline : ((title * bool), string api_result) post_service0 =
   post_service
     ~params:auth_params
     ~name:"create_timeline"
-    ~input:(Data_encoding.title_encoding)
+    ~input:(tup2 Data_encoding.title_encoding bool)
     ~output:(ApiData.str_api_result_encoding)
     Path.(root // "create_timeline")
 
@@ -215,7 +217,7 @@ let user_timelines : (unit, string list api_result) post_service0 =
   post_service
     ~params:auth_params
     ~name:"create_timeline"
-    ~input:Json_encoding.unit
+    ~input:unit
     ~output:(ApiData.str_list_api_result_encoding)
     Path.(root // "user_timelines")
 
@@ -223,7 +225,7 @@ let allow_user : (string * string, unit api_result) post_service0 =
   post_service
     ~params:auth_params
     ~name:"allow_user"
-    ~input:(Json_encoding.(tup2 string string))
+    ~input:(tup2 string string)
     ~output:(ApiData.unit_api_result_encoding)
     Path.(root // "allow_user")
 
@@ -231,7 +233,7 @@ let timeline_users : (string, unit, string list api_result) post_service1 =
   post_service
     ~params:auth_params
     ~name:"timeline_user"
-    ~input:Json_encoding.unit
+    ~input:unit
     ~output:(ApiData.str_list_api_result_encoding)
     Path.(root // "timeline_users"/: arg_timeline ())
 
@@ -239,7 +241,7 @@ let remove_user : (unit, unit api_result) post_service0 =
   post_service
     ~params:auth_params
     ~name:"remove_user"
-    ~input:Json_encoding.unit
+    ~input:unit
     ~output:(ApiData.unit_api_result_encoding)
     Path.(root // "remove_user")
 
@@ -247,6 +249,6 @@ let remove_timeline : (string, unit, unit api_result) post_service1 =
   post_service
     ~params:auth_params
     ~name:"remove_timeline"
-    ~input:Json_encoding.unit
+    ~input:unit
     ~output:(ApiData.unit_api_result_encoding)
     Path.(root // "remove_timeline"/: arg_timeline ())

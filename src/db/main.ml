@@ -27,7 +27,7 @@ let () =
       Reader.title timeline_name >>= function
       | None -> Format.printf "No title registered, ending"; exit 1;
       | Some title ->
-        Reader.events true true timeline_name >>= fun events ->
+        Reader.events true timeline_name >>= fun events ->
         let events = List.map snd events in
         let json =
           Json_encoding.construct
@@ -39,7 +39,7 @@ let () =
       Reader.title timeline_name >>= function
       | None -> Format.printf "No title registered, ending"; exit 1;
       | Some title ->
-        Reader.events true true timeline_name  >>= fun events ->
+        Reader.events true timeline_name  >>= fun events ->
         Reader.title timeline_name >>= fun title ->
         let events = List.map snd events in
         let sep = "\t" in
