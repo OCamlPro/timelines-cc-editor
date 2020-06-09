@@ -23,7 +23,8 @@ OCaml.program("ocptimeline-js", ocaml + {
     "config";
     "timeline-data";
     "data-encoding";
-    "api-data"
+    "api-data";
+    "api-services"
     ];
    bytecomp = ["-g" ;"-annot"];
    build_rules = [

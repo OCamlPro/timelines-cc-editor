@@ -345,12 +345,17 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         ()
 
   let get_view_token (tid : string) =
+    with_dbh >>> fun dbh ->
     timeline_exists tid >>=
     fun exists ->
     if exists then
-      PGSQL(dbh) "SELECT digest($tid, 'sha256)"
+      PGSQL(dbh) "SELECT digest($tid, 'sha256')" >>=
+      function
+      | [] -> assert false
+      | Some hsh :: _ -> return @@ Ok hsh
+      | None :: _ -> return @@ Error "Get view token failed"
     else
-      return @@ Error ("Timeline do not exist")
+      return @@ Error "Timeline do not exist"
 
   module Login = struct
     let remove_session id =

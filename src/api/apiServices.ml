@@ -210,7 +210,7 @@ let create_timeline : ((title * bool), string api_result) post_service0 =
     ~params:auth_params
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
-    ~output:(ApiData.str_api_result_encoding)
+    ~output:ApiData.str_api_result_encoding
     Path.(root // "create_timeline")
 
 let user_timelines : (unit, string list api_result) post_service0 =
@@ -218,7 +218,7 @@ let user_timelines : (unit, string list api_result) post_service0 =
     ~params:auth_params
     ~name:"create_timeline"
     ~input:unit
-    ~output:(ApiData.str_list_api_result_encoding)
+    ~output:ApiData.str_list_api_result_encoding
     Path.(root // "user_timelines")
 
 let allow_user : (string * string, unit api_result) post_service0 =
@@ -226,7 +226,7 @@ let allow_user : (string * string, unit api_result) post_service0 =
     ~params:auth_params
     ~name:"allow_user"
     ~input:(tup2 string string)
-    ~output:(ApiData.unit_api_result_encoding)
+    ~output:ApiData.unit_api_result_encoding
     Path.(root // "allow_user")
 
 let timeline_users : (string, unit, string list api_result) post_service1 =
@@ -234,7 +234,7 @@ let timeline_users : (string, unit, string list api_result) post_service1 =
     ~params:auth_params
     ~name:"timeline_user"
     ~input:unit
-    ~output:(ApiData.str_list_api_result_encoding)
+    ~output:ApiData.str_list_api_result_encoding
     Path.(root // "timeline_users"/: arg_timeline ())
 
 let remove_user : (unit, unit api_result) post_service0 =
@@ -242,7 +242,7 @@ let remove_user : (unit, unit api_result) post_service0 =
     ~params:auth_params
     ~name:"remove_user"
     ~input:unit
-    ~output:(ApiData.unit_api_result_encoding)
+    ~output:ApiData.unit_api_result_encoding
     Path.(root // "remove_user")
 
 let remove_timeline : (string, unit, unit api_result) post_service1 =
@@ -250,5 +250,12 @@ let remove_timeline : (string, unit, unit api_result) post_service1 =
     ~params:auth_params
     ~name:"remove_timeline"
     ~input:unit
-    ~output:(ApiData.unit_api_result_encoding)
+    ~output:ApiData.unit_api_result_encoding
     Path.(root // "remove_timeline"/: arg_timeline ())
+
+let get_view_token : (string, string api_result) service1 =
+  service
+    ~params:auth_params
+    ~name:"get_view_token"
+    ~output:ApiData.str_api_result_encoding
+    Path.(root // "get_view_token" /: arg_timeline ())

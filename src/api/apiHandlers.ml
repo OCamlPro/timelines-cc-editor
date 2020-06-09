@@ -223,10 +223,10 @@ let create_timeline req (title, public) =
     | None ->
       EzAPIServerUtils.return @@ Writer.create_public_timeline title      
     | Some email ->
-      if public && auth then
-        EzAPIServerUtils.return @@ Writer.create_public_timeline title
-      else
+      if not public && auth then
         EzAPIServerUtils.return @@ Writer.create_private_timeline email title
+      else
+        EzAPIServerUtils.return @@ Writer.create_public_timeline title
   )
 
 let user_timelines req () =
@@ -263,6 +263,9 @@ let remove_timeline (req,tid) () =
   if_ ~error:unauthorized edition_rights (req,tid) (fun () -> 
     EzAPIServerUtils.return @@ Writer.remove_timeline tid    
   )
+
+let get_view_token (_, tid) () =
+  Reader.get_view_token tid >>= EzAPIServerUtils.return
 
 let is_auth req () =
   is_auth req EzAPIServerUtils.return 
