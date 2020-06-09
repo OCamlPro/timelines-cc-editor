@@ -115,8 +115,8 @@ let export_database args =
         let sep = "," in
         let title =
           match title with
-          | None -> sep
-          | Some (_, title) -> Data_encoding.title_to_csv ~sep title in
+          | Error _ -> sep
+          | Ok (_, title) -> Data_encoding.title_to_csv ~sep title in
         let header = Data_encoding.header ~sep in
         let events =
           List.fold_left

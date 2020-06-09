@@ -36,7 +36,7 @@ let new_timeline_button () =
                 "edit-add"
                 (fun self ->
                    let title = get_title () in
-                   Controller.create_timeline title (function
+                   Controller.create_timeline title true (function
                        | Ok timeline ->
                          alert "Timeline successfully created!";
                          !Dispatcher.dispatch

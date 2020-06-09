@@ -58,25 +58,27 @@ let timeline_id args cont =
 
 let main_page ~args =
   timeline_id args (fun timeline ->
-      Request.timeline_data ~args timeline (fun events ->
-          Request.is_auth (fun is_auth ->
-              Request.title ~args timeline (fun title ->
-                  Request.categories timeline (fun categories ->
-                      let page, init =
-                        Home.page
-                          timeline
-                          is_auth
-                          args
-                          categories
-                          title
-                          events
-                      in
-                      set_in_main_page [page];
-                      init ();
-                      finish ()
-                    )
-                )
-            )
+    Request.timeline_data ~args timeline (function
+      | Error s ->
+        Js_utils.alert s;
+        Lwt.return @@ Error (Xhr_lwt.Str_err s) 
+      | Ok (title, events) ->
+        Request.is_auth (fun is_auth ->
+          Request.categories timeline (fun categories ->
+            let page, init =
+              Home.page
+                timeline
+                is_auth
+                args
+                categories
+                title
+                events
+            in
+            set_in_main_page [page];
+            init ();
+            finish ()
+              )
+          )
         )
     )
 
@@ -122,43 +124,47 @@ let admin_page_if_trustworthy ~timeline ~args =
       | Some i -> begin
           try
             Js_utils.log "Editing event %s" i;
-            let i = int_of_string i in
+            let ii = int_of_string i in
             Request.categories timeline (fun categories ->
-              Request.event ~args i (fun old_event ->
-                let form, get_event =
-                  Admin.event_form
-                    old_event
-                    i
-                    categories
-                in
-                let edit_button =
-                  Ui_utils.simple_button
-                    "edit-button-trust"
-                    (fun _ ->
-                       update_action
-                         (Admin.compare timeline)
-                         i
-                         categories
-                         old_event
-                         (get_event ())
-                         (fun _ ->
-                            !Dispatcher.dispatch
-                              ~path:Home.page_name
-                              ~timeline
-                              ~args:["id", string_of_int i]
-                              ())
-                    )
-                    "Update event"
-                in
-                let remove_button =
-                  Ui_utils.simple_button
-                    "remove-button-trust"
-                    (fun _ -> remove_action args i)
-                    "Remove event"
-                in
-                let back = Admin.back_button timeline in
-                set_in_main_page [form; edit_button; remove_button; back];
-                finish ())
+              Request.event ~args ii (function
+                | None ->
+                  Js_utils.alert ("Cannot update event of id " ^ i);
+                  Lwt.return (Error (Xhr_lwt.Str_err "Cannot update event"))
+                | Some old_event ->
+                  let form, get_event =
+                    Admin.event_form
+                      old_event
+                      ii
+                      categories
+                  in
+                  let edit_button =
+                    Ui_utils.simple_button
+                      "edit-button-trust"
+                      (fun _ ->
+                         update_action
+                           (Admin.compare timeline)
+                           ii
+                           categories
+                           old_event
+                           (get_event ())
+                           (fun _ ->
+                              !Dispatcher.dispatch
+                                ~path:Home.page_name
+                                ~timeline
+                                ~args:["id", i]
+                                ())
+                      )
+                      "Update event"
+                  in
+                  let remove_button =
+                    Ui_utils.simple_button
+                      "remove-button-trust"
+                      (fun _ -> remove_action args i)
+                      "Remove event"
+                  in
+                  let back = Admin.back_button timeline in
+                  set_in_main_page [form; edit_button; remove_button; back];
+                  finish ())
               )
           with
             Invalid_argument _ ->
@@ -212,15 +218,17 @@ let select_page ~args =
     
 let view_page ~args =
   timeline_id args (fun timeline ->
-    Request.timeline_data ~args timeline (fun events ->
-      Request.title ~args timeline (fun title ->
+    Request.timeline_data ~args timeline (function
+    | Error s ->
+      Js_utils.alert ("Failing at view: cannot find timeline " ^ timeline);        
+      Lwt.return @@ Error (Xhr_lwt.Str_err "Cannot find timeline")
+    | Ok (title, events) ->
         let () = View.make_page
           events
           title in
         Lwt.return (Ok ())
       )
-    )
-  )        
+    )    
   
 
 let () =
