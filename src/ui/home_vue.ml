@@ -67,5 +67,3 @@ let init () =
     );
 
   let _obj = Vue.init ~data_js () in ()
-
-let () = init ()

@@ -2088,6 +2088,7 @@
 		opacity: 0;
 		width: 1em;
 		z-index: -1;
+		position: relative;
 	}
 
 		input[type="checkbox"] + label,

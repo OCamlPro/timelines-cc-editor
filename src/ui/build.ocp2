@@ -1,9 +1,14 @@
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
+   	 "../../libs/ocplib-jsutils/libs/timeline/timeline.ml", pp_js;
+	 "args.ml";
 	 "ui_utils.ml", pp_js;
    	 "request.ml", pp_js;
    	 "controller.ml", pp_js;
    	 "home_vue.ml", pp_js;
+	 "timeline_vue.ml", pp_js;
+	 "pages.ml";
+	 "main.ml"
 	 ];
    requires = [
     "js_of_ocaml";
@@ -17,7 +22,7 @@ OCaml.program("ocptimeline-js", ocaml + {
     "data-encoding";
     "api-data";
     "api-services";
-    "vue-js-lib"
+    "vue-js-lib";
     ];
    bytecomp = ["-g" ;"-annot"];
    build_rules = [

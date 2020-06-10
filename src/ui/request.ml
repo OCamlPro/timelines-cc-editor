@@ -19,7 +19,7 @@ let api () =
     | Some u -> u
     | None -> assert false *)
 
-let cook encoding cont =
+let cook ?error encoding cont =
   (fun str ->
      Js_utils.log "Cooking";
      let yoj = Yojson.Safe.from_string str in
@@ -35,11 +35,14 @@ let cook encoding cont =
            str
            (Printexc.to_string e)
          ;
-         raise e in
+         match error with
+         | None -> raise e
+         | Some e -> e
+     in
      cont elt
   )
 
-let get ?(args = []) (apifun : _ EzAPI.service) apiargs cont =
+let get ?error ?(args = []) (apifun : _ EzAPI.service) apiargs cont =
   let url = api () in (*
   let url = (* Only for standalone !! *)
     match url wit<h
@@ -60,7 +63,7 @@ let get ?(args = []) (apifun : _ EzAPI.service) apiargs cont =
     Ok elt ->
     Js_utils.log "GET %s OK: %s" api_fun_name elt;
     let enc = EzAPI.service_output apifun in
-    cook enc cont elt
+    cook ?error enc cont elt
   | Error e ->
     let code, msg = Xhr_lwt.error_content e in
     Js_utils.log "Error %i while getting to api: %s" code msg;
@@ -95,6 +98,7 @@ let args_from_session args =
 let timeline_data ~args timeline cont =
   let args = args_from_session args in
   get
+    ~error:(Error "GET timeline_data failed")
     ~args
     ApiServices.timeline_data [timeline]
     cont

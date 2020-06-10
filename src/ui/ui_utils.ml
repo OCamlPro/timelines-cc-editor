@@ -53,6 +53,8 @@ let get_auth_data () =
 
 let hash _s = failwith "Unimplemented hash function Ui_utils.hash" 
 
+let trim s = String.map (function ' ' -> '-' | c -> c) s 
+
 (*
 let link ?(args=[]) path =
   match args with
