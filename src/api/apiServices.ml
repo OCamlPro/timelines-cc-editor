@@ -205,13 +205,13 @@ let export_database : (string, unit api_result) service1 =
     ~output:ApiData.unit_api_result_encoding
     Path.(root // "export_database" /: arg_timeline ())
 
-let create_timeline : ((title * bool), string api_result) post_service0 =
+let create_timeline : (string, (title * bool), string api_result) post_service1 =
   post_service
     ~params:auth_params
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
     ~output:ApiData.str_api_result_encoding
-    Path.(root // "create_timeline")
+    Path.(root // "create_timeline" /: arg_timeline ())
 
 let user_timelines : (unit, string list api_result) post_service0 =
   post_service

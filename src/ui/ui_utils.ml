@@ -5,6 +5,55 @@ open Form
 open Js_utils
 open Ocp_js
 
+module Session = struct
+  let get_session () = Js.Optdef.to_option (Dom_html.window##.sessionStorage)
+
+  let get_value key =
+    let key' = Js.string key in
+    match get_session () with
+    | None ->
+      Js_utils.log "Session not found while getting value";
+      None
+    | Some session -> begin
+        match Js.Opt.to_option (session##getItem key') with
+        | None -> None
+        | Some s ->
+          let result = Js.to_string s in
+          Some result
+      end
+
+  let set_value key value =
+    match get_session () with
+    | None -> Js_utils.log "Session not found while setting value"
+    | Some session ->
+      let key   = Js.string key   in
+      let value = Js.string value in
+      session##setItem key value
+
+  let remove_value key =
+    let key' = Js.string key in
+    match get_session () with
+    | None ->
+      Js_utils.log "Session not found while removing value"
+    | Some session -> begin
+        match Js.Opt.to_option (session##getItem key') with
+        | None -> ()
+        | Some _ -> session##removeItem key'
+      end
+end
+
+let auth_session email auth_data =
+  Session.set_value "email" email;
+  Session.set_value "auth_data" auth_data
+
+let get_auth_data () =
+  match Session.get_value "email", Session.get_value "auth_data" with
+    Some e, Some a -> Some (e, a)
+  | _ -> None
+
+let hash _s = failwith "Unimplemented hash function Ui_utils.hash" 
+
+(*
 let link ?(args=[]) path =
   match args with
   | [] -> path
@@ -684,3 +733,4 @@ let add_arg_unique key bnd arg =
         (key, bnd) :: tl
       else (hd, hd') :: (loop tl)
   in loop arg
+*)

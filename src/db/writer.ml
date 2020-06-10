@@ -123,11 +123,9 @@ let update_pwd email pwdhash =
     let () = PGSQL(dbh) "UPDATE users_ SET pwhash_=$real_pwdhash WHERE email_=$email" in
     Ok ()
 
-let create_private_timeline (email : string) (title : title) =
+let create_private_timeline (email : string) (title : title) (timeline_id : string) =
   match Reader.user_exists email with
   | Some _ -> (* User exists, now checking if the timeline already exists *)
-    let timeline_id = title.unique_id in
-    Format.eprintf "Timeline id before check: %s@." timeline_id;
     let timeline_id = String.map (function ' ' -> '-' | c -> c) timeline_id in
     let timeline_id = Utils.check_unique_id Reader.timeline_exists timeline_id in
     let users = [Some email] in
@@ -147,9 +145,7 @@ let create_private_timeline (email : string) (title : title) =
     end
   | None -> Error ("User " ^ email ^ " does not exist")  
 
-let create_public_timeline (title : title) =
-    let timeline_id = title.unique_id in
-    Format.eprintf "Timeline id before check: %s@." timeline_id;
+let create_public_timeline (title : title) (timeline_id : string) =
     let timeline_id = String.map (function ' ' -> '-' | c -> c) timeline_id in
     let timeline_id = Utils.check_unique_id Reader.timeline_exists timeline_id in
     let users = [] in

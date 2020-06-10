@@ -192,10 +192,10 @@ let logout cont =
       (email, auth_data)
       cont
 
-let create_timeline title is_public cont =
+let create_timeline timeline_id title is_public cont =
   post 
     ~args:(args_from_session [])
-    ApiServices.create_timeline []
+    ApiServices.create_timeline [timeline_id]
     (title, is_public)
     cont
 

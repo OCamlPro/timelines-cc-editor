@@ -217,16 +217,16 @@ let export_database (req, timeline_id) () =
     )
   )
 
-let create_timeline req (title, public) =
+let create_timeline (req, name) (title, public) =
   is_auth req (fun auth ->
     match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
     | None ->
-      EzAPIServerUtils.return @@ Writer.create_public_timeline title      
+      EzAPIServerUtils.return @@ Writer.create_public_timeline title name
     | Some email ->
       if not public && auth then
-        EzAPIServerUtils.return @@ Writer.create_private_timeline email title
+        EzAPIServerUtils.return @@ Writer.create_private_timeline email title name
       else
-        EzAPIServerUtils.return @@ Writer.create_public_timeline title
+        EzAPIServerUtils.return @@ Writer.create_public_timeline title name
   )
 
 let user_timelines req () =

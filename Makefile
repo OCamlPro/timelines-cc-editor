@@ -29,12 +29,13 @@ api: db
 
 js:
 	ocp-build ocptimeline-js
-	mkdir -p www/js
-	cp _obuild/ocptimeline-js/ocptimeline-js.js www/js/
+	cp _obuild/ocptimeline-js/ocptimeline-js.js www/assets/js/
+
+website:
+	bash generate_website.sh
 
 clean:
 	rm -rf _obuild/*
-	rm -f -f www/js/*
 	rm -f csv-parser
 	rm -f csv-dbparser
 	rm -f db-version.txt

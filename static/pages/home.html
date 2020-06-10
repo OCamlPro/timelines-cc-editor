@@ -1,0 +1,60 @@
+<!--
+    Theory by TEMPLATED
+    templated.co @templatedco
+    Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+  -->
+
+<!-- Header -->
+<header id="header">
+  <div class="inner">
+    <a href="index.html" class="logo">{{logo}}</a>
+    <nav id="nav">
+      <a href="#create-timeline"><button class="special">{{navHome}}</button></a>
+    </nav>
+    <a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+  </div>
+</header>
+
+<!-- Banner -->
+<section id="banner">
+  <h1>{{title}}</h1>
+  <p>{{subtitle}}</p>
+</section>
+
+<section id="one" class="wrapper">
+  <div class="inner">
+    <div class="flex flex-2">
+      <article id="create-timeline">
+	<header>
+	  <h3>{{createTimelineTitle}}</h3>
+	</header>
+	<p>{{createDescr}}</p>
+	<form id="create-form">
+	  <input
+	    :placeholder="createNamePlaceholder"
+	    :title="createNameHelp"
+	    ><br/>
+	  <input
+	    type="text"
+	    :placeholder="createDescrPlaceholder"
+	    :title="createDescrHelp">
+	  <button
+	    class="special"
+	    @click="createTimeline()">{{createButtonMessage}}</button>
+	</form>
+      </article>
+      <article>
+	<header>
+	  <h3 >{{shareTitle}}</h3>
+	</header>
+	<p>{{shareDescr}}</p>
+	<form>
+	  <input :placeholder="shareNamePlaceholder" :title="shareNameHelp">
+	</form>
+	<footer>
+	  <button class="special" @click="shareTimeline()">{{shareButton}}</button>
+	</footer>
+      </article>
+    </div>
+  </div>
+</section>

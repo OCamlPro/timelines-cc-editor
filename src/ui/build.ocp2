@@ -1,17 +1,9 @@
-
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
-   	 "dispatcher.ml";
-   	 "ui_utils.ml", pp_js;
-	 "panel.ml", pp_js;
-	 "request.ml";
-	 "controller.ml", pp_js;
-	 "admin.ml", pp_js;
-	 "home.ml", pp_js;
-	 "timeline_select.ml", pp_js;
-	 "view.ml", pp_js;
-	 "pages.ml", pp_js;
-	 "main.ml", pp_js;
+	 "ui_utils.ml", pp_js;
+   	 "request.ml", pp_js;
+   	 "controller.ml", pp_js;
+   	 "home_vue.ml", pp_js;
 	 ];
    requires = [
     "js_of_ocaml";
@@ -24,7 +16,8 @@ OCaml.program("ocptimeline-js", ocaml + {
     "timeline-data";
     "data-encoding";
     "api-data";
-    "api-services"
+    "api-services";
+    "vue-js-lib"
     ];
    bytecomp = ["-g" ;"-annot"];
    build_rules = [
@@ -44,40 +37,3 @@ OCaml.program("ocptimeline-js", ocaml + {
     }
     ]
     });
-(*
-OCaml.program("ocptimeline-js-website", ocaml + {
-   files = [
-   	 "ui_utils.ml", pp_js;
-	 "request.ml";
-	 "main_simple.ml", pp_js;
-	 ];
-   requires = [
-    "js_of_ocaml";
-    "js_of_ocaml-tyxml";
-    "js_of_ocaml-lwt";
-    "ocplib-utils-js";
-    "yojson";
-    "xhr-lwt";
-    "config";
-    "timeline-data";
-    "data-encoding";
-    "api-data"
-    ];
-   bytecomp = ["-g" ;"-annot"];
-   build_rules = [
-    "%{ocptimeline-js-website_FULL_DST_DIR}%/ocptimeline-js-website.js", {
-      build_target = true;
-      sources = "%{ocptimeline-js-website_FULL_DST_DIR}%/ocptimeline-js-website.byte";
-      commands = [
-          OCaml.system([
-                          "js_of_ocaml";
-                          "+weak.js";
-                          "+nat.js";
-                          "--sourcemap";
-                          "--pretty";
-                          "%{ocptimeline-js-website_FULL_DST_DIR}%/ocptimeline-js-website.byte";
-                        ])
-        ]
-    }
-    ]
-    }); *)

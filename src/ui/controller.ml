@@ -1,4 +1,29 @@
-open Data_types
+open Lwt
+
+let finish =
+  function
+  | Ok _ -> Lwt.return (Ok ())
+  | Error s -> Js_utils.alert ("Error: " ^s); Lwt.return (Ok ())
+
+let create_timeline name descr =
+  let timeline_id =
+    match name with
+    | "" ->
+      Random.self_init ();
+      let i1 = Random.bits () |> string_of_int in
+      let i2 = Random.bits () |> string_of_int in
+      i1 ^ i2
+    | _ -> name
+  in
+  let title = Utils.to_title_event name descr in
+  let msg = Format.sprintf "You will create the timeline %s : %s, are you sure ?" timeline_id descr in
+  if Js_utils.confirm msg then
+    Request.create_timeline timeline_id title true finish |> ignore
+  else
+    ()
+  
+
+(*open Data_types
 
 let finish () = Lwt.return (Ok ())
 
@@ -175,3 +200,4 @@ let remove_account () =
         Js_utils.alert "Error while deleting account."; 
         Lwt.return (Error (Xhr_lwt.Str_err s))
     )
+*)
