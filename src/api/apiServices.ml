@@ -216,7 +216,7 @@ let create_timeline : (string, (title * bool), string api_result) post_service1 
 let user_timelines : (unit, string list api_result) post_service0 =
   post_service
     ~params:auth_params
-    ~name:"create_timeline"
+    ~name:"user_timeline"
     ~input:unit
     ~output:ApiData.str_list_api_result_encoding
     Path.(root // "user_timelines")
