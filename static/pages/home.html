@@ -33,14 +33,17 @@
 	  <input
 	    :placeholder="createNamePlaceholder"
 	    :title="createNameHelp"
+	    v-model="createNameValue"
 	    ><br/>
 	  <input
 	    type="text"
 	    :placeholder="createDescrPlaceholder"
-	    :title="createDescrHelp">
+	    :title="createDescrHelp"
+	    v-model="createDescrValue">
+	  <div></div>
 	  <button
 	    class="special"
-	    @click="createTimeline()">{{createButtonMessage}}</button>
+	    @click="createTimeline()">{{createButtonMessage}} {{createNameValue}}</button>
 	</form>
       </article>
       <article>

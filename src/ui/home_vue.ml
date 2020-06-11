@@ -46,7 +46,7 @@ let init () =
       val createDescrPlaceholder = jss "Description";
       val createNameHelp = jss "The name of your timeline (will be used in the URL)";
       val createDescrHelp = jss "A description of your timeline.";
-      val createButtonMessage = jss "Start";
+      val createButtonMessage = jss "Start timeline";
 
       val mutable createNameValue = jss ""
       val mutable createDescrValue = jss ""

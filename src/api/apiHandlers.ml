@@ -43,6 +43,7 @@ let if_ ~error has args cont =
   has args (fun right -> if right then cont () else error ())
 
 let event (req, id) () =
+  Format.eprintf "CALL event";
   Reader.timeline_of_event id >>= (function
   | Some tid ->
     confidential_rights (req, tid) (fun has_rights ->
@@ -55,10 +56,12 @@ let event (req, id) () =
   )
 
 let events (req,timeline_id) () =
+  Format.eprintf "CALL events";
   confidential_rights (req, timeline_id) (fun has_rights ->
     Reader.events has_rights timeline_id >>= EzAPIServerUtils.return)
 
 let title (req,timeline_id) () =
+  Format.eprintf "CALL title";
   (* To respect privacy, error is the same whether the timeline exists or not. *)
   let error () = EzAPIServerUtils.return (Error "Unknown title") in 
   Reader.title timeline_id >>= (function
@@ -74,11 +77,13 @@ let title (req,timeline_id) () =
   )
 
 let add_event (req, timeline_id) event =
+  Format.eprintf "CALL add_event";
   if_ ~error:unauthorized edition_rights (req,timeline_id) (fun () ->
     EzAPIServerUtils.return @@ Writer.add_event event timeline_id
   )
     
 let update_event req (id, old_event, event) =
+  Format.eprintf "CALL update_event";
   Reader.timeline_of_event id >>= (function
     | None -> EzAPIServerUtils.return (Failed "Event associated to no timeline")
     | Some tid ->
@@ -125,6 +130,7 @@ let update_event req (id, old_event, event) =
     )
 
 let timeline_data (req, tid) () =
+  Format.eprintf "CALL timeline_data";
   let start_date =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
   let end_date =
@@ -175,6 +181,7 @@ let timeline_data (req, tid) () =
       () >>= EzAPIServerUtils.return
 
 let remove_event (req, id) () =
+  Format.eprintf "CALL remove_event";
   Reader.timeline_of_event id >>= (function
     | None -> EzAPIServerUtils.return (Error "Event does not exist")
     | Some tid ->
@@ -184,21 +191,26 @@ let remove_event (req, id) () =
     )
 
 let categories (req, id) () =
+  Format.eprintf "CALL categories";
   confidential_rights (req, id) (fun rights ->
     ((Reader.categories rights id) >>= EzAPIServerUtils.return)
     )
 
 let register_user _ (email, pwdhash) =
+  Format.eprintf "CALL register_user";
   EzAPIServerUtils.return (Writer.register_user email pwdhash)
 
 let login _ (email, pwdhash) =
+  Format.eprintf "CALL login";
   Reader.Login.login email pwdhash >>= EzAPIServerUtils.return
 
 let logout _ (email, cookie) =
+  Format.eprintf "CALL logout";
   Reader.Login.logout email cookie >>= EzAPIServerUtils.return
 
 
 let export_database (req, timeline_id) () =
+  Format.eprintf "CALL export_database";
   confidential_rights (req, timeline_id) (fun rights ->
     Reader.title timeline_id >>= (fun title ->
       Reader.events rights timeline_id >>= (fun events ->
@@ -218,6 +230,7 @@ let export_database (req, timeline_id) () =
   )
 
 let create_timeline (req, name) (title, public) =
+  Format.eprintf "CALL create_database";
   is_auth req (fun auth ->
     match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
     | None ->
@@ -230,6 +243,7 @@ let create_timeline (req, name) (title, public) =
   )
 
 let user_timelines req () =
+  Format.eprintf "CALL user_timelines";
   if_ is_auth ~error:unauthorized req (fun () ->
     match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
     | None ->
@@ -239,6 +253,7 @@ let user_timelines req () =
     )
 
 let allow_user req (email, timeline_id) =
+  Format.eprintf "CALL allow_user";
   if_ ~error:unauthorized has_admin_rights (req, timeline_id) (fun () ->
     if_ ~error:unauthorized has_admin_rights (req, timeline_id) (fun () ->
       EzAPIServerUtils.return @@ Writer.allow_user_to_timeline email timeline_id
@@ -246,12 +261,14 @@ let allow_user req (email, timeline_id) =
   )
 
 let timeline_users (req,tid) () =
+  Format.eprintf "CALL timeline_users";
   if_ ~error:unauthorized edition_rights (req,tid) (fun () ->
       Reader.timeline_users tid >>= fun l -> EzAPIServerUtils.return (Ok l)
   )
   
 
 let remove_user req () =
+  Format.eprintf "CALL remove_user";
   if_ ~error:unauthorized is_auth req (fun () ->
     match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
     | None ->
@@ -260,18 +277,26 @@ let remove_user req () =
   )
 
 let remove_timeline (req,tid) () =
+  Format.eprintf "CALL remove_timeline";
   if_ ~error:unauthorized edition_rights (req,tid) (fun () -> 
     EzAPIServerUtils.return @@ Writer.remove_timeline tid    
   )
 
 let get_view_token (_, tid) () =
+  Format.eprintf "CALL get_view_token";
   Reader.get_view_token tid >>= EzAPIServerUtils.return
 
 let is_auth req () =
+  Format.eprintf "CALL is_auth";
   is_auth req EzAPIServerUtils.return 
 
 let has_admin_rights (req, tid) () =
+  Format.eprintf "CALL has_admin_rights";
   has_admin_rights (req, tid) EzAPIServerUtils.return 
+
+let version _ () =
+  Format.eprintf "CALL version";
+  EzAPIServerUtils.return "0.1"
 
 (*
 let reinitialize _ events =

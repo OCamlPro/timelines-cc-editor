@@ -79,7 +79,7 @@ let post ~args (apifun : _ EzAPI.service) apiargs input cont =
   let output_encoding = EzAPI.service_output apifun in
   Xhr_lwt.post ~args ~base:url input_encoding output_encoding api_fun_name input >>=
   (fun res ->
-     Js_utils.log "POST %s returned something" api_fun_name;
+     Js_utils.log "POST  %s%s returned something" (Js_of_ocaml.Url.string_of_url url) api_fun_name;
      match res with
      | Ok elt -> cont elt
      | Error e ->

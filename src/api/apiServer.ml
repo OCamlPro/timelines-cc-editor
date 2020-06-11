@@ -27,6 +27,7 @@ let start () =
     |> EzAPIServerUtils.register S.remove_user H.remove_user
     |> EzAPIServerUtils.register S.remove_timeline H.remove_timeline
     |> EzAPIServerUtils.register S.get_view_token H.get_view_token
+    |> EzAPIServerUtils.register S.version H.version
   in
   let servers = [ Config.api_port, EzAPIServerUtils.API dir ] in
   Lwt_main.run (

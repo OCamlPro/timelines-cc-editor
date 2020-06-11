@@ -259,3 +259,9 @@ let get_view_token : (string, string api_result) service1 =
     ~name:"get_view_token"
     ~output:ApiData.str_api_result_encoding
     Path.(root // "get_view_token" /: arg_timeline ())
+
+let version : string service0 =
+  service
+    ~name:"version"
+    ~output:Json_encoding.string
+    Path.(root // "version")
