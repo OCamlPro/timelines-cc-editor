@@ -18,9 +18,20 @@ let create_timeline name descr =
   let title = Utils.to_title_event name descr in
   let msg = Format.sprintf "You will create the timeline %s : %s, are you sure ?" timeline_id descr in
   if Js_utils.confirm msg then
-    Request.create_timeline timeline_id title true finish |> ignore
-  else
-    ()
+    Request.create_timeline timeline_id title true (
+      fun res ->
+        let () = match res with
+          | Error _->
+            Js_utils.log "Error from timeline API"       
+          (* Todo: better error message *)
+          | Ok id ->
+            let new_page = Format.sprintf "/timeline?timeline=%s" id in
+            Js_utils.log "Going to %s" new_page;
+            Ui_utils.goto_page new_page
+        in finish res
+    )
+  else 
+  Lwt.return (Ok ())
   
 
 (*open Data_types

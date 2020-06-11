@@ -33,32 +33,32 @@ let timeline_page () =
     finish ()
   | Some tid ->
     Request.timeline_data ~args tid (fun data ->
-        let title, events =
-          match data with
-          | Error s -> Js_utils.alert s;
-            None, []
-          | Ok t -> t in
-        let on_page =
-          match data with
-          | Error _ -> Timeline_vue.No_timeline
-          | Ok t -> Timeline_vue.Timeline {title; events; name = tid} in
-        let categories =
-          List.fold_left
-            (fun acc (_, {Data_types.group; _}) ->
-               match group with
-               | None -> acc
-               | Some g -> Utils.StringSet.add g acc
-            )
-            Utils.StringSet.empty
-            events in
-        let categories =
-          let in_args = Args.get_categories args in            
-          Utils.StringSet.fold
-            (fun s acc -> (s, List.mem s in_args) :: acc)
-            categories
-            [] in
-        Timeline_vue.init ~categories ~on_page;
-        finish ()
+      let title, events =
+        match data with
+        | Error s -> Js_utils.alert s;
+          None, []
+        | Ok t -> t in
+      let on_page =
+        match data with
+        | Error _ -> Timeline_vue.No_timeline
+        | Ok t -> Timeline_vue.Timeline {title; events; name = tid} in
+      let categories =
+        List.fold_left
+          (fun acc (_, {Data_types.group; _}) ->
+             match group with
+             | None -> acc
+             | Some g -> Utils.StringSet.add g acc
+          )
+          Utils.StringSet.empty
+          events in
+      let categories =
+        let in_args = Args.get_categories args in            
+        Utils.StringSet.fold
+          (fun s acc -> (s, List.mem s in_args) :: acc)
+          categories
+          [] in
+      Timeline_vue.init ~categories ~on_page;
+      finish ()
       )
 
 let () =

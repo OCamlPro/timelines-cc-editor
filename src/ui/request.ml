@@ -67,7 +67,9 @@ let get ?error ?(args = []) (apifun : _ EzAPI.service) apiargs cont =
   | Error e ->
     let code, msg = Xhr_lwt.error_content e in
     Js_utils.log "Error %i while getting to api: %s" code msg;
-    Lwt.return (Error e)
+    match error with
+      None -> Lwt.return (Error e)
+    | Some e -> cont e
 
 let post ~args (apifun : _ EzAPI.service) apiargs input cont =
   let api_fun_name = EzAPI.get_service_path apifun apiargs in
@@ -76,7 +78,7 @@ let post ~args (apifun : _ EzAPI.service) apiargs input cont =
   let () =
     Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) api_fun_name in
   let input_encoding = EzAPI.service_input apifun in
-  let output_encoding = EzAPI.service_output apifun in
+  let output_encoding = Json_encoding.tup1 @@ EzAPI.service_output apifun in
   Xhr_lwt.post ~args ~base:url input_encoding output_encoding api_fun_name input >>=
   (fun res ->
      Js_utils.log "POST  %s%s returned something" (Js_of_ocaml.Url.string_of_url url) api_fun_name;

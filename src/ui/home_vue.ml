@@ -1,3 +1,6 @@
+open Ui_utils
+open Lwt
+
 module Js = Js_of_ocaml.Js
 
 class type data = object
@@ -31,8 +34,6 @@ end
 
 module Vue = Vue_js.Make (Input)
 
-let jss = Js.string
-
 let init () =
   let data_js : data Js.t =
     object%js
@@ -63,7 +64,8 @@ let init () =
     (fun (self : data Js.t) ->
        Controller.create_timeline
          (Js_of_ocaml.Js.to_string self##.createNameValue)
-         (Js_of_ocaml.Js.to_string self##.createDescrValue);
+         (Js_of_ocaml.Js.to_string self##.createDescrValue) >>=
+       (fun _ -> Js_utils.log "Ok!"; Lwt.return (Ok ()));
     );
 
   let _obj = Vue.init ~data_js () in ()

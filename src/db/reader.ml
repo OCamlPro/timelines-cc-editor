@@ -182,8 +182,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let timeline_data
       ~(with_confidential : bool)
       ~(tid : string)
-      ?(start_date      = CalendarLib.Date.from_jd 0)
-      ?(end_date        = CalendarLib.Date.mardi_gras max_int)
+      ?(start_date      = CalendarLib.Date.from_jd min_int)
+      ?(end_date        = CalendarLib.Date.from_jd max_int)
       ?(min_ponderation = 0)
       ?(max_ponderation = 100000)
       ?(groups=[])

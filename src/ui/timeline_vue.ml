@@ -1,4 +1,5 @@
 open Data_types
+open Ui_utils
 
 module Js = Js_of_ocaml.Js
 
@@ -51,8 +52,6 @@ module PageContent = struct
 end
 
 module Vue = Vue_js.Make (PageContent)
-
-let jss = Js.string
 
 let page_vue (categories : (string * bool) list) : data Js.t =
   let categories : categoryFilter Js.t Js.js_array Js.t =

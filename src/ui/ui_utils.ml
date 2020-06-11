@@ -55,6 +55,11 @@ let hash _s = failwith "Unimplemented hash function Ui_utils.hash"
 
 let trim s = String.map (function ' ' -> '-' | c -> c) s 
 
+let jss = Js.string
+
+let goto_page s = Ocp_js.Dom_html.window##.location##.href := jss s
+  
+
 (*
 let link ?(args=[]) path =
   match args with
