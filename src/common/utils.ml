@@ -233,7 +233,12 @@ let list_init n f =
 
 module StringSet = Set.Make (String)
 
+let trim =
+  String.map
+    (function | ' ' | '\n' | '\r' | '\t' -> '-' | c -> c)
+
 let check_unique_id check_is_used id =
+  let id = trim id in
   if check_is_used id then
     let rec loop (i : int) =
       let new_name = (id ^ "-" ^ (string_of_int i)) in
@@ -242,4 +247,3 @@ let check_unique_id check_is_used id =
       else new_name
     in loop 2
   else id
-  

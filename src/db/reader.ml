@@ -208,7 +208,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
-             id_ > 0 AND \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $?start_date AND $?end_date) AND \
              (ponderation_ BETWEEN $?min_ponderation AND $?max_ponderation) AND \
@@ -218,7 +217,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
-             id_ > 0 AND \
              (start_date_ BETWEEN $?start_date AND $?end_date) AND \
              (ponderation_ BETWEEN $?min_ponderation AND $?max_ponderation) AND \
              ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
@@ -227,7 +225,6 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
-             id_ > 0 AND \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $?start_date AND $?end_date) AND \
              (ponderation_ BETWEEN $?min_ponderation AND $?max_ponderation) AND \

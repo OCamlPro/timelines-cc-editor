@@ -59,6 +59,7 @@ let jss = Js.string
 
 let goto_page s = Ocp_js.Dom_html.window##.location##.href := jss s
   
+let click elt = (Js_utils.Manip.get_elt "click" elt)##click
 
 (*
 let link ?(args=[]) path =

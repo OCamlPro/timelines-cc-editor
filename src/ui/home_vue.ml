@@ -24,7 +24,8 @@ class type data = object
     method shareDescr : Js.js_string Js.t Js.readonly_prop
     method shareNamePlaceholder : Js.js_string Js.t Js.readonly_prop
     method shareNameHelp : Js.js_string Js.t Js.readonly_prop
-    method shareButton : Js.js_string Js.t Js.readonly_prop
+    method shareNameValue : Js.js_string Js.t Js.readonly_prop
+    method url : Js.js_string Js.t Js.readonly_prop
   end
 
 module Input = struct
@@ -38,7 +39,7 @@ let init () =
   let data_js : data Js.t =
     object%js
       val logo = jss "EZ-Timeline"
-      val navHome = jss "Home";
+      val navHome = jss "Get started";
       val title = jss "Welcome to EZ-Timeline";
       val subtitle = jss "The simplest way to organize your story";
       val createTimelineTitle = jss "Create your own timeline";
@@ -55,8 +56,9 @@ let init () =
       val shareTitle = jss "Share your timeline with everyone";
       val shareDescr = jss "You can share your timeline with others without giving the rights to edit it. Select the timeline you want to share";
       val shareNamePlaceholder = jss "Name";
-      val shareNameHelp = jss "The name of the timeline you want to export. It can be its name or its full URL";
-      val shareButton = jss "Share";
+      val shareNameHelp = jss "The name of the timeline you want to export";
+      val shareNameValue = jss "";
+      val url = jss (Jsloc.host ())
     end
   in
   Vue.add_method0

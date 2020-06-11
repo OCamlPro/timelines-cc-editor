@@ -11,7 +11,6 @@
     <nav id="nav">
       <a href="#create-timeline"><button class="special">{{navHome}}</button></a>
     </nav>
-    <a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
   </div>
 </header>
 
@@ -52,11 +51,9 @@
 	</header>
 	<p>{{shareDescr}}</p>
 	<form>
-	  <input :placeholder="shareNamePlaceholder" :title="shareNameHelp">
+	  <input :placeholder="shareNamePlaceholder" :title="shareNameHelp" v-model="shareNameValue">
+	  <p>Link to share: {{url}}/view?timeline={{shareNameValue}}</p>
 	</form>
-	<footer>
-	  <button class="special" @click="shareTimeline()">{{shareButton}}</button>
-	</footer>
       </article>
     </div>
   </div>

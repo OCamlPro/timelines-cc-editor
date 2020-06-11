@@ -125,8 +125,8 @@ let title ~args tid cont =
     ApiServices.title [tid]
     cont
 
-let add_event ~args (tid : string) (event : Data_types.event) cont =
-  let args = args_from_session args in
+let add_event (tid : string) (event : Data_types.event) cont =
+  let args = args_from_session [] in
   post
     ~args
     ApiServices.add_event [tid]

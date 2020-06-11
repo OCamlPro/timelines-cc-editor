@@ -1,7 +1,7 @@
 type t = (string * string) list
 
-let get () = Jsloc.args ()
-let set = Jsloc.set_args
+(* Utils *)
+let get_args () = Jsloc.args ()
 let set_unique key bnd (args : t) = 
   let rec loop acc = function
     | [] -> (key, bnd) :: List.rev acc
@@ -11,6 +11,17 @@ let set_unique key bnd (args : t) =
       else loop (hd :: acc) tl
   in
   loop [] args
+
+let get_unique = List.assoc_opt
+let get_list k =
+  List.fold_left
+    (fun acc (key, bnd) ->
+       if key = k then
+         bnd :: acc
+       else
+         acc
+    )
+    []
 
 let remove_unique key (args : t) = 
   let rec loop acc = function
@@ -39,21 +50,18 @@ let remove key bnd (args : t) =
       else loop (hd :: acc) tl
   in
   loop [] args
-    
+
+(* Arguments *)
+(* Timeline *)
 let get_timeline args = List.assoc_opt "timeline" args
 let set_timeline tid (args : t) = set_unique "timeline" tid args
-let unset_timeline tid (args : t) = remove_unique "timeline" args
+let unset_timeline (args : t) = remove_unique "timeline" args
 
-let get_categories (args : t) =
-  List.fold_left
-    (fun acc (key, bnd) ->
-       if key = "group" then
-         bnd :: acc
-       else
-         acc
-    )
-    []
-    args
-
+(* Categories *)
+let get_categories (args : t) = get_list "group" args
 let add_category cat (args : t) = set "group" cat args
 let remove_category cat (args : t) = remove "group" cat args
+
+(* Event *)
+let get_event args = List.assoc_opt "event" args
+let set_event eid (args : t) = set_unique "event" eid args

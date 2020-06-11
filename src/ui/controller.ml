@@ -1,4 +1,5 @@
 open Lwt
+open Data_types
 
 let finish =
   function
@@ -32,7 +33,52 @@ let create_timeline name descr =
     )
   else 
   Lwt.return (Ok ())
-  
+
+let add_event
+    ~start_date
+    ~end_date
+    ~media
+    ~headline
+    ~text
+    ~unique_id
+    ~group
+    ~ponderation
+    ~confidential
+    ~tags
+    ~timeline
+  =
+  let start_date =
+    match start_date with
+    | None -> CalendarLib.Date.today ()
+    | Some d -> d in
+  let unique_id =
+    match unique_id with
+    | "" -> headline
+    | _ -> unique_id in
+  let tags = String.split_on_char ',' (Utils.trim tags) in
+  let media =
+    match media with
+    | "" -> None
+    | url -> Some {url} in
+  let group =
+    match group with
+    | "" -> None
+    | _ -> Some group in
+  let event = {
+    start_date;
+    end_date;
+    media;
+    text = {headline; text};
+    unique_id;
+    group;
+    ponderation;
+    confidential;
+    last_update = Some (CalendarLib.Date.today ());
+    tags
+  } in
+  Request.add_event timeline event (fun _ -> Lwt.return (Ok ()))
+
+
 
 (*open Data_types
 
