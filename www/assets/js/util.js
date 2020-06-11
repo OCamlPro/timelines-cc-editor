@@ -6,7 +6,7 @@
      */
     $.fn.navList = function() {
 
-	var	$this = $(this);
+	var $this = $(this);
 	$a = $this.find('a'),
 	b = [];
 
@@ -40,7 +40,7 @@
      * @return {jQuery} jQuery object.
      */
     $.fn.panel = function(userConfig) {
-
+	
 	// No elements?
 	if (this.length == 0)
 	    return $this;
@@ -273,12 +273,11 @@
 
 	// Event: Toggle.
 	$body.on('click', 'a[href="#' + id + '"]', function(event) {
-
+	    console.log ("Preparing nav");
 	    event.preventDefault();
 	    event.stopPropagation();
-
 	    config.target.toggleClass(config.visibleClass);
-
+	    console.log ("Nav is visible");
 	});
 
 	// Window.
