@@ -41,6 +41,7 @@ class type data = object
   method ponderationFormTitle  : Js.js_string Js.t Js.readonly_prop
   method confidentialFormTitle : Js.js_string Js.t Js.readonly_prop
   method backButton            : Js.js_string Js.t Js.readonly_prop
+  method removeButton          : Js.js_string Js.t Js.readonly_prop
 
   method startDateFormValue    : Js.js_string Js.t Js.prop
   method endDateFormValue      : Js.js_string Js.t Js.prop
@@ -116,6 +117,7 @@ let page_vue (timeline_name : string) (categories : (string * bool) list) : data
     val ponderationFormTitle  = jss "Ponderation"
     val confidentialFormTitle = jss "Confidential"
     val backButton            = jss "Back"
+    val removeButton          = jss "Remove event"
 
     val mutable startDateFormValue    = jss ""
     val mutable endDateFormValue      = jss ""
@@ -290,6 +292,28 @@ let addEvent title_ref events_ref self adding : unit =
         ()
   end
 
+let removeEvent title_ref events_ref self =
+  let u_id = Js.to_string self##.currentEventInForm in
+  let event_id =
+    match List.find_opt (fun (_, e) -> e.unique_id = u_id) !events_ref with
+    | None -> begin
+        match !title_ref with
+        | Some (i, {unique_id; _}) when unique_id = u_id ->
+          Js_utils.alert "You cannot delete the title of your timeline";
+          None
+        | _ ->
+          let err = Format.sprintf "Event with id %s cannot be deleted!" u_id in 
+          Js_utils.alert err;
+          None
+      end
+    | Some (i, _e) -> Some i in
+  match event_id with
+  | None -> ()
+  | Some id ->
+    let _l : _ Lwt.t = Controller.removeEvent id in
+    ()
+  
+
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
@@ -318,6 +342,7 @@ let init
   Vue.add_method1 "showForm" (showForm title_ref events_ref);
   Vue.add_method0 "hideForm" hideForm;
   Vue.add_method1 "addEvent" (addEvent title_ref events_ref);
+  Vue.add_method0 "removeEvent" (removeEvent title_ref events_ref);
 
   let _cat = category_component () in
   let vue = Vue.init ~data_js () in

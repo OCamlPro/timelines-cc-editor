@@ -149,5 +149,6 @@
     id="edit-add"
     @click=addEvent(addingNewEvent)>{{updateEventButton}}</div>
   <div class="button special" id="back-from-edit" @click=hideForm()>{{backButton}}</div>
+  <div class="button special" v-show="!addingNewEvent" @click=removeEvent()>{{removeButton}}</div>
   <span @click=hideForm() class="close"></span>
 </div>

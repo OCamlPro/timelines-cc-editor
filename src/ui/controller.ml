@@ -143,6 +143,13 @@ let update_event
     | Failed s -> Js_utils.alert s; Lwt.return (Error (Xhr_lwt.Str_err s))
     )
 
+let removeEvent i =
+  if Js_utils.confirm "Are you sure to remove this event? You cannot undo this." then
+    Request.remove_event (string_of_int i) (function
+        | Ok () -> Js_utils.reload (); Lwt.return (Ok ())
+        | Error s -> Js_utils.alert ("Error while removing event: " ^ s); Lwt.return (Error (Xhr_lwt.Str_err s))
+      )
+  else Lwt.return (Ok ())
 (*open Data_types
 
 let finish () = Lwt.return (Ok ())

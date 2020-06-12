@@ -146,8 +146,8 @@ let update_event id ~old_event ~new_event cont =
     (id, old_event, new_event)
     cont
 
-let remove_event ~args id cont =
-  let args = args_from_session args in
+let remove_event id cont =
+  let args = args_from_session [] in
   get
     ~args
     ApiServices.remove_event [id]
