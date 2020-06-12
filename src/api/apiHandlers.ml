@@ -231,6 +231,7 @@ let export_database (req, timeline_id) () =
 
 let create_timeline (req, name) (title, public) =
   Format.eprintf "CALL create_database";
+  let name = Utils.trim name in
   is_auth req (fun auth ->
     match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
     | None ->
