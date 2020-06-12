@@ -115,7 +115,9 @@ let update_event req (id, old_event, event) =
                   | Error s -> EzAPIServerUtils.return (Failed s)
                 end else begin
                   match Utils.metaevent_to_event event with
-                  | None -> EzAPIServerUtils.return (Failed "Cannot update an event with a title (start date is missing)")
+                  | None ->
+                    EzAPIServerUtils.return
+                      (Failed "Cannot update an event with a missing start date")
                   | Some e ->
                     match Writer.update_event id e with
                     | Ok _s ->   EzAPIServerUtils.return Success

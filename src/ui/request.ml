@@ -78,8 +78,13 @@ let post ~args (apifun : _ EzAPI.service) apiargs input cont =
   let () =
     Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) api_fun_name in
   let input_encoding = EzAPI.service_input apifun in
-  let output_encoding = Json_encoding.tup1 @@ EzAPI.service_output apifun in
-  Xhr_lwt.post ~args ~base:url input_encoding output_encoding api_fun_name input >>=
+  let output_encoding = EzAPI.service_output apifun in
+  let output_encodings = [
+    output_encoding;
+    Json_encoding.tup1 output_encoding
+  ] in    
+  Xhr_lwt.post
+    ~eprint:Js_utils.log ~args ~base:url input_encoding output_encodings api_fun_name input >>=
   (fun res ->
      Js_utils.log "POST  %s%s returned something" (Js_of_ocaml.Url.string_of_url url) api_fun_name;
      match res with

@@ -93,6 +93,56 @@ let add_event
     Js_utils.alert (Format.sprintf "Error: %s" s);
     Lwt.return (Error (Xhr_lwt.Str_err s))
 
+let update_event
+    ~id
+    ~old_event
+    ~start_date
+    ~end_date
+    ~media
+    ~headline
+    ~text
+    ~unique_id
+    ~group
+    ~ponderation
+    ~confidential
+    ~tags
+    ~timeline =
+  let unique_id =
+    match unique_id with
+    | "" ->
+      if headline = "" then
+        incorrect_input "Headline & unique-id cannot be empty at the same time"
+      else headline
+    | _ -> unique_id in
+  let tags = String.split_on_char ',' (Utils.trim tags) in
+  let media =
+    match media with
+    | "" -> None
+    | url -> Some {url} in
+  let group =
+    match group with
+    | "" -> None
+    | _ -> Some group in
+  let new_event = {
+    start_date;
+    end_date;
+    media;
+    text = {headline; text};
+    unique_id;
+    group;
+    ponderation;
+    confidential;
+    last_update = Some (CalendarLib.Date.today ());
+    tags
+  } in
+  Request.update_event id ~old_event ~new_event (function
+    | Success ->
+      Js_utils.reload (); Lwt.return (Ok ())
+    | Modified t ->
+      Js_utils.alert "Todo: event has been modified while editing."; Lwt.return (Ok ())
+    | Failed s -> Js_utils.alert s; Lwt.return (Error (Xhr_lwt.Str_err s))
+    )
+
 (*open Data_types
 
 let finish () = Lwt.return (Ok ())

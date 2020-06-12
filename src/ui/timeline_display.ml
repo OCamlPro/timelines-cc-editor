@@ -37,7 +37,7 @@ let display_timeline title events =
     | None -> None
     | Some (_, t) -> Some t in
   let events =
-    List.map (fun e ->
+    List.map (fun (_, e) ->
         let text =
           let t = e.text in
           let text = 
@@ -70,19 +70,21 @@ let url_position order =
   Js_utils.log "Url position";
   let path = Ui_utils.get_fragment () in
   match Utils.StringMap.find_opt path order with
-  | None -> 0
-  | Some (i, _) -> i
+  | None -> failwith (Format.sprintf "[url_position] Path %s has not been found" path)
+  | Some (i, None) -> i, None
+  | Some (i, Some e) -> i, Some (e.unique_id)
 
-let go_to_right_slide order =
+let go_to_right_slide ~(whenOnSlide : string option -> unit) order =
   Js_utils.log "Go to the right slide";
-  let position = url_position order in
+  let position, id = url_position order in
   Js_utils.log "Slide %i" position;
   slide_event Next position;
+  whenOnSlide id;
   Js_utils.log "Go to the right OK"
 
 let url id = Ui_utils.url ("#" ^ id) []
 
-let add_handlers_to_markers order =
+let add_handlers_to_markers ~(whenOnSlide:string option -> unit) order =
   Js_utils.log "Add links to markers";
   let marker_order =
     let id_to_markerid i = i ^ "-marker" in  
@@ -101,28 +103,30 @@ let add_handlers_to_markers order =
       | Some (orig_id, (marker_pos, event)) ->
         let () = (* Adding handler *)
           let handler _ =
-            let current_pos = url_position order in
+            let current_pos,_ = url_position order in
             let diff = marker_pos - current_pos in
             let () =
               if diff < 0 then begin (* Go Prev *)
                 slide_event Prev ((-1) * diff);
                 let url = url orig_id in
-                Ui_utils.push url
+                Ui_utils.push url;
               end
               else if diff > 0 then begin
                 slide_event Next diff;
                 let url = url orig_id in
-                Ui_utils.push url
+                Ui_utils.push url;
               end
               else ()
-            in Ocp_js.Js._true
+            in
+            whenOnSlide (Some orig_id);
+            Ocp_js.Js._true
           in
           Ocp_js.Dom.addEventListener
             (Manip.get_elt "click" elt)
             (Ocp_js.Dom.Event.make "click")
             (Ocp_js.Dom.handler handler)
             Ocp_js.Js._true |> ignore in
-        let () = (* Adding image *)
+        let () = (* Adding images *)
           match event with
           | None -> ()
           | Some {media; _} -> begin
@@ -148,28 +152,35 @@ let add_handlers_to_markers order =
     markers;
   Js_utils.log "Markers OK"
 
-let add_handlers_to_arrows order rev_order =
+let add_handlers_to_arrows
+    ~(whenOnSlide : string option -> unit)
+    order
+    rev_order =
   Js_utils.log "Adding handlers to arrows";
   let push_next () =
-    let current_pos = url_position order in
+    let current_pos,_ = url_position order in
     match Utils.IntMap.find_opt (current_pos + 1) rev_order with
     | None ->
       Js_utils.log "Cannot find event at position %i" (current_pos + 1);
+      whenOnSlide None;
       Ocp_js.Js._false
     | Some path ->
       let url = url path in
       Ui_utils.push url;
+      whenOnSlide (Some path);
       Ocp_js.Js._true
   in
   let push_prev () =
-    let current_pos = url_position order in
+    let current_pos,_ = url_position order in
     match Utils.IntMap.find_opt (current_pos - 1) rev_order with
     | None ->
       Js_utils.log "Cannot find event at position %i" (current_pos - 1);
+      whenOnSlide None;
       Ocp_js.Js._false
     | Some path ->
       let url = url path in
       Ui_utils.push url;
+      whenOnSlide (Some path);
       Ocp_js.Js._true
   in
   let next = slide_changer Next in
@@ -209,15 +220,15 @@ let add_handlers_to_arrows order rev_order =
 
 let find_event unique_id events =
   List.find_opt
-    (fun e -> unique_id = e.unique_id)
+    (fun (_, e) -> unique_id = e.unique_id)
     events
 
-let init_slide_from_url title events = begin
+let init_slide_from_url ~whenOnSlide title events = begin
   let events =
-    let e = List.map Utils.event_to_metaevent events in
+    let e = List.map (fun (i, e) -> i, (Utils.event_to_metaevent e)) events in
     match title with
     | None -> e
-    | Some (_, t) -> t :: e
+    | Some t -> t :: e
   in
   Js_utils.log "Initializing timeline";
   (* Calculating in which order the slides are *)
@@ -232,19 +243,21 @@ let init_slide_from_url title events = begin
           | None ->
             Js_utils.log "Cannot find corresponding slide !";
             (cpt+1,
-             Utils.StringMap.add id (cpt, None) acc_ord, Utils.IntMap.add cpt id acc_rev_ord)
-          | Some e ->
+             Utils.StringMap.add id (cpt, None) acc_ord,
+             Utils.IntMap.add cpt id acc_rev_ord)
+          | Some (_, e) -> (* db_id is the integer ID of the event *)
             (cpt+1,
-             Utils.StringMap.add id (cpt, Some e) acc_ord, Utils.IntMap.add cpt id acc_rev_ord)
+             Utils.StringMap.add id (cpt, Some e) acc_ord,
+             Utils.IntMap.add cpt id acc_rev_ord)
       ) (0, Utils.StringMap.empty, Utils.IntMap.empty) slides
   in
   let () =
     Utils.IntMap.iter
       (fun i e -> Js_utils.log "%i --> %s" i e)
       rev_order in
-  let () = go_to_right_slide       order in
-  let () = add_handlers_to_markers order in
-  let () = add_handlers_to_arrows  order rev_order in
+  let () = go_to_right_slide       ~whenOnSlide order in
+  let () = add_handlers_to_markers ~whenOnSlide order in
+  let () = add_handlers_to_arrows  ~whenOnSlide order rev_order in
   Js_utils.log "Timeline initialized";
   ()
 end
