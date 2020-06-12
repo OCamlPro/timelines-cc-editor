@@ -111,6 +111,7 @@ let opt f = function
   | Some e -> Some (f e)
 
 
+module StringSet = Set.Make (String)
 module StringMap = Map.Make (String)
 module IntMap = Map.Make (struct type t = int let compare = (-) end)
 
@@ -230,8 +231,6 @@ let list_init n f =
     else aux (n - 1) (f (n - 1) :: acc)
   in
   aux n []
-
-module StringSet = Set.Make (String)
 
 let trim =
   String.map

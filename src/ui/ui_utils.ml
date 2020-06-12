@@ -61,6 +61,46 @@ let goto_page s = Ocp_js.Dom_html.window##.location##.href := jss s
   
 let click elt = (Js_utils.Manip.get_elt "click" elt)##click
 
+let link ?(args=[]) path =
+  match args with
+  | [] -> path
+  | _ ->
+    let args =
+      String.concat "&"
+        (List.map (fun (key, value) -> key ^ "=" ^ value) args)
+    in
+    if String.contains path '?' then
+      Printf.sprintf "%s&%s" path args
+    else
+      Printf.sprintf "%s?%s" path args
+
+
+let a_link ?(args=[]) ?(classes=[]) ~path content =
+  (* remove when sessions are on *)
+  a ~a:[a_href (link ~args path); a_class classes] content
+
+let get_fragment () =
+  match Jsloc.url () with
+  | Http h | Https h -> h.hu_fragment
+  | File f -> f.fu_fragment
+
+let url path args =
+  let rec loop acc = function
+      [] -> acc
+    | (k,v) :: tl ->
+      let acc = Format.sprintf "%s&%s=%s" acc k v in
+      loop acc tl
+  in
+  match args with
+    [] -> path
+  | (k, v) :: tl ->
+    let start = Format.sprintf "%s?%s=%s" path k v in
+    loop start tl
+
+let push url =
+    let url' = Js.string url in
+    Dom_html.window##.history##pushState Js.null url' (Js.some url')
+
 (*
 let link ?(args=[]) path =
   match args with

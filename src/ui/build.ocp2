@@ -6,6 +6,7 @@ OCaml.program("ocptimeline-js", ocaml + {
    	 "request.ml", pp_js;
    	 "controller.ml", pp_js;
    	 "home_vue.ml", pp_js;
+	 "timeline_display.ml", pp_js;
 	 "timeline_vue.ml", pp_js;
 	 "pages.ml";
 	 "main.ml"

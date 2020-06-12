@@ -59,8 +59,8 @@ class type data = object
     method updateEventButton     : Js.js_string Js.t Js.prop
     method formName              : Js.js_string Js.t Js.prop
 
-    method currentEvent          : int Js.prop
-    (* Id of the current event *)
+    method currentEvent          : Js.js_string Js.t Js.prop
+    (* Unique Id of the current event *)
 
     method currentTimeline : Js.js_string Js.t Js.readonly_prop
     (* Name of the current timeline *)
@@ -130,7 +130,7 @@ let page_vue (timeline_name : string) (categories : (string * bool) list) : data
     val mutable formName          = jss "Add a new event"
     val mutable updateEventButton = jss "Add event"
 
-    val mutable currentEvent = -1
+    val mutable currentEvent = jss ""
     val currentTimeline = jss timeline_name
   end
 
@@ -209,25 +209,11 @@ let addEvent self adding : unit =
   end
 
 (* Timeline initializer *)
-let display_timeline title events =  
-  let timeline =
-    let title =
-      match title with
-      | None -> None
-      | Some (_, t) -> Some t in
-    let events = List.map snd events in
-    {Data_types.events; title} in
-  let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
-  let yoj  = Json_repr.to_yojson json in
-  let str  = Yojson.Safe.to_string yoj in
-  Js_utils.log "Json: %s" str;
-  let () =
-    Js_of_ocaml.Js.Unsafe.js_expr @@
-    Format.asprintf
-      "window.timeline = new TL.Timeline('home-timeline-embed',%s)"
-      str in () (*
-  Timeline.make "home-timeline-embed" str *)
-
+let display_timeline _self title events =
+  let events = List.map (fun (_, e) -> e) events in
+  Timeline_display.display_timeline title events;
+  Timeline_display.init_slide_from_url title events
+  
 let init
   ~(on_page: on_page)
   ~(categories : (string * bool) list) =
@@ -246,7 +232,7 @@ let init
   Vue.add_method1 "addEvent" addEvent;
   
   let _cat = category_component () in
-  let _obj = Vue.init ~data_js () in
+  let vue = Vue.init ~data_js () in
 
   (* Now displaying timeline *)
 
@@ -256,5 +242,5 @@ let init
     | Timeline {title; events; name} ->
       match events with
       | [] -> Ui_utils.click (Js_utils.find_component "add-event-span")
-      | _ -> display_timeline title events in
-  ()
+      | _ -> display_timeline vue title events 
+  in ()
