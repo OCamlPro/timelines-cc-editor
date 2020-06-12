@@ -1,0 +1,153 @@
+
+<!-- Header -->
+<header id="header" style="position: sticky; height: 0px; top: 0px;">
+  <span
+    class="showFormSpan fa fa-pencil fa-2x"
+    @click="showForm(false)"
+    ></span>
+  <span
+    id="add-event-span"
+    class="showFormSpan fa fa-plus fa-2x"
+    @click="showForm(true)"
+    ></span>
+</header>
+
+
+<!-- Timeline -->
+<div id="home-timeline-embed" style="height: 600px;"></div>
+
+<!-- Filters & Panel -->
+
+<div class="row uniform" id="timeline-filters">
+  <form method="post" action="#" class="6u">
+    <h3>{{categoryHeader}}</h3>
+    <cat
+      v-for="categ in categories"
+      :category="categ"
+      :key="categ.id"
+      ></cat>
+    <h3>{{otherFiltersHeader}}</h3>
+    <input
+      v-model.number="minPonderation"
+      type="number"
+      id="min-ponderation"
+      min="0"
+      :max=maxPonderation
+      :title="ponderationHelp">
+    <label for="min-ponderation"> {{minPonderationLabel}} </label>
+    <input
+      v-model.number="maxPonderation"
+      type="number"
+      :min=minPonderation
+      :title="ponderationHelp">
+    <label for="max-ponderation"> {{maxPonderationLabel}} </label>
+    <div class="button special"> {{filterButtonText}} </div>
+  </form>
+  
+  <div class="6u">
+    <h3>{{panelHeader}}</h3>
+  </div>
+</div>
+
+<div id="navPanel">
+  <h3 style="color: white"> {{formName}} </h3>
+  <div class="row uniform">
+    <div class="4u">{{startDateFormTitle}}</div>
+    <div class="8u">
+      <input
+	id="start-date"
+	class="placeholder"
+	type="date"
+	v-model="startDateFormValue">
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{endDateFormTitle}}</div>
+    <div class="8u">
+      <input
+	id="end-date"
+	type="date"
+	v-model="endDateFormValue">
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{mediaFormTitle}}</div>
+    <div class="8u">
+      <input
+	id="media"
+	type="text"
+	v-model="mediaFormValue"
+	>
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{headlineFormTitle}}</div>
+    <div class="8u">
+      <input
+	id="title"
+	type="text"
+	v-model="headlineFormValue"
+	>
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{uniqueIdFormTitle}}</div>
+    <div class="8u">
+      <input
+	id="unique-id"
+	type="text" 
+	v-model="uniqueIdFormValue">
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{categoriesFormTitle}}</div>
+    <div class="8u">
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{textFormTitle}}</div>
+    <div class="8u">
+      <textarea
+	id="text"
+	style="width: 300px; height: 200px; resize: both;"
+	v-model="textFormValue"
+	>
+      </textarea>
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{tagsFormTitle}}</div>
+    <div class="8u">
+      <input
+	id="tags"
+	type="text"
+	v-model="tagsFormValue">
+    </div>
+  </div>
+  <div class="row uniform">
+    <div class="4u">{{ponderationFormTitle}}</div>
+    <div class="8u">
+      <input
+	min="0"
+	id="ponderation"
+	value="0"
+	type="number"
+	v-model.number="ponderationFormValue"	
+	>
+    </div>
+  </div>
+  <div class="row uniform">
+    <label for="confid">{{confidentialFormTitle}}</label>
+    <input
+      id="confid"
+      type="checkbox"
+      v-model="confidentialFormValue"	
+      >
+  </div>
+  <div
+    class="button special"
+    id="edit-add"
+    @click=addEvent(addingNewEvent)>{{updateEventButton}}</div>
+  <div class="button special" id="back-from-edit" @click=hideForm()>{{backButton}}</div>
+  <span @click=hideForm() class="close"></span>
+</div>

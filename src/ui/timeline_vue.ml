@@ -219,14 +219,14 @@ let display_timeline title events =
     {Data_types.events; title} in
   let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
   let yoj  = Json_repr.to_yojson json in
-  let str  = Yojson.Safe.to_string yoj in (*
+  let str  = Yojson.Safe.to_string yoj in
+  Js_utils.log "Json: %s" str;
   let () =
     Js_of_ocaml.Js.Unsafe.js_expr @@
     Format.asprintf
       "window.timeline = new TL.Timeline('home-timeline-embed',%s)"
-      str in () *)
-  Js_utils.log "Json: %s" str;
-  Timeline.make "home-timeline-embed" str
+      str in () (*
+  Timeline.make "home-timeline-embed" str *)
 
 let init
   ~(on_page: on_page)

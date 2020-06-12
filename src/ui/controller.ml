@@ -1,6 +1,9 @@
 open Lwt
 open Data_types
 
+exception IncorrectInput of string
+let incorrect_input s = raise (IncorrectInput s)
+
 let finish =
   function
   | Ok _ -> Lwt.return (Ok ())
@@ -47,38 +50,48 @@ let add_event
     ~tags
     ~timeline
   =
-  let start_date =
-    match start_date with
-    | None -> CalendarLib.Date.today ()
-    | Some d -> d in
-  let unique_id =
-    match unique_id with
-    | "" -> headline
-    | _ -> unique_id in
-  let tags = String.split_on_char ',' (Utils.trim tags) in
-  let media =
-    match media with
-    | "" -> None
-    | url -> Some {url} in
-  let group =
-    match group with
-    | "" -> None
-    | _ -> Some group in
-  let event = {
-    start_date;
-    end_date;
-    media;
-    text = {headline; text};
-    unique_id;
-    group;
-    ponderation;
-    confidential;
-    last_update = Some (CalendarLib.Date.today ());
-    tags
-  } in
-  Request.add_event timeline event (fun _ -> Lwt.return (Ok ()))
-
-
+  try
+    let start_date =
+      match start_date with
+      | None -> CalendarLib.Date.today ()
+      | Some d -> d in
+    let unique_id =
+      match unique_id with
+      | "" ->
+        if headline = "" then
+          incorrect_input "Headline & unique-id cannot be empty at the same time"
+        else headline
+      | _ -> unique_id in
+    let tags = String.split_on_char ',' (Utils.trim tags) in
+    let media =
+      match media with
+      | "" -> None
+      | url -> Some {url} in
+    let group =
+      match group with
+      | "" -> None
+      | _ -> Some group in
+    let event = {
+      start_date;
+      end_date;
+      media;
+      text = {headline; text};
+      unique_id;
+      group;
+      ponderation;
+      confidential;
+      last_update = Some (CalendarLib.Date.today ());
+      tags
+    } in
+    Request.add_event timeline event (function
+        | Ok _id -> Js_utils.reload (); Lwt.return (Ok ())
+        | Error s ->
+          Js_utils.alert (Format.sprintf "Error: %s" s);
+          Lwt.return (Error (Xhr_lwt.Str_err s)))
+  with
+    IncorrectInput s -> 
+    Js_utils.alert (Format.sprintf "Error: %s" s);
+    Lwt.return (Error (Xhr_lwt.Str_err s))
 
 (*open Data_types
 
