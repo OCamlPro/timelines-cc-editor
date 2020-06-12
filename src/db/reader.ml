@@ -182,16 +182,17 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let timeline_data
       ~(with_confidential : bool)
       ~(tid : string)
-      ?(start_date)
-      ?(end_date)
-      ?min_ponderation
-      ?max_ponderation
+      ?(start_date = CalendarLib.Date.mardi_gras 1000) (* These dates have been set at random *)
+      ?(end_date = CalendarLib.Date.mardi_gras 3000)   (* to comply with DB. Todo: better filter *)
+      ?(min_ponderation = 0)
+      ?(max_ponderation = 1000)
       ?(groups=[])
       ?(tags=[])
       () =
-    let min_ponderation = Utils.opt Int32.of_int min_ponderation in
-    let max_ponderation = Utils.opt Int32.of_int max_ponderation in
+    let min_ponderation = Int32.of_int min_ponderation in
+    let max_ponderation = Int32.of_int max_ponderation in
     let tags = List.map (fun s -> Some s) tags in
+    
     with_dbh >>> fun dbh ->
     let req =
       match groups, tags with
@@ -200,8 +201,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_
              FROM events_ WHERE \
-             (start_date_ BETWEEN $?start_date AND $?end_date) AND \
-             (ponderation_ BETWEEN $?min_ponderation AND $?max_ponderation) AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
              ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid \
              ORDER BY id_ ASC" end
       | _, [] ->
@@ -209,16 +210,16 @@ module Reader_generic (M : Db_intf.MONAD) = struct
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              group_ IN $@groups AND \
-             (start_date_ BETWEEN $?start_date AND $?end_date) AND \
-             (ponderation_ BETWEEN $?min_ponderation AND $?max_ponderation) AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
              ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid \
              ORDER BY id_ ASC"
       | [], _ ->
         PGSQL(dbh)
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
-             (start_date_ BETWEEN $?start_date AND $?end_date) AND \
-             (ponderation_ BETWEEN $?min_ponderation AND $?max_ponderation) AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
              ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
              tags_ && $tags::varchar[] ORDER BY id_ ASC"
       | _ ->
@@ -226,8 +227,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
              group_ IN $@groups AND \
-             (start_date_ BETWEEN $?start_date AND $?end_date) AND \
-             (ponderation_ BETWEEN $?min_ponderation AND $?max_ponderation) AND \
+             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
              ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
              tags_ && $tags::varchar[] ORDER BY id_ ASC"
     in
