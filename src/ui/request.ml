@@ -245,3 +245,8 @@ let remove_timeline timeline cont =
     ()
     cont
 
+let get_view_token timeline cont =
+  get
+    ~args:[]
+    ApiServices.get_view_token [timeline]
+    cont

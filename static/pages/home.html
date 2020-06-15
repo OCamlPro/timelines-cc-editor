@@ -52,7 +52,8 @@
 	<p>{{shareDescr}}</p>
 	<form>
 	  <input :placeholder="shareNamePlaceholder" :title="shareNameHelp" v-model="shareNameValue">
-	  <p>Link to share: {{url}}/view?timeline={{shareNameValue}}</p>
+	  <div class="button special" @click=shareClick()>
+	  <p>Link to share: {{shareURL}}</p>
 	</form>
       </article>
     </div>

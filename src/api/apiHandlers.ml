@@ -287,7 +287,10 @@ let remove_timeline (req,tid) () =
 
 let get_view_token (_, tid) () =
   Format.eprintf "CALL get_view_token";
-  Reader.get_view_token tid >>= EzAPIServerUtils.return
+  Reader.get_view_token tid >>= 
+  (function
+   | Ok str -> Format.printf "Token = %s" str; EzAPIServerUtils.return (Ok str)
+   | e -> EzAPIServerUtils.return e)
 
 let is_auth req () =
   Format.eprintf "CALL is_auth";

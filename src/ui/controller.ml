@@ -150,6 +150,37 @@ let removeEvent i =
         | Error s -> Js_utils.alert ("Error while removing event: " ^ s); Lwt.return (Error (Xhr_lwt.Str_err s))
       )
   else Lwt.return (Ok ())
+
+let viewToken ?(args = []) vue tid =
+  let timeline_id_str, args =
+    match String.split_on_char '/' tid with
+    | [] -> assert false
+    | [tid] -> tid, args (* Not an URL *)
+    | _ -> begin (* This is an URL *)
+      match Ocp_js.Url.url_of_string tid with
+      | Some (Ocp_js.Url.Http h) | Some (Https h) -> begin
+        let args = h.Ocp_js.Url.hu_arguments in
+        match Args.get_timeline args with
+        | None -> 
+          Js_utils.log "Cannot read timeline ID on URL %s" tid; 
+          "", []
+        | Some tid -> tid, [] 
+      end
+      | _ -> (* Unknown URL *)
+        Js_utils.log "Cannot decode URL %s" tid; 
+        "", []
+    end
+  in
+  Request.get_view_token timeline_id_str 
+    (function
+      | Error s -> Js_utils.alert s; Lwt.return (Error (Xhr_lwt.Str_err s))
+      | Ok s -> 
+        let url = 
+          Format.asprintf "%s/%s?%a" (Jsloc.host ()) s Args.print args
+        in vue##.shareURL := Ocp_js.Js.string url;
+        Lwt.return (Ok ())
+       )
+
 (*open Data_types
 
 let finish () = Lwt.return (Ok ())

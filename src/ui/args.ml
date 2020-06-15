@@ -51,6 +51,11 @@ let remove key bnd (args : t) =
   in
   loop [] args
 
+let print = 
+  Format.pp_print_list
+    ~pp_sep:(fun fmt _ -> Format.fprintf fmt "&") 
+    (fun fmt (k,b) -> Format.fprintf fmt "%s=%s" k b)
+
 (* Arguments *)
 (* Timeline *)
 let get_timeline args = List.assoc_opt "timeline" args

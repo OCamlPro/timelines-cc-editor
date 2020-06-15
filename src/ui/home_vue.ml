@@ -24,8 +24,8 @@ class type data = object
     method shareDescr : Js.js_string Js.t Js.readonly_prop
     method shareNamePlaceholder : Js.js_string Js.t Js.readonly_prop
     method shareNameHelp : Js.js_string Js.t Js.readonly_prop
-    method shareNameValue : Js.js_string Js.t Js.readonly_prop
-    method url : Js.js_string Js.t Js.readonly_prop
+    method shareNameValue : Js.js_string Js.t Js.prop
+    method shareURL : Js.js_string Js.t Js.prop
   end
 
 module Input = struct
@@ -34,6 +34,10 @@ module Input = struct
 end
 
 module Vue = Vue_js.Make (Input)
+
+let shareClick self =
+  let tid = Js.to_string self##.shareNameValue in
+  Controller.viewToken self tid
 
 let init () =
   let data_js : data Js.t =
@@ -57,8 +61,8 @@ let init () =
       val shareDescr = jss "You can share your timeline with others without giving the rights to edit it. Select the timeline you want to share";
       val shareNamePlaceholder = jss "Name";
       val shareNameHelp = jss "The name of the timeline you want to export";
-      val shareNameValue = jss "";
-      val url = jss (Jsloc.host ())
+      val mutable shareNameValue = jss "";
+      val mutable shareURL = jss "";
     end
   in
   Vue.add_method0
@@ -69,5 +73,7 @@ let init () =
          (Js_of_ocaml.Js.to_string self##.createDescrValue) >>=
        (fun _ -> Js_utils.log "Ok!"; Lwt.return (Ok ()));
     );
+  Vue.add_method0 "shareClick" shareClick;
+    
 
   let _obj = Vue.init ~data_js () in ()
