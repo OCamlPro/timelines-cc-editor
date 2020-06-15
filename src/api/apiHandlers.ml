@@ -297,8 +297,8 @@ let get_view_token (_, tid) () =
   Lwt_io.printl "CALL get_view_token" >>= fun () ->
   Reader.get_view_token tid >>= 
   (function
-   | Ok str -> Lwt_io.printl ("Token = " ^ str) >>= (fun () -> EzAPIServerUtils.return (Ok str))
-   | e -> EzAPIServerUtils.return e)
+   | Ok str -> Lwt_io.printl ("Token = " ^ str) >>= (fun () -> EzAPIServerUtils.return (Ok [str]))
+   | Error e -> EzAPIServerUtils.return (Error e))
 
 let is_auth req () =
   Lwt_io.printl "CALL is_auth" >>= fun () ->

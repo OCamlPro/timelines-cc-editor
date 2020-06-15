@@ -253,11 +253,11 @@ let remove_timeline : (string, unit, unit api_result) post_service1 =
     ~output:ApiData.unit_api_result_encoding
     Path.(root // "remove_timeline"/: arg_timeline ())
 
-let get_view_token : (string, string api_result) service1 =
+let get_view_token : (string, string list api_result) service1 =
   service
     ~params:auth_params
     ~name:"get_view_token"
-    ~output:ApiData.str_api_result_encoding
+    ~output:ApiData.str_list_api_result_encoding
     Path.(root // "get_view_token" /: arg_timeline ())
 
 let version : string service0 =

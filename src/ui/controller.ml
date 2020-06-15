@@ -174,7 +174,10 @@ let viewToken ?(args = []) vue tid =
   Request.get_view_token timeline_id_str 
     (function
       | Error s -> Js_utils.alert s; Lwt.return (Error (Xhr_lwt.Str_err s))
-      | Ok s -> 
+      | Ok [] ->
+        Js_utils.alert "Timeline has no view token";
+        Lwt.return (Error (Xhr_lwt.Str_err "No token"))
+      | Ok (s::_) -> 
         let url = 
           Format.asprintf "%s/%s?%a" (Jsloc.host ()) s Args.print args
         in vue##.shareURL := Ocp_js.Js.string url;
