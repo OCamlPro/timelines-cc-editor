@@ -250,3 +250,10 @@ let get_view_token timeline cont =
     ~args:[]
     ApiServices.get_view_token [timeline]
     cont
+
+let view ~args timeline cont =
+  get
+    ~error:(Error "GET view failed")
+    ~args
+    ApiServices.view [timeline]
+    cont

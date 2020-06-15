@@ -325,7 +325,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     ?(max_ponderation = 100000)
     ?(groups=[])
     ?(tags=[])
-    (tid : string) =
+    ~(tid : string) =
     with_dbh >>> fun dbh ->
     let tid = Hex.to_string (`Hex tid) in
     PGSQL(dbh) "SELECT id_ FROM timeline_ids_ WHERE digest(id_, 'sha256') = $tid" >>=

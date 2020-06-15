@@ -1,6 +1,4 @@
 open Js_utils
-open Js_of_ocaml_tyxml.Tyxml_js.Html
-open Bootstrap_helpers.Grid
 open Ocp_js
 
 let () =

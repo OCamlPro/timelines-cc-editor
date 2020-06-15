@@ -300,6 +300,38 @@ let get_view_token (_, tid) () =
    | Ok str -> Lwt_io.printl ("Token = " ^ str) >>= (fun () -> EzAPIServerUtils.return (Ok [str]))
    | Error e -> EzAPIServerUtils.return (Error e))
 
+let view (req, tid) () =
+  Lwt_io.printl "CALL view" >>= (fun () ->
+      let start_date =
+        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
+      let end_date =
+        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
+      let groups = StringMap.find_opt "group" req.req_params in
+      let min_ponderation =
+        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
+      let max_ponderation =
+        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "max_level"  req.req_params in
+      let tags =
+        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "tags"  req.req_params in
+
+      let start_date = Utils.fopt Utils.string_to_date start_date in
+      let end_date = Utils.fopt Utils.string_to_date end_date in
+      let min_ponderation = Utils.fopt int_of_string_opt min_ponderation in
+      let max_ponderation = Utils.fopt int_of_string_opt max_ponderation in
+      let tags =
+        Utils.fopt
+          (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
+      Reader.view
+        ~tid
+        ?start_date
+        ?end_date
+        ?groups
+        ?min_ponderation
+        ?max_ponderation
+        ?tags
+      >>= EzAPIServerUtils.return
+    )
+
 let is_auth req () =
   Lwt_io.printl "CALL is_auth" >>= fun () ->
   is_auth req EzAPIServerUtils.return 

@@ -67,7 +67,23 @@ let timeline_page () =
           )
       )
 
+let view_page () =
+  let args = Jsloc.args () in
+  match Args.get_timeline args with
+  | None -> View_vue.init None []; finish ()
+  | Some tid ->
+    Request.view ~args tid (function
+      | Ok (title, events) ->
+        View_vue.init title events;
+        finish ()
+      | Error s ->
+        Js_utils.alert ("Error while requesting view: " ^ s);
+        View_vue.init None [];
+        finish ()
+      )
+
 let () =
   add_page ""              home_page;
   add_page "home"          home_page;
-  add_page "timeline"      timeline_page
+  add_page "timeline"      timeline_page;
+  add_page "view"          view_page

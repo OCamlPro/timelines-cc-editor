@@ -260,6 +260,22 @@ let get_view_token : (string, string list api_result) service1 =
     ~output:ApiData.str_list_api_result_encoding
     Path.(root // "get_view_token" /: arg_timeline ())
 
+let view :
+  (string,
+   (((int * Data_types.title) option) * ((int * Data_types.event) list)) api_result) service1 =
+  service
+    ~name:"view"
+    ~output:ApiData.timeline_data_api_result_encoding
+    ~params:([
+      date_param "start_date";
+      date_param "end_date";
+      group_param;
+      ponderation_param "min_level";
+      ponderation_param "max_level";
+      tags_param;
+    ])
+    Path.(root // "view" /: arg_timeline ())
+
 let version : string service0 =
   service
     ~name:"version"

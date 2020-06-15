@@ -177,9 +177,16 @@ let viewToken ?(args = []) vue tid =
       | Ok [] ->
         Js_utils.alert "Timeline has no view token";
         Lwt.return (Error (Xhr_lwt.Str_err "No token"))
-      | Ok (s::_) -> 
+      | Ok (s::_) ->
+        let host, port =
+          match Jsloc.url () with
+          | Http hu | Https hu -> hu.hu_host, hu.hu_port
+          | File fu -> "localhost", 80
+        in
+        let str_port =
+          if port = 80 then "" else ":" ^ string_of_int port in
         let url = 
-          Format.asprintf "%s/%s?%a" (Jsloc.host ()) s Args.print args
+          Format.asprintf "%s%s/view?timeline=%s&%a" (Jsloc.host ()) str_port s Args.print args
         in vue##.shareURL := Ocp_js.Js.string url;
         Lwt.return (Ok ())
        )

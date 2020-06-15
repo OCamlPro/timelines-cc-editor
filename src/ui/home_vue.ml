@@ -24,6 +24,7 @@ class type data = object
     method shareDescr : Js.js_string Js.t Js.readonly_prop
     method shareNamePlaceholder : Js.js_string Js.t Js.readonly_prop
     method shareNameHelp : Js.js_string Js.t Js.readonly_prop
+    method shareNameButton : Js.js_string Js.t Js.readonly_prop
     method shareNameValue : Js.js_string Js.t Js.prop
     method shareURL : Js.js_string Js.t Js.prop
   end
@@ -34,6 +35,12 @@ module Input = struct
 end
 
 module Vue = Vue_js.Make (Input)
+
+let createTimeline self =
+  Controller.create_timeline
+    (Js_of_ocaml.Js.to_string self##.createNameValue)
+    (Js_of_ocaml.Js.to_string self##.createDescrValue) >>=
+  (fun _ -> Js_utils.log "Ok!"; Lwt.return (Ok ()))
 
 let shareClick self =
   let tid = Js.to_string self##.shareNameValue in
@@ -61,18 +68,12 @@ let init () =
       val shareDescr = jss "You can share your timeline with others without giving the rights to edit it. Select the timeline you want to share";
       val shareNamePlaceholder = jss "Name";
       val shareNameHelp = jss "The name of the timeline you want to export";
+      val shareNameButton = jss "Share";
       val mutable shareNameValue = jss "";
       val mutable shareURL = jss "";
     end
   in
-  Vue.add_method0
-    "createTimeline"
-    (fun (self : data Js.t) ->
-       Controller.create_timeline
-         (Js_of_ocaml.Js.to_string self##.createNameValue)
-         (Js_of_ocaml.Js.to_string self##.createDescrValue) >>=
-       (fun _ -> Js_utils.log "Ok!"; Lwt.return (Ok ()));
-    );
+  Vue.add_method0 "createTimeline" createTimeline;
   Vue.add_method0 "shareClick" shareClick;
     
 

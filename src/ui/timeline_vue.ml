@@ -312,7 +312,6 @@ let removeEvent title_ref events_ref self =
   | Some id ->
     let _l : _ Lwt.t = Controller.removeEvent id in
     ()
-  
 
 (* Timeline initializer *)
 let display_timeline self title events =
