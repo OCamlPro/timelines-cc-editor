@@ -319,8 +319,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       | b :: _ -> return @@ Ok b
 
   let view
-    ?(start_date      = CalendarLib.Date.from_jd 0)
-    ?(end_date        = CalendarLib.Date.mardi_gras max_int)
+    ?(start_date      = CalendarLib.Date.mardi_gras 1000)
+    ?(end_date        = CalendarLib.Date.mardi_gras 3000)
     ?(min_ponderation = 0)
     ?(max_ponderation = 100000)
     ?(groups=[])
