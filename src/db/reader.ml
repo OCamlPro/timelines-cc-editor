@@ -327,6 +327,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     ?(tags=[])
     (tid : string) =
     with_dbh >>> fun dbh ->
+    let tid = Hex.to_string (`Hex tid) in
     PGSQL(dbh) "SELECT id_ FROM timeline_ids_ WHERE digest(id_, 'sha256') = $tid" >>=
     function
     | [] -> return @@ Error ("Timeline do not exist")
@@ -350,7 +351,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       PGSQL(dbh) "SELECT digest($tid, 'sha256')" >>=
       function
       | [] -> assert false
-      | Some hsh :: _ -> return @@ Ok hsh
+      | Some hsh :: _ -> return @@ Ok (Hex.(show @@ of_string hsh))
       | None :: _ -> return @@ Error "Get view token failed"
     else
       return @@ Error "Timeline do not exist"
