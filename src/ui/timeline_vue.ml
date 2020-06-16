@@ -3,6 +3,10 @@ open Ui_utils
 
 module Js = Js_of_ocaml.Js
 
+class type jsEvent = object
+  method date     : Js.js_string Js.t Js.readonly_prop
+  method headline : Js.js_string Js.t Js.readonly_prop
+end
 
 class type categoryFilter = object
   method id : int Js.readonly_prop
@@ -12,6 +16,8 @@ class type categoryFilter = object
 end
 
 class type data = object
+
+  (* Text to display on the page *)
   method exportButton : Js.js_string Js.t Js.readonly_prop
   method adminButton  : Js.js_string Js.t Js.readonly_prop
 
@@ -20,15 +26,12 @@ class type data = object
   method panelHeader         : Js.js_string Js.t Js.readonly_prop
   method minPonderationLabel : Js.js_string Js.t Js.readonly_prop
   method maxPonderationLabel : Js.js_string Js.t Js.readonly_prop
-
-  method ponderationHelp : Js.js_string Js.t Js.readonly_prop
-
   method filterButtonText : Js.js_string Js.t Js.readonly_prop
 
-  method minPonderation : int Js.prop
-  method maxPonderation : int Js.prop
-
-  method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
+  method ponderationHelp : Js.js_string Js.t Js.readonly_prop
+  method addElementHelp  : Js.js_string Js.t Js.readonly_prop
+  method editElementHelp : Js.js_string Js.t Js.readonly_prop
+  method filterHelp : Js.js_string Js.t Js.readonly_prop
 
   method startDateFormTitle    : Js.js_string Js.t Js.readonly_prop
   method endDateFormTitle      : Js.js_string Js.t Js.readonly_prop
@@ -42,6 +45,18 @@ class type data = object
   method confidentialFormTitle : Js.js_string Js.t Js.readonly_prop
   method backButton            : Js.js_string Js.t Js.readonly_prop
   method removeButton          : Js.js_string Js.t Js.readonly_prop
+  method formNameAdding        : Js.js_string Js.t Js.readonly_prop
+  method formNameEditing       : Js.js_string Js.t Js.readonly_prop
+
+  method addEventButtonText     : Js.js_string Js.t Js.readonly_prop
+  method updateEventButtonText  : Js.js_string Js.t Js.readonly_prop
+
+  (* Values *)
+
+  method minPonderation : int Js.prop
+  method maxPonderation : int Js.prop
+
+  method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
 
   method startDateFormValue    : Js.js_string Js.t Js.prop
   method endDateFormValue      : Js.js_string Js.t Js.prop
@@ -57,9 +72,6 @@ class type data = object
   method addingNewEvent : bool Js.t Js.prop
   (* Is the form here to add (true) or edit (false) an event *)
 
-  method updateEventButton     : Js.js_string Js.t Js.prop
-  method formName              : Js.js_string Js.t Js.prop
-
   method currentEvent          : Js.js_string Js.t Js.prop
   (* Unique Id of the current event *)
 
@@ -68,6 +80,8 @@ class type data = object
 
   method currentTimeline : Js.js_string Js.t Js.readonly_prop
   (* Name of the current timeline *)
+
+  method events : jsEvent Js.t Js.js_array Js.t Js.readonly_prop
 end
 
 module PageContent = struct
@@ -77,7 +91,11 @@ end
 
 module Vue = Vue_js.Make (PageContent)
 
-let page_vue (timeline_name : string) (categories : (string * bool) list) : data Js.t =
+let page_vue
+    (timeline_name : string)
+    (categories : (string * bool) list)
+    (event_list : (int * event) list)
+  : data Js.t =
   let categories : categoryFilter Js.t Js.js_array Js.t =
     Js.array @@
     Array.of_list @@
@@ -99,12 +117,12 @@ let page_vue (timeline_name : string) (categories : (string * bool) list) : data
     val panelHeader         = jss "Events"
     val minPonderationLabel = jss "Minimal Ponderation"
     val maxPonderationLabel = jss "Max Ponderation"
-    val ponderationHelp     = jss "Select two values"
     val filterButtonText    = jss "Filter"
 
-    val mutable minPonderation = 0
-    val mutable maxPonderation = 100
-    val mutable categories     = categories
+    val ponderationHelp     = jss "Select two values"
+    val editElementHelp     = jss "Edit the displayed event"
+    val addElementHelp      = jss "Add a new event to the timeline"
+    val filterHelp          = jss "Apply the filters on the timeline events (not working yet)"
 
     val startDateFormTitle    = jss "From"
     val endDateFormTitle      = jss "To"
@@ -119,6 +137,15 @@ let page_vue (timeline_name : string) (categories : (string * bool) list) : data
     val backButton            = jss "Back"
     val removeButton          = jss "Remove event"
 
+    val formNameAdding    = jss "Add a new event"
+    val formNameEditing   = jss "Edit the displayed event"
+    val addEventButtonText = jss "Add new event";
+    val updateEventButtonText = jss "Update event";
+    
+    val mutable minPonderation = 0
+    val mutable maxPonderation = 100
+    val mutable categories     = categories
+
     val mutable startDateFormValue    = jss ""
     val mutable endDateFormValue      = jss ""
     val mutable mediaFormValue        = jss ""
@@ -132,13 +159,22 @@ let page_vue (timeline_name : string) (categories : (string * bool) list) : data
 
     val mutable addingNewEvent = Js.bool false
 
-    val mutable formName          = jss "Add a new event"
-    val mutable updateEventButton = jss "Add event"
-
     val mutable currentEvent = jss ""
     val mutable currentEventInForm = jss ""
 
     val currentTimeline = jss timeline_name
+
+    val events =
+      Js.array @@ Array.of_list @@
+      List.map
+        (fun (_, e) ->
+           object%js
+             val date =
+               jss @@  Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") e.start_date
+             val headline = jss e.text.headline
+           end
+        )
+        event_list
   end
 
 let category_component () =
@@ -200,25 +236,17 @@ let updateVueFromEvent self e =
 let showForm title events (self : 'a) (adding : bool) : unit =
   Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible";
   self##.addingNewEvent := (Js.bool adding);
-  if adding then begin
-    self##.formName := jss "Add a new event on the timeline";
-    self##.updateEventButton := jss "Add new event";
-  end else begin
-    self##.formName := jss "Update the event";
-    self##.updateEventButton    := jss "Update event";
+  if adding then () else begin
     self##.currentEventInForm   := self##.currentEvent;
 
     let current_event =
       let current_event_id = Js.to_string self##.currentEvent in
-      match !title with
+      match title with
       | Some (_, title) when title.unique_id = current_event_id -> title
       | _ ->
-        let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) !events in
+        let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) events in
         Utils.event_to_metaevent e in
     updateVueFromEvent self current_event
-
-    
-    
   end;
   ()
 
@@ -226,7 +254,7 @@ let hideForm self =
   Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible";
   self##.addingNewEvent := (Js.bool false)
 
-let addEvent title_ref events_ref self adding : unit =
+let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
   if timeline = "" then
     Js_utils.alert "Select a timeline before editing it."
@@ -261,10 +289,10 @@ let addEvent title_ref events_ref self adding : unit =
     else
       let u_id = Js.to_string self##.currentEventInForm in
       let old_event =
-        match List.find_opt (fun (_, e) -> e.unique_id = u_id) !events_ref with
+        match List.find_opt (fun (_, e) -> e.unique_id = u_id) events with
         | None -> begin
-            match !title_ref with
-            | Some (_, {unique_id; _}) when unique_id = u_id -> !title_ref
+            match title with
+            | Some (_, {unique_id; _}) when unique_id = u_id -> title
             | _ ->
               let err = Format.sprintf "Event with id %s cannot be edited!" u_id in 
               Js_utils.alert err;
@@ -292,12 +320,12 @@ let addEvent title_ref events_ref self adding : unit =
         ()
   end
 
-let removeEvent title_ref events_ref self =
+let removeEvent title events self =
   let u_id = Js.to_string self##.currentEventInForm in
   let event_id =
-    match List.find_opt (fun (_, e) -> e.unique_id = u_id) !events_ref with
+    match List.find_opt (fun (_, e) -> e.unique_id = u_id) events with
     | None -> begin
-        match !title_ref with
+        match title with
         | Some (i, {unique_id; _}) when unique_id = u_id ->
           Js_utils.alert "You cannot delete the title of your timeline";
           None
@@ -325,23 +353,27 @@ let display_timeline self title events =
       Js_utils.log "Current event is %s" s in
   Timeline_display.init_slide_from_url ~whenOnSlide title events
 
+let first_connexion vue =
+  Js_utils.alert 
+    "Your timeline has been created ! \
+     You are now ready to create your first event.";
+  Ui_utils.click (Js_utils.find_component "add-event-span")
+
 let init
     ~(on_page: on_page)
     ~(categories : (string * bool) list) =
 
   (* First : displaying titles *)
 
-  let name =
+  let name,events, title =
     match on_page with
-    | Timeline {name; _} -> name
-    | No_timeline -> "" in
-  let data_js = page_vue name categories in
-  let title_ref : (int * title) option ref = ref None in
-  let events_ref : (int * event) list ref = ref [] in
-  Vue.add_method1 "showForm" (showForm title_ref events_ref);
+    | Timeline {name; events; title} -> name, events, title
+    | No_timeline -> "", [], None in
+  let data_js = page_vue name categories events in
+  Vue.add_method1 "showForm" (showForm title events);
   Vue.add_method0 "hideForm" hideForm;
-  Vue.add_method1 "addEvent" (addEvent title_ref events_ref);
-  Vue.add_method0 "removeEvent" (removeEvent title_ref events_ref);
+  Vue.add_method1 "addEvent" (addEvent title events);
+  Vue.add_method0 "removeEvent" (removeEvent title events);
 
   let _cat = category_component () in
   let vue = Vue.init ~data_js () in
@@ -352,8 +384,7 @@ let init
     match on_page with
     | No_timeline -> Js_utils.alert "No timeline has been selected"
     | Timeline {title; events; name} ->
-      let () = title_ref := title; events_ref := events in
       match events with
-      | [] -> Ui_utils.click (Js_utils.find_component "add-event-span")
+      | [] -> first_connexion vue
       | _ -> display_timeline vue title events 
   in ()

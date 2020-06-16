@@ -2,14 +2,22 @@
 <!-- Header -->
 <header id="header" style="position: sticky; height: 0px; top: 0px;">
   <span
-    class="showFormSpan fa fa-pencil fa-2x"
+    class="showFormSpan tooltip fa fa-pencil fa-2x"
     @click="showForm(false)"
-    ></span>
+    v-show="events.length != 0">
+    <span class="tooltiptext">
+      {{editElementHelp}}
+    </span>
+  </span>
   <span
     id="add-event-span"
-    class="showFormSpan fa fa-plus fa-2x"
+    class="showFormSpan tooltip fa fa-plus fa-2x"
     @click="showForm(true)"
-    ></span>
+    >
+    <span class="tooltiptext">
+      {{addElementHelp}}
+    </span>
+  </span>
 </header>
 
 
@@ -41,7 +49,7 @@
       :min=minPonderation
       :title="ponderationHelp">
     <label for="max-ponderation"> {{maxPonderationLabel}} </label>
-    <div class="button special"> {{filterButtonText}} </div>
+    <div class="button special" :title="filterHelp"> {{filterButtonText}} </div>
   </form>
   
   <div class="6u">
@@ -50,7 +58,10 @@
 </div>
 
 <div id="navPanel">
-  <h3 style="color: white"> {{formName}} </h3>
+  <h3 style="color: white">
+    <span v-if="addingNewEvent">{{formNameAdding}}</span>
+    <span v-else> {{formNameEditing}}</span>    
+  </h3>
   <div class="row uniform">
     <div class="4u">{{startDateFormTitle}}</div>
     <div class="8u">
@@ -147,7 +158,10 @@
   <div
     class="button special"
     id="edit-add"
-    @click=addEvent(addingNewEvent)>{{updateEventButton}}</div>
+    @click=addEvent(addingNewEvent)>
+    <span v-if="addingNewEvent">{{addEventButtonText}}</span>
+    <span v-else>{{updateEventButtonText}}</span>
+  </div>
   <div class="button special" id="back-from-edit" @click=hideForm()>{{backButton}}</div>
   <div class="button special" v-show="!addingNewEvent" @click=removeEvent()>{{removeButton}}</div>
   <span @click=hideForm() class="close"></span>
