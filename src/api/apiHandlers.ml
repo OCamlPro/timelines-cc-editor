@@ -163,7 +163,7 @@ let timeline_data (req, tid) () =
     | Some "false" -> false
     | _ -> true in
   if confidential then
-    confidential_rights (req, tid) (fun has_rights ->
+    edition_rights (req, tid) (fun has_rights ->
     Reader.timeline_data
       ~with_confidential:has_rights
       ~tid
@@ -201,7 +201,7 @@ let remove_event (req, id) () =
 
 let categories (req, id) () =
   Lwt_io.printl "CALL categories" >>= fun () ->
-  confidential_rights (req, id) (fun rights ->
+  edition_rights (req, id) (fun rights ->
       ((Reader.categories rights id) >>= EzAPIServerUtils.return)
     )
 
@@ -221,7 +221,7 @@ let logout _ (email, cookie) =
 
 let export_database (req, timeline_id) () =
   Lwt_io.printl "CALL export_database" >>= fun () ->
-  confidential_rights (req, timeline_id) (fun rights ->
+  edition_rights (req, timeline_id) (fun rights ->
     Reader.title timeline_id >>= (fun title ->
       Reader.events rights timeline_id >>= (fun events ->
         try
