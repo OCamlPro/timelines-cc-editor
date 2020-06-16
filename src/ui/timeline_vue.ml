@@ -221,7 +221,7 @@ let updateVueFromEvent self e =
   let () = (* group *)
     match e.group with
     | None -> ()
-    | Some g -> self##.mediaFormValue := jss g in
+    | Some g -> self##.categoriesFormValue := jss g in
 
   let () = (* text *)
     self##.headlineFormValue := jss e.text.headline;
@@ -237,9 +237,21 @@ let updateVueFromEvent self e =
 let showForm title events (self : 'a) (adding : bool) : unit =
   Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible";
   self##.addingNewEvent := (Js.bool adding);
-  if adding then () else begin
+  if adding then begin
+    updateVueFromEvent self {
+    start_date = Some (CalendarLib.Date.today ());
+    end_date = None;
+    text = {text = ""; headline = ""};
+    media = None;
+    group = None;
+    confidential = false;
+    ponderation = 0;
+    unique_id = "";
+    last_update = None;
+    tags = []
+  }
+  end else begin
     self##.currentEventInForm   := self##.currentEvent;
-
     let current_event =
       let current_event_id = Js.to_string self##.currentEvent in
       match title with
