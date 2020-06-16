@@ -148,11 +148,17 @@
     </div>
   </div>
   <div class="row uniform">
-    <label for="confid">{{confidentialFormTitle}}</label>
+    <label
+      for="confid"
+      class="4u"
+      >
+      <span style="cursor: pointer">{{confidentialFormTitle}}</span>
+    </label>
     <input
       id="confid"
       type="checkbox"
-      v-model="confidentialFormValue"	
+      v-model="confidentialFormValue"
+      class="8u"
       >
   </div>
   <div
