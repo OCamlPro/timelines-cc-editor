@@ -228,6 +228,7 @@ let updateVueFromEvent self e =
     self##.textFormValue := jss e.text.text;
     self##.ponderationFormValue := e.ponderation;
     self##.uniqueIdFormValue := jss e.unique_id;
+    self##.confidentialFormValue := Js.bool e.confidential
   in
   ()
 
