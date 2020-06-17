@@ -1,4 +1,214 @@
+open Lwt
 open Data_types
+
+exception IncorrectInput of string
+let incorrect_input s = raise (IncorrectInput s)
+
+let finish =
+  function
+  | Ok _ -> Lwt.return (Ok ())
+  | Error s -> Js_utils.alert ("Error: " ^s); Lwt.return (Ok ())
+
+let create_timeline name descr =
+  let timeline_id, headline =
+    match name with
+    | "" ->
+      Random.self_init ();
+      let i1 = Random.bits () |> string_of_int in
+      let i2 = Random.bits () |> string_of_int in
+      i1 ^ i2, Lang.t_ Text.s_default_title
+    | _ -> name, name
+  in
+  let title = Utils.to_title_event headline descr in
+  Request.create_timeline timeline_id title true (
+    fun res ->
+      let () = match res with
+        | Error _->
+          Js_utils.log "Error from timeline API"       
+        (* Todo: better error message *)
+        | Ok id ->
+          let new_page = Format.sprintf "/timeline?timeline=%s" id in
+          Js_utils.log "Going to %s" new_page;
+          Ui_utils.goto_page new_page
+      in finish res
+    )
+
+let add_event
+    ~start_date
+    ~end_date
+    ~media
+    ~headline
+    ~text
+    ~unique_id
+    ~group
+    ~ponderation
+    ~confidential
+    ~tags
+    ~timeline
+  =
+  try
+    let start_date =
+      match start_date with
+      | None -> CalendarLib.Date.today ()
+      | Some d -> d in
+    let unique_id =
+      match unique_id with
+      | "" ->
+        if headline = "" then
+          incorrect_input "Headline & unique-id cannot be empty at the same time"
+        else headline
+      | _ -> unique_id in
+    let tags = String.split_on_char ',' (Utils.trim tags) in
+    let media =
+      match media with
+      | "" -> None
+      | url -> Some {url} in
+    let group =
+      match group with
+      | "" -> None
+      | _ -> Some group in
+    let event = {
+      start_date;
+      end_date;
+      media;
+      text = {headline; text};
+      unique_id;
+      group;
+      ponderation;
+      confidential;
+      last_update = Some (CalendarLib.Date.today ());
+      tags
+    } in
+    Request.add_event timeline event (function
+        | Ok _id -> Js_utils.reload (); Lwt.return (Ok ())
+        | Error s ->
+          Js_utils.alert (Format.sprintf "Error: %s" s);
+          Lwt.return (Error (Xhr_lwt.Str_err s)))
+  with
+    IncorrectInput s -> 
+    Js_utils.alert (Format.sprintf "Error: %s" s);
+    Lwt.return (Error (Xhr_lwt.Str_err s))
+
+let update_event
+    ~id
+    ~old_event
+    ~start_date
+    ~end_date
+    ~media
+    ~headline
+    ~text
+    ~unique_id
+    ~group
+    ~ponderation
+    ~confidential
+    ~tags
+    ~timeline =
+  let unique_id =
+    match unique_id with
+    | "" ->
+      if headline = "" then
+        incorrect_input "Headline & unique-id cannot be empty at the same time"
+      else headline
+    | _ -> unique_id in
+  let tags = String.split_on_char ',' (Utils.trim tags) in
+  let media =
+    match media with
+    | "" -> None
+    | url -> Some {url} in
+  let group =
+    match group with
+    | "" -> None
+    | _ -> Some group in
+  let new_event = {
+    start_date;
+    end_date;
+    media;
+    text = {headline; text};
+    unique_id;
+    group;
+    ponderation;
+    confidential;
+    last_update = Some (CalendarLib.Date.today ());
+    tags
+  } in
+  Request.update_event id ~old_event ~new_event (function
+    | Success ->
+      Js_utils.reload (); Lwt.return (Ok ())
+    | Modified t ->
+      Js_utils.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
+    | Failed s -> 
+      let error = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_edition_failed) s in
+      Js_utils.alert error;
+      Lwt.return (Error (Xhr_lwt.Str_err s))
+    )
+
+let removeEvent i =
+  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_event) then
+    Request.remove_event (string_of_int i) (function
+        | Ok () -> Js_utils.reload (); Lwt.return (Ok ())
+        | Error s -> Js_utils.alert ("Error while removing event: " ^ s); Lwt.return (Error (Xhr_lwt.Str_err s))
+      )
+  else Lwt.return (Ok ())
+
+let viewToken ?(args = []) vue tid =
+  let timeline_id_str, args =
+    match String.split_on_char '/' tid with
+    | [] -> assert false
+    | [tid] -> tid, args (* Not an URL *)
+    | _ -> begin (* This is an URL *)
+      match Ocp_js.Url.url_of_string tid with
+      | Some (Ocp_js.Url.Http h) | Some (Https h) -> begin
+        let args = h.Ocp_js.Url.hu_arguments in
+        match Args.get_timeline args with
+        | None -> 
+          Js_utils.log "Cannot read timeline ID on URL %s" tid; 
+          "", []
+        | Some tid -> tid, [] 
+      end
+      | _ -> (* Unknown URL *)
+        Js_utils.log "Cannot decode URL %s" tid; 
+        "", []
+    end
+  in
+  Request.get_view_token timeline_id_str 
+    (function
+      | Error s -> 
+        let msg = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_error_view_token) s in
+        Js_utils.alert msg; Lwt.return (Error (Xhr_lwt.Str_err s))
+      | Ok [] ->
+        Js_utils.alert (Lang.t_ Text.s_alert_no_view_token);
+        Lwt.return (Error (Xhr_lwt.Str_err "No token"))
+      | Ok (s::_) ->
+        let host, port =
+          match Jsloc.url () with
+          | Http hu | Https hu -> hu.hu_host, hu.hu_port
+          | File fu -> "localhost", 80
+        in
+        let str_port =
+          if port = 80 then "" else ":" ^ string_of_int port in
+        let url = 
+          Format.asprintf "%s%s/view?timeline=%s&%a" (Jsloc.host ()) str_port s Args.print args
+        in vue##.shareURL := Ocp_js.Js.string url;
+        Lwt.return (Ok ())
+       )
+
+let export_timeline title events =
+  let sep = "," in
+  let title =
+    match title with
+    | None -> sep
+    | Some (_, title) -> Data_encoding.title_to_csv ~sep title in
+  let header = Data_encoding.header ~sep in
+  let events =
+    List.fold_left
+      (fun acc event ->
+        acc ^ Data_encoding.event_to_csv ~sep event ^ ";\n")
+      ""
+      (snd @@ List.split events) in
+  let str =  (title ^ ";\n" ^ header ^ ";\n" ^ events) in
+  Ui_utils.download "timeline.csv" str
+
+(*open Data_types
 
 let finish () = Lwt.return (Ok ())
 
@@ -115,8 +325,8 @@ let export_database args =
         let sep = "," in
         let title =
           match title with
-          | None -> sep
-          | Some (_, title) -> Data_encoding.title_to_csv ~sep title in
+          | Error _ -> sep
+          | Ok (_, title) -> Data_encoding.title_to_csv ~sep title in
         let header = Data_encoding.header ~sep in
         let events =
           List.fold_left
@@ -175,3 +385,4 @@ let remove_account () =
         Js_utils.alert "Error while deleting account."; 
         Lwt.return (Error (Xhr_lwt.Str_err s))
     )
+*)

@@ -1,5 +1,6 @@
 open Js_of_ocaml.Url
 open Lwt
+open EzAPI
 
 let api () =
   Http {
@@ -18,47 +19,7 @@ let api () =
     | Some u -> u
     | None -> assert false *)
 
-let get ?(args = []) apifun cont =
-  let url = api () in (*
-  let url = (* Only for standalone !! *)
-    match url wit<h
-    | Http u -> Http {u with hu_path_string = ""}
-    | Https u -> Https {u with hu_path_string = ""}
-    | File f -> File {f with fu_path_string = ""} in *) 
-  let () =
-    Js_utils.log "GET %s from %s with args [%a]"
-      apifun
-      (Js_of_ocaml.Url.string_of_url url)
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt _ -> Format.fprintf fmt "; ")
-         (fun fmt (arg, value) -> Format.fprintf fmt "%s = %s" arg value)) args
-  in
-  Xhr_lwt.get ~args ~base:url apifun >>=
-  function
-    Ok elt ->
-    Js_utils.log "GET %s OK: %s" apifun elt;
-    cont elt
-  | Error e ->
-    let code, msg = Xhr_lwt.error_content e in
-    Js_utils.log "Error %i while getting to api: %s" code msg;
-    Lwt.return (Error e)
-
-let post ~args apifun input_encoding input output_encoding cont =
-  let () = Js_utils.log "POST %s" apifun in
-  let url = api () in
-  let () = Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) apifun in
-  Xhr_lwt.post ~args ~base:url input_encoding output_encoding apifun input >>=
-  (fun res ->
-     Js_utils.log "POST %s returned something" apifun;
-     match res with
-     | Ok elt -> cont elt
-     | Error e ->
-       let code, msg = Xhr_lwt.error_content e in
-       Js_utils.log "Error %i while getting to api: %s" code msg;
-       Lwt.return (Error e)
-  )
-
-let cook encoding cont =
+let cook ?error encoding cont =
   (fun str ->
      Js_utils.log "Cooking";
      let yoj = Yojson.Safe.from_string str in
@@ -74,9 +35,66 @@ let cook encoding cont =
            str
            (Printexc.to_string e)
          ;
-         raise e in
+         match error with
+         | None -> raise e
+         | Some e -> e
+     in
      cont elt
   )
+
+let get ?error ?(args = []) (apifun : _ EzAPI.service) apiargs cont =
+  let url = api () in (*
+  let url = (* Only for standalone !! *)
+    match url wit<h
+    | Http u -> Http {u with hu_path_string = ""}
+    | Https u -> Https {u with hu_path_string = ""}
+    | File f -> File {f with fu_path_string = ""} in *)
+  let api_fun_name = EzAPI.get_service_path apifun apiargs in
+  let () =
+    Js_utils.log "GET %s from %s with args [%a]"
+      api_fun_name
+      (Js_of_ocaml.Url.string_of_url url)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt _ -> Format.fprintf fmt "; ")
+         (fun fmt (arg, value) -> Format.fprintf fmt "%s = %s" arg value)) args
+  in
+  Xhr_lwt.get ~args ~base:url api_fun_name >>=
+  function
+    Ok elt ->
+    Js_utils.log "GET %s OK: %s" api_fun_name elt;
+    let enc = EzAPI.service_output apifun in
+    cook ?error enc cont elt
+  | Error e ->
+    let code, msg = Xhr_lwt.error_content e in
+    Js_utils.log "Error %i while getting to api: %s" code msg;
+    match error with
+      None -> Lwt.return (Error e)
+    | Some e -> cont e
+
+let post ~args (apifun : _ EzAPI.service) apiargs input cont =
+  let api_fun_name = EzAPI.get_service_path apifun apiargs in
+  let () = Js_utils.log "POST %s" api_fun_name in
+  let url = api () in
+  let () =
+    Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) api_fun_name in
+  let input_encoding = EzAPI.service_input apifun in
+  let output_encoding = EzAPI.service_output apifun in
+  let output_encodings = [
+    output_encoding;
+    Json_encoding.tup1 output_encoding
+  ] in    
+  Xhr_lwt.post
+    ~eprint:Js_utils.log ~args ~base:url input_encoding output_encodings api_fun_name input >>=
+  (fun res ->
+     Js_utils.log "POST  %s%s returned something" (Js_of_ocaml.Url.string_of_url url) api_fun_name;
+     match res with
+     | Ok elt -> cont elt
+     | Error e ->
+       let code, msg = Xhr_lwt.error_content e in
+       Js_utils.log "Error %i while getting to api: %s" code msg;
+       Lwt.return (Error e)
+  )
+
 
 let args_from_session args =
   match Ui_utils.get_auth_data () with
@@ -87,129 +105,155 @@ let args_from_session args =
 let timeline_data ~args timeline cont =
   let args = args_from_session args in
   get
+    ~error:(Error "GET timeline_data failed")
     ~args
-    (Format.sprintf "timeline_data/%s" timeline)
-    (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
+    ApiServices.timeline_data [timeline]
+    cont
 
 let event ~args (id : int) cont =
   let args = args_from_session args in
-  get ~args (Format.sprintf "event/%i" id)  (cook Data_encoding.title_encoding cont)
+  get
+    ~args
+    ApiServices.event [string_of_int id]
+    cont
 
 let events ~args (tid : string) cont =
   let args = args_from_session args in
   get
     ~args
-    (Format.sprintf "events/%s" tid)
-    (cook (Json_encoding.(list (tup2 int Data_encoding.event_encoding))) cont)
+    ApiServices.events [tid]
+    cont
 
 let title ~args tid cont =
   get
     ~args
-    (Format.sprintf "title/%s" tid)
-    (cook (Json_encoding.(tup1 @@ option (tup2 int Data_encoding.title_encoding))) cont)
+    ApiServices.title [tid]
+    cont
 
-let add_event ~args (tid : string) (event : Data_types.event) cont =
-  let args = args_from_session args in
-  post ~args
-    (Format.sprintf "add_event/%s" tid)
-    Data_encoding.event_encoding event
-    ApiData.str_api_result_encoding cont
+let add_event (tid : string) (event : Data_types.event) cont =
+  let args = args_from_session [] in
+  post
+    ~args
+    ApiServices.add_event [tid]
+    event
+    cont
 
 let update_event id ~old_event ~new_event cont =
   let args = args_from_session ["id", string_of_int id] in
-  post ~args
-    "update_event"
-    Json_encoding.(
-      tup3
-        (tup1 int)
-        Data_encoding.title_encoding Data_encoding.title_encoding)
+  post
+    ~args
+    ApiServices.update_event []
     (id, old_event, new_event)
-    ApiData.update_event_res_encoding cont
+    cont
 
-let remove_event ~args id cont =
-  let args = args_from_session args in
-  get ~args (Format.sprintf "remove_event/%i" id) cont
+let remove_event id cont =
+  let args = args_from_session [] in
+  get
+    ~args
+    ApiServices.remove_event [id]
+    cont
 
 let register_user email password cont =
   Js_utils.log "Request register_user@.";
   let hash = Ui_utils.hash password (* todo: change this *) in
   Js_utils.log "Hash: %s@." hash;
-  post ~args:[] "register_user"
-    Json_encoding.(tup2 string string) (email, hash)
-    ApiData.unit_api_result_encoding cont
+  post
+    ~args:[]
+    ApiServices.register_user []
+    (email, hash)
+    cont
 
 let login email password cont =
   let hash = Ui_utils.hash password (* todo: change this *) in
   Js_utils.log "Hash: %s@." hash;
-  post ~args:[] "login"
-    Json_encoding.(tup2 string string) (email, hash)
-    Json_encoding.(tup1 @@ option string) cont
+  post
+    ~args:[]
+    ApiServices.login []
+    (email, hash)
+    cont
 
 let is_auth cont =
-  post ~args:(args_from_session []) "is_auth"
-    Json_encoding.unit ()
-    Json_encoding.(tup1 bool) cont
+  post
+    ~args:(args_from_session [])
+    ApiServices.is_auth []
+    ()
+    cont
 
 let has_admin_rights timeline cont =
   post
     ~args:(args_from_session [])
-    (Format.sprintf "has_admin_rights/%s" timeline)
-    Json_encoding.unit ()
-    Json_encoding.(tup1 bool) cont
+    ApiServices.has_admin_rights [timeline]
+    ()
+    cont
 
 let categories timeline cont =
-  get
+  post
     ~args:(args_from_session [])
-    (Format.sprintf "categories/%s" timeline)
-    (cook (Json_encoding.(list string)) cont)
+    ApiServices.categories [timeline]
+    ()
+    cont
 
 let logout cont =
   match Ui_utils.get_auth_data () with
   | None -> Lwt.return @@ Error (Xhr_lwt.Str_err "Error: not logged in")
   | Some (email, auth_data) ->
-    post ~args:[] "logout"
-      (Json_encoding.(tup2 string string)) (email, auth_data)
-      (Json_encoding.unit) cont
+    post
+      ~args:[]
+      ApiServices.logout []
+      (email, auth_data)
+      cont
 
-let create_timeline title cont =
+let create_timeline timeline_id title is_public cont =
   post 
     ~args:(args_from_session [])
-    (Format.sprintf "create_timeline")
-    Data_encoding.title_encoding title
-    (Json_encoding.tup1 ApiData.str_api_result_encoding) cont
+    ApiServices.create_timeline [timeline_id]
+    (title, is_public)
+    cont
 
 let user_timelines cont =
   post 
     ~args:(args_from_session [])
-    (Format.sprintf "user_timelines")
-    Json_encoding.unit ()
-    ApiData.str_list_api_result_encoding cont
+    ApiServices.user_timelines []
+    ()
+    cont
 
 let allow_user user timeline cont =
   post 
     ~args:(args_from_session [])
-    (Format.sprintf "allow_user")
-    Json_encoding.(tup2 string string) (user, timeline)
-    ApiData.unit_api_result_encoding cont
+    ApiServices.allow_user []
+    (user, timeline)
+    cont
 
 let timeline_users timeline cont = 
   post 
     ~args:(args_from_session [])
-    (Format.sprintf "timeline_users/%s" timeline)
-    Json_encoding.unit ()
-    ApiData.str_list_api_result_encoding cont
+    ApiServices.timeline_users [timeline]
+    ()
+    cont
 
 let remove_user timeline cont = 
   post 
     ~args:(args_from_session [])
-    (Format.sprintf "remove_user")
-    Json_encoding.unit ()
-    ApiData.unit_api_result_encoding cont
+    ApiServices.remove_user []
+    ()
+    cont
 
 let remove_timeline timeline cont = 
   post 
     ~args:(args_from_session [])
-    (Format.sprintf "remove_timeline/%s" timeline)
-    Json_encoding.unit ()
-    ApiData.unit_api_result_encoding cont
+    ApiServices.remove_timeline [timeline]
+    ()
+    cont
 
+let get_view_token timeline cont =
+  get
+    ~args:[]
+    ApiServices.get_view_token [timeline]
+    cont
+
+let view ~args timeline cont =
+  get
+    ~error:(Error "GET view failed")
+    ~args
+    ApiServices.view [timeline]
+    cont

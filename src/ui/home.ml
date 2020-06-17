@@ -471,7 +471,6 @@ let page
     display_timeline Controller.update_action is_auth args categories title events;
     (* Now, adding additional events to timeline links. *)
     let order =
-      (* Requires a second reordering to use for the table and not for the timeline itself. *)
       let slides = Manip.by_class "tl-slide" in (* In the page order *)
       List.fold_left
         (fun acc elt ->

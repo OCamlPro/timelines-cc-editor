@@ -5,6 +5,117 @@ open Form
 open Js_utils
 open Ocp_js
 
+module Session = struct
+  let get_session () = Js.Optdef.to_option (Dom_html.window##.sessionStorage)
+
+  let get_value key =
+    let key' = Js.string key in
+    match get_session () with
+    | None ->
+      Js_utils.log "Session not found while getting value";
+      None
+    | Some session -> begin
+        match Js.Opt.to_option (session##getItem key') with
+        | None -> None
+        | Some s ->
+          let result = Js.to_string s in
+          Some result
+      end
+
+  let set_value key value =
+    match get_session () with
+    | None -> Js_utils.log "Session not found while setting value"
+    | Some session ->
+      let key   = Js.string key   in
+      let value = Js.string value in
+      session##setItem key value
+
+  let remove_value key =
+    let key' = Js.string key in
+    match get_session () with
+    | None ->
+      Js_utils.log "Session not found while removing value"
+    | Some session -> begin
+        match Js.Opt.to_option (session##getItem key') with
+        | None -> ()
+        | Some _ -> session##removeItem key'
+      end
+end
+
+let auth_session email auth_data =
+  Session.set_value "email" email;
+  Session.set_value "auth_data" auth_data
+
+let get_auth_data () =
+  match Session.get_value "email", Session.get_value "auth_data" with
+    Some e, Some a -> Some (e, a)
+  | _ -> None
+
+let hash _s = failwith "Unimplemented hash function Ui_utils.hash" 
+
+let trim s = String.map (function ' ' -> '-' | c -> c) s 
+
+let jss = Js.string
+
+let goto_page s = Ocp_js.Dom_html.window##.location##.href := jss s
+  
+let click elt = (Js_utils.Manip.get_elt "click" elt)##click
+
+let link ?(args=[]) path =
+  match args with
+  | [] -> path
+  | _ ->
+    let args =
+      String.concat "&"
+        (List.map (fun (key, value) -> key ^ "=" ^ value) args)
+    in
+    if String.contains path '?' then
+      Printf.sprintf "%s&%s" path args
+    else
+      Printf.sprintf "%s?%s" path args
+
+
+let a_link ?(args=[]) ?(classes=[]) ~path content =
+  (* remove when sessions are on *)
+  a ~a:[a_href (link ~args path); a_class classes] content
+
+let get_fragment () =
+  match Jsloc.url () with
+  | Http h | Https h -> h.hu_fragment
+  | File f -> f.fu_fragment
+
+let url path args =
+  let rec loop acc = function
+      [] -> acc
+    | (k,v) :: tl ->
+      let acc = Format.sprintf "%s&%s=%s" acc k v in
+      loop acc tl
+  in
+  match args with
+    [] -> path
+  | (k, v) :: tl ->
+    let start = Format.sprintf "%s?%s=%s" path k v in
+    loop start tl
+
+let push url =
+    let url' = Js.string url in
+    Dom_html.window##.history##pushState Js.null url' (Js.some url')
+
+let download filename filecontent =
+  Js_utils.log "Test:\n%s" filecontent;
+  let filecontent = "data:text/csv;charset=utf-8," ^ Url.urlencode filecontent in
+  let filelink =
+    a ~a:[
+      a_href filecontent;
+      a_download (Some filename);
+      a_style "display: none";
+    ][txt filecontent]
+  in
+  let body = Of_dom.of_body Dom_html.document##.body in
+  Js_utils.Manip.appendChild body filelink;
+  (Js_utils.Manip.get_elt "click" filelink)##click
+
+(*
 let link ?(args=[]) path =
   match args with
   | [] -> path
@@ -684,3 +795,4 @@ let add_arg_unique key bnd arg =
         (key, bnd) :: tl
       else (hd, hd') :: (loop tl)
   in loop arg
+*)

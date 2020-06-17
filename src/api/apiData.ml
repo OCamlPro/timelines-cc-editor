@@ -18,13 +18,31 @@ let api_result_encoding (param : 'a Json_encoding.encoding) : 'a api_result Json
   )
 
 let unit_api_result_encoding : unit api_result Json_encoding.encoding =
-  api_result_encoding Json_encoding.unit 
+  api_result_encoding unit 
 
 let str_api_result_encoding : string api_result Json_encoding.encoding =
-  api_result_encoding Json_encoding.string
+  api_result_encoding string
 
 let str_list_api_result_encoding : string list api_result Json_encoding.encoding =
-  api_result_encoding Json_encoding.(list string)
+  api_result_encoding (list string)
+
+let title_api_result_encoding : (int * Data_types.title) api_result Json_encoding.encoding =
+  api_result_encoding (tup2 int Data_encoding.title_encoding) 
+
+let timeline_data_api_result_encoding : (((int * Data_types.title) option) * ((int * Data_types.event) list)) api_result Json_encoding.encoding =
+  api_result_encoding (
+    tup2 (
+      option @@
+      tup2
+        int
+        Data_encoding.title_encoding
+    ) (
+      list @@
+      tup2
+        int
+        Data_encoding.event_encoding
+    )
+  )
 
 (* Updates require a "Modified" case *)
 type 'start_date update_meta_event_res =

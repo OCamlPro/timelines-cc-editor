@@ -98,7 +98,15 @@ let sql_upgrade_6_to_7 =  [
   {| DROP TABLE groups_ |};
 ]
 
+let sql_downgrade_8_to_7 = [
+  {| ALTER TABLE timeline_ids_ DROP COLUMN public_ |};
+]
 
+let sql_upgrade_7_to_8 = [
+  {| ALTER TABLE timeline_ids_ ADD COLUMN public_ BOOLEAN NOT NULL DEFAULT FALSE|};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN last_update_ DATE|};
+  {| CREATE EXTENSION pgcrypto |}; (* For allowing hash functions on columns *)
+]
 
 let ( upgrades, downgrades ) =
   let rev_versions = ref [] in
@@ -115,6 +123,7 @@ let ( upgrades, downgrades ) =
         sql_upgrade_4_to_5, sql_downgrade_5_to_4;
         sql_upgrade_5_to_6, sql_downgrade_6_to_5;
         sql_upgrade_6_to_7, sql_downgrade_7_to_6;
+        sql_upgrade_7_to_8, sql_downgrade_8_to_7;
       ]
   in
   (versions, !rev_versions)

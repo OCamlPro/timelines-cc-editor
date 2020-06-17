@@ -83,7 +83,6 @@ let get_raw ~base ?args url =
   try Xhr.perform url2 >>= handle_response
   with _ -> return (Error (Xhr_err (make_frame ~url ("No response from server"))))
 
-
 let post_raw ~base ?args ?(content_type="application/json") url contents =
   let url2 = make_url ~base ?args url in
   (* Format.eprintf "POST %s with @[%s@]@." (string_of_url url2) contents; *)
@@ -106,17 +105,35 @@ let construct enc o = match enc with
 
 let get ~base ?args url = get_raw ~base ?args url
 
-let post ~base ?args ?content_type input_enc output_enc url contents =
+let post ~base ?(eprint = Format.eprintf) ?args ?content_type input_enc output_encs url contents =
   let contents = construct input_enc contents in
   let contents = Format.asprintf "%a" (Json_repr.pp_any ()) (Json_repr.to_any contents) in
   post_raw ~base ?args ?content_type url contents >>=
   (function
-    | Ok res ->
-      let res =
+    | Ok res -> begin
+        eprint "[Xhr_lwt.post] Code %i: %s@." 200 res;
         let yoj = Yojson.Safe.from_string res in
         let js = Json_repr.from_yojson yoj in
-        destruct output_enc js in
-      Lwt.return (Ok res)
+        let res =
+          List.fold_left
+            (fun acc enc ->
+               match acc with
+               | Some _ -> acc
+               | None ->
+                 try Some (destruct enc js) with
+                   Json_encoding.Cannot_destruct (_p, e) ->
+                   let str_err =
+                     Format.asprintf "%a" (Json_query.print_error ?print_unknown:None) e in
+                   eprint "[Xhr_lwt.post] Code %i: %s@." 42 str_err;
+                   None
+            )
+            None
+            output_encs                   
+        in
+        match res with
+        | None ->     return (Error (Str_err "Error: cannot destruct value"))
+        | Some res -> return (Ok res)
+      end      
     | Error e ->
       let code, error = error_content e in
-      Format.eprintf "[Xhr_lwt.post] Error %i: %s@." code error; Lwt.return (Error e))
+      eprint "[Xhr_lwt.post] Error %i: %s@." code error; return (Error e))

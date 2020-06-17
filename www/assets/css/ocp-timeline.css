@@ -1,6 +1,7 @@
 /* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern University a project of the Northwestern University Knight Lab, originally created by Zach Wise https://github.com/NUKnightLab/TimelineJS3 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+@import url(font-awesome.min.css);
 
 :root {
 	--major-strong: #116A85;
@@ -109,7 +110,8 @@
     vertical-align:top
 }
  .tl-timeline {
-    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    z-index:0;
 }
  .tl-timeline h1,.tl-timeline h2,.tl-timeline h3,.tl-timeline h4,.tl-timeline h5,.tl-timeline h6 {
     color:#000
@@ -2681,5 +2683,48 @@ tr:hover.clickable {
 }
 
 .last-date{
-    color: grey
+    color: #d4e0ef
+}
+
+
+/* Tooltip (from w3schools) */
+
+.tooltip {
+  position: relative;
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  background-color: #5385c1;
+  color: #d4e0ef;
+  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 1.5em 0 rgba(0, 0, 0, 0.2);
+ 
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 2;
+
+  top: -5px;
+  right: 105%;
+  font-size: 20px;    
+  font-family: "Courier New", monospace;
+
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.tooltip .tooltiptext:hover {
+  visibility: hidden;
+}
+
+#header span.fa{
+    cursor: pointer;
+    color: black;
+    z-index: 10;
 }

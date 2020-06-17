@@ -63,6 +63,7 @@ OCaml.library("database-reader-lib",
      "config";
      "lwt";
      "lwt.unix";
+     "hex"
     ];
 });
 

@@ -6,11 +6,23 @@ OCaml.library("api-data",
 	        data-encoding ];
               });
 
+OCaml.library("api-services",
+        ocaml + {
+              files = [
+                 "apiServices.ml"
+		 ];
+              requires = '[
+	      	       config
+                       ez-api
+		       api-data
+		       timeline-data
+		       data-encoding
+		       ];});
+
 OCaml.library("api-lib",
         ocaml + {
               files = [
                  "apiHandlers.ml";
-                 "apiServices.ml";
 		 "apiServer.ml";
                  ];
               requires = '[
@@ -24,6 +36,7 @@ OCaml.library("api-lib",
 		       data-encoding
 		       core
 		       threads
+		       api-services
                        ];
               });
 
