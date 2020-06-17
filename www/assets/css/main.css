@@ -2899,12 +2899,6 @@ button:disabled,
     width: 5em;
 }
 
-#header span.showFormSpan{
-    cursor: pointer;
-    color: black;
-    z-index: 10;
-}
-
 
 #navPanel .close:before {
     -moz-osx-font-smoothing: grayscale;

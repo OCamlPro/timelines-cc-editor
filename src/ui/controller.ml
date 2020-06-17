@@ -10,16 +10,16 @@ let finish =
   | Error s -> Js_utils.alert ("Error: " ^s); Lwt.return (Ok ())
 
 let create_timeline name descr =
-  let timeline_id =
+  let timeline_id, headline =
     match name with
     | "" ->
       Random.self_init ();
       let i1 = Random.bits () |> string_of_int in
       let i2 = Random.bits () |> string_of_int in
-      i1 ^ i2
-    | _ -> name
+      i1 ^ i2, Lang.t_ Text.s_default_title
+    | _ -> name, name
   in
-  let title = Utils.to_title_event name descr in
+  let title = Utils.to_title_event headline descr in
   let msg = Format.sprintf "You will create the timeline %s : %s, are you sure ?" timeline_id descr in
   if Js_utils.confirm msg then
     Request.create_timeline timeline_id title true (
@@ -190,6 +190,22 @@ let viewToken ?(args = []) vue tid =
         in vue##.shareURL := Ocp_js.Js.string url;
         Lwt.return (Ok ())
        )
+
+let export_timeline title events =
+  let sep = "," in
+  let title =
+    match title with
+    | None -> sep
+    | Some (_, title) -> Data_encoding.title_to_csv ~sep title in
+  let header = Data_encoding.header ~sep in
+  let events =
+    List.fold_left
+      (fun acc event ->
+        acc ^ Data_encoding.event_to_csv ~sep event ^ ";\n")
+      ""
+      (snd @@ List.split events) in
+  let str =  (title ^ ";\n" ^ header ^ ";\n" ^ events) in
+  Ui_utils.download "timeline.csv" str
 
 (*open Data_types
 

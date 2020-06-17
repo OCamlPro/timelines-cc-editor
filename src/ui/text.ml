@@ -41,3 +41,6 @@ let s_back = ss_ "back"
 let s_remove_event = ss_ "removeEvent"
 let s_add_new_event = ss_ "addNewEvent"
 let s_edit_event = ss_ "editEvent"
+let s_export_help = ss_ "exportHelp"
+
+let s_default_title = ss_ "defaultTimelineTitle"

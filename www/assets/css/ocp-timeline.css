@@ -2705,7 +2705,7 @@ tr:hover.clickable {
  
   /* Position the tooltip text */
   position: absolute;
-  z-index: 1;
+  z-index: 2;
 
   top: -5px;
   right: 105%;
@@ -2721,4 +2721,10 @@ tr:hover.clickable {
 
 .tooltip .tooltiptext:hover {
   visibility: hidden;
+}
+
+#header span.fa{
+    cursor: pointer;
+    color: black;
+    z-index: 10;
 }

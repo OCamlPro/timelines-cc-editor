@@ -33,6 +33,7 @@ class type data = object
   method ponderationHelp : Js.js_string Js.t Js.readonly_prop
   method addElementHelp  : Js.js_string Js.t Js.readonly_prop
   method editElementHelp : Js.js_string Js.t Js.readonly_prop
+  method exportHelp : Js.js_string Js.t Js.readonly_prop
   method filterHelp : Js.js_string Js.t Js.readonly_prop
 
   method startDateFormTitle    : Js.js_string Js.t Js.readonly_prop
@@ -124,6 +125,7 @@ let page_vue
     val editElementHelp     = tjs_ s_edit_element_help
     val addElementHelp      = tjs_ s_add_element_help
     val filterHelp          = tjs_ s_filter_help 
+    val exportHelp          = tjs_ s_export_help 
 
     val startDateFormTitle    = tjs_ s_from
     val endDateFormTitle      = tjs_ s_to
@@ -355,6 +357,8 @@ let removeEvent title events self =
     let _l : _ Lwt.t = Controller.removeEvent id in
     ()
 
+let export title events _ = Controller.export_timeline title events
+
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
@@ -388,6 +392,7 @@ let init
   Vue.add_method0 "hideForm" hideForm;
   Vue.add_method1 "addEvent" (addEvent title events);
   Vue.add_method0 "removeEvent" (removeEvent title events);
+  Vue.add_method0 "exportTimeline" (export title events);
 
   let _cat = category_component () in
   let vue = Vue.init ~data_js () in
