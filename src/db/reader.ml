@@ -182,8 +182,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let timeline_data
       ~(with_confidential : bool)
       ~(tid : string)
-      ?(start_date = CalendarLib.Date.mardi_gras 1000) (* These dates have been set at random *)
-      ?(end_date = CalendarLib.Date.mardi_gras 3000)   (* to comply with DB. Todo: better filter *)
+      ?(start_date = CalendarLib.Date.make (-4712) 1 1)
+      ?(end_date = CalendarLib.Date.make 3268 1 1)
       ?(min_ponderation = 0)
       ?(max_ponderation = 1000)
       ?(groups=[])
@@ -319,8 +319,8 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       | b :: _ -> return @@ Ok b
 
   let view
-    ?(start_date      = CalendarLib.Date.mardi_gras 1000)
-    ?(end_date        = CalendarLib.Date.mardi_gras 3000)
+    ?(start_date = CalendarLib.Date.make (-4712) 1 1)
+    ?(end_date = CalendarLib.Date.make 3268 1 1)
     ?(min_ponderation = 0)
     ?(max_ponderation = 100000)
     ?(groups=[])
