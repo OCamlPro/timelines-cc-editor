@@ -273,7 +273,7 @@ let hideForm self =
 let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
   if timeline = "" then
-    Js_utils.alert "Select a timeline before editing it."
+    Js_utils.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
   else begin
     let start_date  = Utils.string_to_date @@ Js.to_string self##.startDateFormValue in
     let end_date    = Utils.string_to_date @@ Js.to_string self##.endDateFormValue   in
@@ -310,7 +310,7 @@ let addEvent title events self adding : unit =
             match title with
             | Some (_, {unique_id; _}) when unique_id = u_id -> title
             | _ ->
-              let err = Format.sprintf "Event with id %s cannot be edited!" u_id in 
+              let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in 
               Js_utils.alert err;
               None
           end
@@ -343,10 +343,10 @@ let removeEvent title events self =
     | None -> begin
         match title with
         | Some (i, {unique_id; _}) when unique_id = u_id ->
-          Js_utils.alert "You cannot delete the title of your timeline";
+          Js_utils.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
-          let err = Format.sprintf "Event with id %s cannot be deleted!" u_id in 
+          let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in 
           Js_utils.alert err;
           None
       end
@@ -372,9 +372,7 @@ let display_timeline self title events =
   Timeline_display.init_slide_from_url ~whenOnSlide title events
 
 let first_connexion vue =
-  Js_utils.alert 
-    "Your timeline has been created ! \
-     You are now ready to create your first event.";
+  Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
   Ui_utils.click (Js_utils.find_component "add-event-span")
 
 let init

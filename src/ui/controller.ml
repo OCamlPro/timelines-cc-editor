@@ -20,22 +20,18 @@ let create_timeline name descr =
     | _ -> name, name
   in
   let title = Utils.to_title_event headline descr in
-  let msg = Format.sprintf "You will create the timeline %s : %s, are you sure ?" timeline_id descr in
-  if Js_utils.confirm msg then
-    Request.create_timeline timeline_id title true (
-      fun res ->
-        let () = match res with
-          | Error _->
-            Js_utils.log "Error from timeline API"       
-          (* Todo: better error message *)
-          | Ok id ->
-            let new_page = Format.sprintf "/timeline?timeline=%s" id in
-            Js_utils.log "Going to %s" new_page;
-            Ui_utils.goto_page new_page
-        in finish res
+  Request.create_timeline timeline_id title true (
+    fun res ->
+      let () = match res with
+        | Error _->
+          Js_utils.log "Error from timeline API"       
+        (* Todo: better error message *)
+        | Ok id ->
+          let new_page = Format.sprintf "/timeline?timeline=%s" id in
+          Js_utils.log "Going to %s" new_page;
+          Ui_utils.goto_page new_page
+      in finish res
     )
-  else 
-  Lwt.return (Ok ())
 
 let add_event
     ~start_date
@@ -139,12 +135,15 @@ let update_event
     | Success ->
       Js_utils.reload (); Lwt.return (Ok ())
     | Modified t ->
-      Js_utils.alert "Todo: event has been modified while editing."; Lwt.return (Ok ())
-    | Failed s -> Js_utils.alert s; Lwt.return (Error (Xhr_lwt.Str_err s))
+      Js_utils.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
+    | Failed s -> 
+      let error = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_edition_failed) s in
+      Js_utils.alert error;
+      Lwt.return (Error (Xhr_lwt.Str_err s))
     )
 
 let removeEvent i =
-  if Js_utils.confirm "Are you sure to remove this event? You cannot undo this." then
+  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_event) then
     Request.remove_event (string_of_int i) (function
         | Ok () -> Js_utils.reload (); Lwt.return (Ok ())
         | Error s -> Js_utils.alert ("Error while removing event: " ^ s); Lwt.return (Error (Xhr_lwt.Str_err s))
@@ -173,9 +172,11 @@ let viewToken ?(args = []) vue tid =
   in
   Request.get_view_token timeline_id_str 
     (function
-      | Error s -> Js_utils.alert s; Lwt.return (Error (Xhr_lwt.Str_err s))
+      | Error s -> 
+        let msg = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_error_view_token) s in
+        Js_utils.alert msg; Lwt.return (Error (Xhr_lwt.Str_err s))
       | Ok [] ->
-        Js_utils.alert "Timeline has no view token";
+        Js_utils.alert (Lang.t_ Text.s_alert_no_view_token);
         Lwt.return (Error (Xhr_lwt.Str_err "No token"))
       | Ok (s::_) ->
         let host, port =

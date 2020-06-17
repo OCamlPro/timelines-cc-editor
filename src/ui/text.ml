@@ -44,3 +44,14 @@ let s_edit_event = ss_ "editEvent"
 let s_export_help = ss_ "exportHelp"
 
 let s_default_title = ss_ "defaultTimelineTitle"
+
+let s_alert_edition_conflict = ss_ "alertEditionConflict"
+let s_alert_edition_failed = ss_ "alertEditionFailed"
+let s_alert_no_view_token = ss_ "alertNoViewToken"
+let s_alert_error_view_token = ss_ "alertErrorViewToken"
+let s_alert_no_timeline_selected = ss_ "alertNoTimelineSelected"
+let s_alert_unknown_event = ss_ "alertUnknownEvent"
+let s_alert_title_deletion = ss_ "alertTitleDeletion"
+let s_alert_timeline_creation = ss_ "alertTimelineCreation"
+
+let s_confirm_remove_event = ss_ "confirmRemoveEvent"
