@@ -1,8 +1,10 @@
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
    	 "../../libs/ocplib-jsutils/libs/timeline/timeline.ml", pp_js;
-	 "args.ml";
 	 "ui_utils.ml", pp_js;
+	 "lang.ml";
+	 "text.ml";
+	 "args.ml";
    	 "request.ml", pp_js;
    	 "controller.ml", pp_js;
    	 "home_vue.ml", pp_js;

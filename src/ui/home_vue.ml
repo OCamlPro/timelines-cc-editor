@@ -1,5 +1,7 @@
 open Ui_utils
 open Lwt
+open Text
+open Lang
 
 module Js = Js_of_ocaml.Js
 
@@ -49,28 +51,29 @@ let shareClick self =
 let init () =
   let data_js : data Js.t =
     object%js
-      val logo = jss "EZ-Timeline"
-      val navHome = jss "Get started";
-      val title = jss "Welcome to EZ-Timeline";
-      val subtitle = jss "The simplest way to organize your story";
-      val createTimelineTitle = jss "Create your own timeline";
-      val createDescr = jss "Click below to create your own timeline. You may enter a name and a short description.";
-      val createNamePlaceholder = jss "Name";
-      val createDescrPlaceholder = jss "Description";
-      val createNameHelp = jss "The name of your timeline (will be used in the URL)";
-      val createDescrHelp = jss "A description of your timeline.";
-      val createButtonMessage = jss "Start timeline";
+      val logo = tjs_ s_ez_timeline
+      val navHome = tjs_ s_nav_home
+      val title = tjs_ s_home_title
+      val subtitle = tjs_ s_home_subtitle
+      val createTimelineTitle = tjs_ s_create_timeline_title
+      val createDescr = tjs_ s_create_timeline_descr
+      val createNamePlaceholder = tjs_ s_name
+      val createDescrPlaceholder = tjs_ s_description
+      val createNameHelp = tjs_ s_create_timeline_name_help
+      val createDescrHelp = tjs_ s_create_timeline_descr_help
+      val createButtonMessage = tjs_ s_create_timeline_button
+
+      val shareTitle = tjs_ s_share_title
+      val shareDescr = tjs_ s_share_descr
+      val shareNamePlaceholder = tjs_ s_name
+      val shareNameHelp = tjs_ s_share_help
+      val shareNameButton = tjs_ s_share
 
       val mutable createNameValue = jss ""
       val mutable createDescrValue = jss ""
 
-      val shareTitle = jss "Share your timeline with everyone";
-      val shareDescr = jss "You can share your timeline with others without giving the rights to edit it. Select the timeline you want to share";
-      val shareNamePlaceholder = jss "Name";
-      val shareNameHelp = jss "The name of the timeline you want to export";
-      val shareNameButton = jss "Share";
-      val mutable shareNameValue = jss "";
-      val mutable shareURL = jss "";
+      val mutable shareNameValue = jss ""
+      val mutable shareURL = jss ""
     end
   in
   Vue.add_method0 "createTimeline" createTimeline;
