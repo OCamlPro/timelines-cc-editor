@@ -1,6 +1,9 @@
 open Data_types
 open Ui_utils
 
+open Lang
+open Text
+
 module Js = Js_of_ocaml.Js
 
 class type jsEvent = object
@@ -19,7 +22,6 @@ class type data = object
 
   (* Text to display on the page *)
   method exportButton : Js.js_string Js.t Js.readonly_prop
-  method adminButton  : Js.js_string Js.t Js.readonly_prop
 
   method categoryHeader      : Js.js_string Js.t Js.readonly_prop
   method otherFiltersHeader  : Js.js_string Js.t Js.readonly_prop
@@ -109,38 +111,37 @@ let page_vue
          end)
       categories
   in object%js
-    val exportButton      = jss "Share timeline"
-    val adminButton       = jss "Administration panel"
+    val exportButton      = tjs_ s_share
 
-    val categoryHeader      = jss "Categories"
-    val otherFiltersHeader  = jss "Extra filters"
-    val panelHeader         = jss "Events"
-    val minPonderationLabel = jss "Minimal Ponderation"
-    val maxPonderationLabel = jss "Max Ponderation"
-    val filterButtonText    = jss "Filter"
+    val categoryHeader      = tjs_ s_categories
+    val otherFiltersHeader  = tjs_ s_extra_filters
+    val panelHeader         = tjs_ s_events
+    val minPonderationLabel = tjs_ s_min_ponderation
+    val maxPonderationLabel = tjs_ s_max_ponderation
+    val filterButtonText    = tjs_ s_filter
 
-    val ponderationHelp     = jss "Select two values"
-    val editElementHelp     = jss "Edit the displayed event"
-    val addElementHelp      = jss "Add a new event to the timeline"
-    val filterHelp          = jss "Apply the filters on the timeline events (not working yet)"
+    val ponderationHelp     = tjs_ s_ponderation_help
+    val editElementHelp     = tjs_ s_edit_element_help
+    val addElementHelp      = tjs_ s_add_element_help
+    val filterHelp          = tjs_ s_filter_help 
 
-    val startDateFormTitle    = jss "From"
-    val endDateFormTitle      = jss "To"
-    val mediaFormTitle        = jss "Media"
-    val headlineFormTitle     = jss "Headline"
-    val uniqueIdFormTitle     = jss "Unique"
-    val categoriesFormTitle   = jss "Category"
-    val textFormTitle         = jss "Description"
-    val tagsFormTitle         = jss "Tags (separate with ',')"
-    val ponderationFormTitle  = jss "Ponderation"
-    val confidentialFormTitle = jss "Confidential"
-    val backButton            = jss "Back"
-    val removeButton          = jss "Remove event"
+    val startDateFormTitle    = tjs_ s_from
+    val endDateFormTitle      = tjs_ s_to
+    val mediaFormTitle        = tjs_ s_media
+    val headlineFormTitle     = tjs_ s_headline
+    val uniqueIdFormTitle     = tjs_ s_unique_id
+    val categoriesFormTitle   = tjs_ s_category
+    val textFormTitle         = tjs_ s_description
+    val tagsFormTitle         = tjs_ s_tags
+    val ponderationFormTitle  = tjs_ s_ponderation
+    val confidentialFormTitle = tjs_ s_confidential
+    val backButton            = tjs_ s_back
+    val removeButton          = tjs_ s_remove_event
 
-    val formNameAdding    = jss "Add a new event"
-    val formNameEditing   = jss "Edit the displayed event"
-    val addEventButtonText = jss "Add new event";
-    val updateEventButtonText = jss "Update event";
+    val formNameAdding        = tjs_ s_add_new_event
+    val formNameEditing       = tjs_ s_edit_event
+    val addEventButtonText    = tjs_ s_add_new_event;
+    val updateEventButtonText = tjs_ s_edit_event;
     
     val mutable minPonderation = 0
     val mutable maxPonderation = 100
@@ -201,26 +202,26 @@ type on_page =
 let updateVueFromEvent self e =
   let () = (* start_date *)
     match e.start_date with
-    | None -> ()
+    | None -> self##.startDateFormValue := jss ""
     | Some d ->
       self##.startDateFormValue :=
         jss @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%Y-%m-%d") d in
 
   let () = (* end_date *)
     match e.end_date with
-    | None -> ()
+    | None -> self##.endDateFormValue := jss ""
     | Some d ->
       self##.endDateFormValue :=
         jss @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%Y-%m-%d") d in
 
   let () = (* media *)
     match e.media with
-    | None -> ()
+    | None -> self##.mediaFormValue := jss ""
     | Some {url} -> self##.mediaFormValue := jss url in
 
   let () = (* group *)
     match e.group with
-    | None -> ()
+    | None -> self##.categoriesFormValue := jss ""
     | Some g -> self##.categoriesFormValue := jss g in
 
   let () = (* text *)
