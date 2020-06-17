@@ -182,7 +182,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   let timeline_data
       ~(with_confidential : bool)
       ~(tid : string)
-      ?(start_date = CalendarLib.Date.make (-4712) 1 1)
+      ?(start_date = CalendarLib.Date.make 1 1 1)
       ?(end_date = CalendarLib.Date.make 3268 1 1)
       ?(min_ponderation = 0)
       ?(max_ponderation = 1000)
@@ -319,7 +319,7 @@ module Reader_generic (M : Db_intf.MONAD) = struct
       | b :: _ -> return @@ Ok b
 
   let view
-    ?(start_date = CalendarLib.Date.make (-4712) 1 1)
+    ?(start_date = CalendarLib.Date.make 1 1 1)
     ?(end_date = CalendarLib.Date.make 3268 1 1)
     ?(min_ponderation = 0)
     ?(max_ponderation = 100000)
