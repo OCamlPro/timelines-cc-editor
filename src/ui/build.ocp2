@@ -1,3 +1,12 @@
+OCaml.library("vue-js-lib", ocaml+ {
+  requires = [ "js_of_ocaml" ];
+  files = [
+    "../../libs/vue_jsoo/src/mjs.ml", pp_js;
+    "../../libs/vue_jsoo/src/vue_component.ml", pp_js;
+    "../../libs/vue_jsoo/src/vue_router.ml", pp_js;
+    "../../libs/vue_jsoo/src/vue_js.ml", pp_js ];
+});
+
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
    	 "../../libs/ocplib-jsutils/libs/timeline/timeline.ml", pp_js;

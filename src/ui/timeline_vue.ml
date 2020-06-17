@@ -190,7 +190,7 @@ let category_component () =
      v-model=category.checked>\n\
      <label :for=category.catId>{{category.catName}}</label>\n\
      </div>" in
-  let props = ["category"; "checkedCategories"] in
+  let props = Vue_component.PrsArray ["category"; "checkedCategories"] in
   Vue_js.component "cat" ~template ~props
 
 type on_page =

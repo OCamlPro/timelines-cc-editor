@@ -9,4 +9,4 @@
 	url = https://github.com/Stevendeo/ez-pgocaml.git
 [submodule "libs/vue_jsoo"]
 	path = libs/vue_jsoo
-	url = git@gitlab.com:o-labs/vue_jsoo.git
+	url = https://gitlab.com/o-labs/vue_jsoo.git
