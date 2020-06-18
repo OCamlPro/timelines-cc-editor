@@ -70,3 +70,18 @@ let remove_category cat (args : t) = remove "group" cat args
 (* Event *)
 let get_event args = List.assoc_opt "event" args
 let set_event eid (args : t) = set_unique "event" eid args
+
+(* Ponderation *)
+let get_min args =
+  match List.assoc_opt "min_ponderation" args with
+  | None -> None
+  | Some i -> try Some (int_of_string i) with _ -> None
+
+let set_min p (args : t) = set_unique "min_ponderation" (string_of_int p) args
+
+let get_max args = 
+  match List.assoc_opt "max_ponderation" args with
+  | None -> None
+  | Some i -> try Some (int_of_string i) with _ -> None
+
+let set_max p (args : t) = set_unique "max_ponderation" (string_of_int p) args

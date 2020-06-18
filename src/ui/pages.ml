@@ -2,7 +2,7 @@ open Js_utils
 open Js_of_ocaml_tyxml.Tyxml_js.Html
 open Controller
 
-type dispatcher = unit -> (unit, unit Xhr_lwt.error) result Lwt.t
+type dispatcher = args:(string * string) list -> (unit, unit Xhr_lwt.error) result Lwt.t
 
 let pages : (string, dispatcher) Hashtbl.t = Hashtbl.create 3
 
@@ -10,23 +10,22 @@ let add_page path f = Hashtbl.add pages path f
 
 let finish () = Lwt.return (Ok ())
 
-let rec dispatch ~path =
+let rec dispatch ~path ~args =
   try
     match Hashtbl.find pages path with
-    | exception Not_found -> dispatch ~path:""
-    | init -> init ()
+    | exception Not_found -> dispatch ~path:"" ~args
+    | init -> init args
   with exn ->
     Js_utils.log "Exception in dispatch of %s: %s"
       path
       (Printexc.to_string exn);
     raise exn
 
-let home_page () =
+let home_page ~args:_ =
   Home_vue.init ();
   finish ()
 
-let timeline_page () =
-  let args = Jsloc.args () in
+let timeline_page ~args =
   match Args.get_timeline args with
   | None ->
     Timeline_vue.(init ~on_page:No_timeline ~categories:[]);
@@ -67,8 +66,7 @@ let timeline_page () =
           )
       )
 
-let view_page () =
-  let args = Jsloc.args () in
+let view_page ~args =
   match Args.get_timeline args with
   | None -> View_vue.init None []; finish ()
   | Some tid ->
@@ -83,6 +81,7 @@ let view_page () =
       )
 
 let () =
+  Dispatcher.dispatch := dispatch;
   add_page ""              home_page;
   add_page "home"          home_page;
   add_page "timeline"      timeline_page;

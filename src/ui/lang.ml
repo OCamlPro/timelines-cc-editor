@@ -13,7 +13,7 @@ let set_lang name =
   Jslang.set ~set:`Cookie name
 
 let () =
-  match Jsloc.lang () with
+  match Jslang.get () with
   | Some lang -> set_lang lang
   | None -> set_lang default_lang
 
@@ -26,14 +26,12 @@ let init draw =
               EzEncoding.destruct Encoding.translations res
             in
             let set = ref Utils.StringSet.empty in
-            Js_utils.log "Translations";
             let translations =
               List.fold_left (fun translations (id, txt) ->
-                    Js_utils.log "%s --> %S" id txt;
-                    if Utils.StringSet.mem id !set then
-                      Js_utils.log "duplicate id: %S" id;
-                    set := Utils.StringSet.add id !set;
-                    (id, txt) :: translations) [] translations
+                if Utils.StringSet.mem id !set then
+                  Js_utils.log "duplicate id: %S" id;
+                set := Utils.StringSet.add id !set;
+                (id, txt) :: translations) [] translations
             in
             Jslang.add_translations lang translations;
             set_lang lang;

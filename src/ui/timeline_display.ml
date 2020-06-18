@@ -50,10 +50,7 @@ let display_timeline title events =
                 (CalendarLib.Printer.Date.fprint "%F") d
           in
           {t with text} in
-        {e with 
-         group = None;
-         text
-        }
+        {e with text}
       ) events in
   let cmd =
     let timeline = {events; title} in

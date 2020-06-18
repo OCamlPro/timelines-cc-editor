@@ -46,31 +46,46 @@ class type data = object
   method tagsFormTitle         : Js.js_string Js.t Js.readonly_prop
   method ponderationFormTitle  : Js.js_string Js.t Js.readonly_prop
   method confidentialFormTitle : Js.js_string Js.t Js.readonly_prop
+  method newCategory           : Js.js_string Js.t Js.readonly_prop
+
+  method startDateFormHelp     : Js.js_string Js.t Js.readonly_prop
+  method endDateFormHelp       : Js.js_string Js.t Js.readonly_prop
+  method mediaLink             : Js.js_string Js.t Js.readonly_prop
+  method mediaFormHelp         : Js.js_string Js.t Js.readonly_prop
+  method headlineFormHelp      : Js.js_string Js.t Js.readonly_prop
+  method uniqueIdFormHelp      : Js.js_string Js.t Js.readonly_prop
+  method categoriesFormHelp    : Js.js_string Js.t Js.readonly_prop
+  method textFormHelp          : Js.js_string Js.t Js.readonly_prop
+  method tagsFormHelp          : Js.js_string Js.t Js.readonly_prop
+  method ponderationFormHelp   : Js.js_string Js.t Js.readonly_prop
+  method confidentialFormHelp  : Js.js_string Js.t Js.readonly_prop
+
   method backButton            : Js.js_string Js.t Js.readonly_prop
   method removeButton          : Js.js_string Js.t Js.readonly_prop
   method formNameAdding        : Js.js_string Js.t Js.readonly_prop
   method formNameEditing       : Js.js_string Js.t Js.readonly_prop
 
-  method addEventButtonText     : Js.js_string Js.t Js.readonly_prop
-  method updateEventButtonText  : Js.js_string Js.t Js.readonly_prop
+  method addEventButtonText    : Js.js_string Js.t Js.readonly_prop
+  method updateEventButtonText : Js.js_string Js.t Js.readonly_prop
 
   (* Values *)
 
-  method minPonderation : int Js.prop
-  method maxPonderation : int Js.prop
+  method minPonderationFilter : int Js.prop
+  method maxPonderationFilter : int Js.prop
 
   method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
 
-  method startDateFormValue    : Js.js_string Js.t Js.prop
-  method endDateFormValue      : Js.js_string Js.t Js.prop
-  method mediaFormValue        : Js.js_string Js.t Js.prop
-  method headlineFormValue     : Js.js_string Js.t Js.prop
-  method uniqueIdFormValue     : Js.js_string Js.t Js.prop
-  method categoriesFormValue   : Js.js_string Js.t Js.prop
-  method textFormValue         : Js.js_string Js.t Js.prop
-  method tagsFormValue         : Js.js_string Js.t Js.prop
-  method ponderationFormValue  : int Js.prop
-  method confidentialFormValue : bool Js.t Js.prop
+  method startDateFormValue     : Js.js_string Js.t Js.prop
+  method endDateFormValue       : Js.js_string Js.t Js.prop
+  method mediaFormValue         : Js.js_string Js.t Js.prop
+  method headlineFormValue      : Js.js_string Js.t Js.prop
+  method uniqueIdFormValue      : Js.js_string Js.t Js.prop
+  method categoriesFormValue    : Js.js_string Js.t Js.prop
+  method textFormValue          : Js.js_string Js.t Js.prop
+  method tagsFormValue          : Js.js_string Js.t Js.prop
+  method ponderationFormValue   : int Js.prop
+  method confidentialFormValue  : bool Js.t Js.prop
+  method otherCategoryFormValue : Js.js_string Js.t Js.prop
 
   method addingNewEvent : bool Js.t Js.prop
   (* Is the form here to add (true) or edit (false) an event *)
@@ -137,28 +152,43 @@ let page_vue
     val tagsFormTitle         = tjs_ s_tags
     val ponderationFormTitle  = tjs_ s_ponderation
     val confidentialFormTitle = tjs_ s_confidential
+    val newCategory           = tjs_ s_new_category
+
+    val startDateFormHelp      = tjs_ s_start_date_help
+    val endDateFormHelp        = tjs_ s_end_date_help
+    val mediaLink              = tjs_ s_media_link
+    val mediaFormHelp          = tjs_ s_media_help
+    val headlineFormHelp       = tjs_ s_headline_help
+    val uniqueIdFormHelp       = tjs_ s_unique_id_help
+    val categoriesFormHelp     = tjs_ s_category_help
+    val textFormHelp           = tjs_ s_description_help
+    val tagsFormHelp           = tjs_ s_tags_help
+    val ponderationFormHelp    = tjs_ s_ponderation_help
+    val confidentialFormHelp   = tjs_ s_confidential_help
+
     val backButton            = tjs_ s_back
     val removeButton          = tjs_ s_remove_event
 
     val formNameAdding        = tjs_ s_add_new_event
     val formNameEditing       = tjs_ s_edit_event
-    val addEventButtonText    = tjs_ s_add_new_event;
-    val updateEventButtonText = tjs_ s_edit_event;
+    val addEventButtonText    = tjs_ s_add_new_event
+    val updateEventButtonText = tjs_ s_edit_event
     
-    val mutable minPonderation = 0
-    val mutable maxPonderation = 100
+    val mutable minPonderationFilter = 0
+    val mutable maxPonderationFilter = 100
     val mutable categories     = categories
 
-    val mutable startDateFormValue    = jss ""
-    val mutable endDateFormValue      = jss ""
-    val mutable mediaFormValue        = jss ""
-    val mutable headlineFormValue     = jss ""
-    val mutable uniqueIdFormValue     = jss ""
-    val mutable categoriesFormValue   = jss ""
-    val mutable textFormValue         = jss ""
-    val mutable tagsFormValue         = jss ""
-    val mutable ponderationFormValue  = 0
-    val mutable confidentialFormValue = Js.bool false
+    val mutable startDateFormValue     = jss ""
+    val mutable endDateFormValue       = jss ""
+    val mutable mediaFormValue         = jss ""
+    val mutable headlineFormValue      = jss ""
+    val mutable uniqueIdFormValue      = jss ""
+    val mutable categoriesFormValue    = jss ""
+    val mutable textFormValue          = jss ""
+    val mutable tagsFormValue          = jss ""
+    val mutable ponderationFormValue   = 0
+    val mutable confidentialFormValue  = Js.bool false
+    val mutable otherCategoryFormValue = jss ""
 
     val mutable addingNewEvent = Js.bool false
 
@@ -180,18 +210,35 @@ let page_vue
         event_list
   end
 
-let category_component () =
+let category_filter_component data =
   let template =
-    "<div>\n\
+    "<div class='row uniform'>\n\
      <input \n\
      type='checkbox' \n\
      :id=category.catId\n\
      :value=category.catName \n\
+     :checked=category.checked \n\
      v-model=category.checked>\n\
      <label :for=category.catId>{{category.catName}}</label>\n\
      </div>" in
-  let props = Vue_component.PrsArray ["category"; "checkedCategories"] in
-  Vue_js.component "cat" ~template ~props
+  let props = Vue_component.PrsArray ["category"(*; "checkedCategories"*)] in
+  Vue_js.component "cat" ~template ~props ~data
+
+let category_select_component data =
+  let template =
+    "<div class='row uniform'>\n\
+     <input \n\
+     type='radio' \n\
+     name='category-selection' \n\
+     :id=category.catId \n\
+     :value=category.catName \n\
+     :checked='category.catName == categoriesFormValue' \n\
+     v-model=categoriesFormValue \n\
+     >\n\
+     <label :for=category.catId>{{category.catName}}</label>\n\
+     </div>" in
+  let props = Vue_component.PrsArray ["category"(*; "checkedCategories"*)] in
+  Vue_js.component "cat-select" ~template ~data ~props
 
 type on_page =
   | No_timeline
@@ -224,7 +271,8 @@ let updateVueFromEvent self e =
   let () = (* group *)
     match e.group with
     | None -> self##.categoriesFormValue := jss ""
-    | Some g -> self##.categoriesFormValue := jss g in
+    | Some g ->
+      self##.categoriesFormValue := jss g in
 
   let () = (* text *)
     self##.headlineFormValue := jss e.text.headline;
@@ -281,7 +329,12 @@ let addEvent title events self adding : unit =
     let headline     = Js.to_string self##.headlineFormValue   in
     let text         = Js.to_string self##.textFormValue       in
     let unique_id    = Js.to_string self##.uniqueIdFormValue   in
-    let group        = Js.to_string self##.categoriesFormValue in
+    let group        =
+      let s = Js.to_string self##.categoriesFormValue in
+      if s = "__other__category__" then
+        Js.to_string self##.otherCategoryFormValue
+      else s
+    in
     let tags         = Js.to_string self##.tagsFormValue       in
     let ponderation  = self##.ponderationFormValue             in
     let confidential = Js.to_bool self##.confidentialFormValue in
@@ -359,10 +412,11 @@ let removeEvent title events self =
 
 let export title events _ = Controller.export_timeline title events
 
+  
+
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
-
   let whenOnSlide = function
     | None ->
       Js_utils.log "Error during slide change, assuming not changed"
@@ -370,6 +424,31 @@ let display_timeline self title events =
       self##.currentEvent := jss s;
       Js_utils.log "Current event is %s" s in
   Timeline_display.init_slide_from_url ~whenOnSlide title events
+
+let filter self =
+  try
+    let args =
+      match Args.get_timeline (Args.get_args ()) with
+      | None -> failwith "Error: no timeline!"
+      | Some t -> Args.set_timeline t [] in  
+    let args = (* Filtering categories *)
+      let categories_js = Js.to_array self##.categories in
+      Array.fold_left
+        (fun acc cat ->
+           if Js.to_bool cat##.checked then
+             Args.add_category (Js.to_string cat##.catName) acc
+           else acc
+        )
+        args
+        categories_js in
+    let args = (* Filtering by ponderation *)
+      let min_ponderation = self##.minPonderationFilter in
+      let max_ponderation = self##.maxPonderationFilter in
+      Args.(set_min min_ponderation @@ set_max max_ponderation args)
+    in
+    Ui_utils.(push (url "timeline" args));
+    ignore @@ !Dispatcher.dispatch ~path:"timeline" ~args
+  with Failure s -> Js_utils.alert s
 
 let first_connexion vue =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
@@ -391,8 +470,10 @@ let init
   Vue.add_method1 "addEvent" (addEvent title events);
   Vue.add_method0 "removeEvent" (removeEvent title events);
   Vue.add_method0 "exportTimeline" (export title events);
+  Vue.add_method0 "filter" filter;
 
-  let _cat = category_component () in
+  let _cat = category_filter_component data_js in
+  let _cat = category_select_component data_js in
   let vue = Vue.init ~data_js () in
 
   (* Now displaying timeline *)

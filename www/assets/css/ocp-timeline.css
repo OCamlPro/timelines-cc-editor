@@ -2728,3 +2728,8 @@ tr:hover.clickable {
     color: black;
     z-index: 10;
 }
+
+/* Very small text */
+.verysmall{
+    font-size:10px
+}

@@ -34,7 +34,7 @@
 
 <!-- Filters & Panel -->
 
-<div class="row uniform" id="timeline-filters">
+<div class="row uniform" id="timeline-filters" style="margin:10px">
   <form method="post" action="#" class="6u">
     <h3>{{categoryHeader}}</h3>
     <cat
@@ -44,20 +44,20 @@
       ></cat>
     <h3>{{otherFiltersHeader}}</h3>
     <input
-      v-model.number="minPonderation"
+      v-model.number="minPonderationFilter"
       type="number"
       id="min-ponderation"
       min="0"
-      :max=maxPonderation
+      :max=maxPonderationFilter
       :title="ponderationHelp">
     <label for="min-ponderation"> {{minPonderationLabel}} </label>
     <input
-      v-model.number="maxPonderation"
+      v-model.number="maxPonderationFilter"
       type="number"
-      :min=minPonderation
+      :min=minPonderationFilter
       :title="ponderationHelp">
     <label for="max-ponderation"> {{maxPonderationLabel}} </label>
-    <div class="button special" :title="filterHelp"> {{filterButtonText}} </div>
+    <div class="button special" :title="filterHelp" @click="filter()"> {{filterButtonText}} </div>
   </form>
   
   <div class="6u">
@@ -71,7 +71,10 @@
     <span v-else> {{formNameEditing}}</span>    
   </h3>
   <div class="row uniform">
-    <div class="4u">{{startDateFormTitle}}</div>
+    <div class="4u">
+      {{startDateFormTitle}}<br/>
+      <span class="verysmall">{{startDateFormHelp}}</span>
+    </div>
     <div class="8u">
       <input
 	id="start-date"
@@ -81,7 +84,10 @@
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{endDateFormTitle}}</div>
+    <div class="4u">
+      {{endDateFormTitle}}<br/>
+      <span class="verysmall">{{endDateFormHelp}}</span>
+    </div>
     <div class="8u">
       <input
 	id="end-date"
@@ -90,7 +96,10 @@
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{mediaFormTitle}}</div>
+    <div class="4u">
+      {{mediaFormTitle}}<br/>
+      <span class="verysmall">{{mediaFormHelp}} <a href='https://timeline.knightlab.com/docs/media-types.html'>{{mediaLink}}</a></span>
+    </div>
     <div class="8u">
       <input
 	id="media"
@@ -100,7 +109,10 @@
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{headlineFormTitle}}</div>
+    <div class="4u">
+      {{headlineFormTitle}}<br/>
+      <span class="verysmall">{{headlineFormHelp}}</span>
+    </div>
     <div class="8u">
       <input
 	id="title"
@@ -110,7 +122,10 @@
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{uniqueIdFormTitle}}</div>
+    <div class="4u">
+      {{uniqueIdFormTitle}}<br/>
+      <span class="verysmall">{{uniqueIdFormHelp}}</span>
+    </div>
     <div class="8u">
       <input
 	id="unique-id"
@@ -119,23 +134,50 @@
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{categoriesFormTitle}}</div>
+    <div class="4u">
+      {{categoriesFormTitle}}<br/>
+      <span class="verysmall">{{categoriesFormHelp}}</span>
+    </div>
     <div class="8u">
+      <cat-select
+	v-for="categ in categories"
+	:category="categ"
+	:key="categ.id"
+	></cat-select>
+      <div class="row uniform">
+	<input
+	  type='radio'
+	  v-model='categoriesFormValue'
+	  id='other-category'
+	  name='category-selection'
+	  value='__other__category__'>
+	<label for='other-category'> {{newCategory}} </label>
+      </div>
+      <input
+	type="text"
+	v-model="otherCategoryFormValue"
+	v-show="categoriesFormValue=='__other__category__'">
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{textFormTitle}}</div>
+    <div class="4u">
+      {{textFormTitle}}<br/>
+      <span class="verysmall">{{textFormHelp}}</span>
+    </div>
     <div class="8u">
       <textarea
 	id="text"
-	style="width: 300px; height: 200px; resize: both;"
+	style="resize: both;"
 	v-model="textFormValue"
 	>
       </textarea>
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{tagsFormTitle}}</div>
+    <div class="4u">
+      {{tagsFormTitle}}<br/>
+      <span class="verysmall">{{tagsFormHelp}}</span>
+    </div>
     <div class="8u">
       <input
 	id="tags"
@@ -144,7 +186,10 @@
     </div>
   </div>
   <div class="row uniform">
-    <div class="4u">{{ponderationFormTitle}}</div>
+    <div class="4u">
+      {{ponderationFormTitle}}<br/>
+      <span class="verysmall">{{ponderationFormHelp}}</span>
+    </div>
     <div class="8u">
       <input
 	min="0"
@@ -160,7 +205,10 @@
       for="confid"
       class="4u"
       >
-      <span style="cursor: pointer">{{confidentialFormTitle}}</span>
+      <span style="cursor: pointer">
+	{{confidentialFormTitle}}<br/>
+	<span class="verysmall">{{confidentialFormHelp}}</span>
+      </span>
     </label>
     <input
       id="confid"

@@ -3,9 +3,9 @@ open Ocp_js
 
 let () =
   Lang.init (fun () ->
-    let path_str =
+    let path =
       match Jsloc.url () with
         Http h | Https h -> h.hu_path_string
       | File _ -> "file?" in
-    ignore @@ Pages.dispatch path_str
+    ignore @@ Pages.dispatch ~path ~args:(Jsloc.args ())
  )

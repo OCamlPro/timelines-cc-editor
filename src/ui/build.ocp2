@@ -10,6 +10,7 @@ OCaml.library("vue-js-lib", ocaml+ {
 OCaml.program("ocptimeline-js", ocaml + {
    files = [
    	 "../../libs/ocplib-jsutils/libs/timeline/timeline.ml", pp_js;
+	 "dispatcher.ml";
 	 "ui_utils.ml", pp_js;
 	 "lang.ml";
 	 "text.ml";
