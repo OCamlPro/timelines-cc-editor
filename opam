@@ -18,8 +18,8 @@ depexts: [
   "libgmp-dev"
 ]
 depends: [
+  "dune"
   "ocamlfind" { build }
-  "ocp-build" { = "next" }
   "camlp4"
   "calendar"
   "bigstring" { >= "0.2" }
