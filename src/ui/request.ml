@@ -5,7 +5,7 @@ open Timeline_data
 
 let api () =
   Http {
-    hu_host = "d4.dune.network";
+    hu_host = Config.api_host;
     hu_port = Config.api_port;
     hu_path = [];
     hu_path_string = "";

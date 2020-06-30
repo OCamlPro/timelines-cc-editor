@@ -45,9 +45,9 @@ let init draw =
   begin
     match Jslang.get () with
     | None -> 
-      download_lang_url (Printf.sprintf "/lang-%s.json" default_lang)
+      download_lang_url (Printf.sprintf "lang-%s.json" default_lang)
     | Some lang ->
-      download_lang_url (Printf.sprintf "/lang-%s.json" lang)
+      download_lang_url (Printf.sprintf "lang-%s.json" lang)
   end (* ;
   begin
     match Jsloc.find_arg "lang_url" with
