@@ -11,8 +11,10 @@ init:
 	bash opam_build.sh
 	bash build_deps.sh
 
-build:
+build: website
 	PGDATABASE=$(DATABASE) dune build
+	cp _build/default/src/api/api.exe api
+	cp _build/default/src/ui/ocptimeline_js.bc.runtime.js www/assets/js/ocptimeline-js.js
 
 include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
 
