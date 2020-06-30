@@ -1,6 +1,7 @@
 open Js_of_ocaml.Url
 open Lwt
-open EzAPI
+open Api_lib
+open Timeline_data
 
 let api () =
   Http {
@@ -19,7 +20,10 @@ let api () =
     | Some u -> u
     | None -> assert false *)
 
-let cook ?error encoding cont =
+let cook
+    ?(error : ('a Xhr_lwt.error -> ('output, 'a Xhr_lwt.error) Pervasives.result) option)
+    (encoding : 'output Json_encoding.encoding)
+    (cont : 'output -> (unit, string) Pervasives.result Lwt.t) =
   (fun str ->
      Js_utils.log "Cooking";
      let yoj = Yojson.Safe.from_string str in
@@ -28,21 +32,36 @@ let cook ?error encoding cont =
        try
          let elt = Json_encoding.destruct encoding json in
          Js_utils.log "Cooking OK";
-         elt
+         Ok elt
        with
        | e ->
-         Js_utils.log "Error while cooking %s: %s"
-           str
-           (Printexc.to_string e)
-         ;
+         let msg =
+           Format.sprintf
+             "Error while cooking %s: %s"
+             str
+             (Printexc.to_string e) in
+         Js_utils.log "%s" msg;
          match error with
-         | None -> raise e
-         | Some e -> e
+         | None -> (Error (Xhr_lwt.Str_err msg))
+         | Some err -> err (Xhr_lwt.Str_err msg)
      in
-     cont elt
+     match elt with
+     | Ok e -> cont e
+     | Error e  ->
+       let msg =
+         Format.asprintf
+           "Error while cooking %s: %a"
+           str
+           Xhr_lwt.pp_err e in
+       Lwt.return (Error msg)
   )
 
-let get ?error ?(args = []) (apifun : _ EzAPI.service) apiargs cont =
+let get
+    ?error
+    ?(args = [])
+    (apifun : ('params, 'params2, 'input, 'output, 'error, 'security) EzAPI.service)
+    (apiargs : string list)
+    (cont : 'output -> 'a)  =
   let url = api () in (*
   let url = (* Only for standalone !! *)
     match url wit<h
@@ -68,10 +87,14 @@ let get ?error ?(args = []) (apifun : _ EzAPI.service) apiargs cont =
     let code, msg = Xhr_lwt.error_content e in
     Js_utils.log "Error %i while getting to api: %s" code msg;
     match error with
-      None -> Lwt.return (Error e)
-    | Some e -> cont e
+      None -> Lwt.return (Error msg)
+    | Some err -> begin
+        match err e with
+        | Ok v -> cont v
+        | Error e -> Lwt.return (Error (Format.asprintf "%a" Xhr_lwt.pp_err e))
+      end
 
-let post ~args (apifun : _ EzAPI.service) apiargs input cont =
+let post ~args ~error (apifun : _ EzAPI.service) apiargs input cont =
   let api_fun_name = EzAPI.get_service_path apifun apiargs in
   let () = Js_utils.log "POST %s" api_fun_name in
   let url = api () in
@@ -92,7 +115,7 @@ let post ~args (apifun : _ EzAPI.service) apiargs input cont =
      | Error e ->
        let code, msg = Xhr_lwt.error_content e in
        Js_utils.log "Error %i while getting to api: %s" code msg;
-       Lwt.return (Error e)
+       error e
   )
 
 
@@ -102,10 +125,10 @@ let args_from_session args =
   | Some (email, auth_data) ->
     ("auth_email", email) :: ("auth_data", auth_data) :: args
 
-let timeline_data ~args timeline cont =
+let timeline_data ~args timeline cont  =
   let args = args_from_session args in
   get
-    ~error:(Error "GET timeline_data failed")
+    ~error:(fun _ -> Js_utils.alert "GET timeline_data failed"; Ok (None, []))
     ~args
     ApiServices.timeline_data [timeline]
     cont
@@ -130,25 +153,28 @@ let title ~args tid cont =
     ApiServices.title [tid]
     cont
 
-let add_event (tid : string) (event : Data_types.event) cont =
+let add_event ~error (tid : string) (event : Data_types.event) cont =
   let args = args_from_session [] in
   post
     ~args
+    ~error
     ApiServices.add_event [tid]
     event
     cont
 
-let update_event id ~old_event ~new_event cont =
+let update_event ~error ~id ~old_event ~new_event cont =
   let args = args_from_session ["id", string_of_int id] in
   post
     ~args
+    ~error
     ApiServices.update_event []
     (id, old_event, new_event)
     cont
 
-let remove_event id cont =
+let remove_event ~error id cont =
   let args = args_from_session [] in
   get
+    ~error
     ~args
     ApiServices.remove_event [id]
     cont
@@ -193,11 +219,12 @@ let categories timeline cont =
     ()
     cont
 
-let logout cont =
+let logout ~error cont =
   match Ui_utils.get_auth_data () with
   | None -> Lwt.return @@ Error (Xhr_lwt.Str_err "Error: not logged in")
   | Some (email, auth_data) ->
     post
+      ~error
       ~args:[]
       ApiServices.logout []
       (email, auth_data)
@@ -231,7 +258,7 @@ let timeline_users timeline cont =
     ()
     cont
 
-let remove_user timeline cont = 
+let remove_user cont = 
   post 
     ~args:(args_from_session [])
     ApiServices.remove_user []
@@ -245,15 +272,16 @@ let remove_timeline timeline cont =
     ()
     cont
 
-let get_view_token timeline cont =
+let get_view_token ~error timeline cont =
   get
+    ~error
     ~args:[]
     ApiServices.get_view_token [timeline]
     cont
 
 let view ~args timeline cont =
   get
-    ~error:(Error "GET view failed")
+    ~error:(fun _ -> Js_utils.alert "GET view failed"; Ok (None, []))
     ~args
     ApiServices.view [timeline]
     cont

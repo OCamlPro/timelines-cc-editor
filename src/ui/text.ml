@@ -47,7 +47,7 @@ let s_description_help = ss_ "descriptionFormHelp"
 let s_unique_id_help = ss_ "uniqueIdFormHelp"
 let s_category_help = ss_ "categoryFormHelp"
 let s_tags_help = ss_ "tagsFormHelp"
-let s_ponderation_help = ss_ "ponderationFormHelp"
+let s_ponderation_form_help = ss_ "ponderationFormHelp"
 let s_confidential_help = ss_ "confidentialFormHelp"
 
 let s_back = ss_ "back"

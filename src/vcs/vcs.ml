@@ -7,7 +7,7 @@ let saves = ref []
 let max_saves = 10
 
 let handle_unix = function
-  | Unix.WEXITED i -> ()
+  | Unix.WEXITED _ -> ()
   | Unix.WSIGNALED _
   | Unix.WSTOPPED _ ->
     Format.printf "Error on unix command, exiting"; exit 1

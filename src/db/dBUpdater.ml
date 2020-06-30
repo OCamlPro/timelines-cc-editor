@@ -1,4 +1,4 @@
-open DBVersions
+open Database_version.DBVersions
 open Config
 
 let () =

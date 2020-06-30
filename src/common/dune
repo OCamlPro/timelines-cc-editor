@@ -1,0 +1,18 @@
+(library
+ (name data_encoding)
+ (modules data_encoding)
+ (libraries ocplib-json-typed yojson timeline_data))
+
+(library
+ (name xhr_lwt)
+ (modules xhr_lwt)
+ (libraries ocplib-json-typed js_of_ocaml-lwt yojson))
+
+(library
+ (name timeline_data)
+ (modules data_types utils)
+ (libraries calendar sha))
+
+(library
+ (name config)
+ (modules config))

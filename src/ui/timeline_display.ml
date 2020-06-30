@@ -1,6 +1,8 @@
+open Timeline_data
 open Data_types
 open Js_utils
 open Js_of_ocaml_tyxml.Tyxml_js.Html
+open Ui_common
 
 type slide_change = Next | Prev
 

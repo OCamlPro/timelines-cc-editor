@@ -1,5 +1,4 @@
-open Js_utils
-open Ocp_js
+open Ui_common
 
 let () =
   Lang.init (fun () ->

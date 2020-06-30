@@ -1,5 +1,6 @@
-open Ui_utils
 open Lwt
+open Ui_common
+open Ui_utils
 open Text
 open Lang
 
@@ -38,7 +39,7 @@ end
 
 module Vue = Vue_js.Make (Input)
 
-let createTimeline self =
+let createTimeline (self : data Vue_js.vue) =
   Controller.create_timeline
     (Js_of_ocaml.Js.to_string self##.createNameValue)
     (Js_of_ocaml.Js.to_string self##.createDescrValue) >>=

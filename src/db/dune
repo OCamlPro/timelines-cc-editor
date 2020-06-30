@@ -1,0 +1,37 @@
+(library
+ (name database_interface)
+ (modules monad_lwt db_intf)
+ (libraries lwt.unix timeline_data calendar))
+
+(library
+ (name database_version)
+ (modules dBVersions)
+ (libraries ez-pgocaml config))
+
+(library
+ (name database_reader_lib)
+ (modules reader)
+ (preprocessor_deps (env_var PGDATABASE))
+ (preprocess
+  (pps pgocaml_ppx))
+ (libraries timeline_data database_interface ez-pgocaml config lwt lwt.unix))
+
+(library
+ (name database_writer_lib)
+ (modules writer)
+ (preprocessor_deps (env_var PGDATABASE))
+ (preprocess
+  (pps pgocaml_ppx))
+ (libraries timeline_data database_interface ez-pgocaml config
+   database_reader_lib))
+
+(executable
+ (name dBUpdater)
+ (modules dBUpdater)
+ (libraries database_version))
+
+(executable
+ (name csv_dbparser)
+ (modules csv_dbparser)
+ (libraries database_writer_lib database_reader_lib timeline_data
+   data_encoding))

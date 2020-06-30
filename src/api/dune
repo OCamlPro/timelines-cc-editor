@@ -1,0 +1,14 @@
+(executable
+ (name api)
+ (modules api)
+ (libraries api_lib))
+
+(library
+ (name api_data)
+ (modules apiData)
+ (libraries timeline_data data_encoding))
+
+(library
+ (name api_lib)
+ (modules apiHandlers apiServices apiServer)
+ (libraries config ez-api.server api_data database_reader_lib database_writer_lib timeline_data data_encoding core threads))

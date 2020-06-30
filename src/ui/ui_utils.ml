@@ -1,8 +1,4 @@
 open Js_of_ocaml_tyxml.Tyxml_js.Html
-open Bootstrap_helpers
-open Grid
-open Form
-open Js_utils
 open Ocp_js
 
 module Session = struct

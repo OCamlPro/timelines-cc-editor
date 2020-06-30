@@ -65,7 +65,8 @@ depends: [
   "extunix"
 ]
 pin-depends: [
-  [ "ocp-build.next" "git+https://github.com/OCamlPro/ocp-build.git#next"]
+  [ "pgocaml.4.2.1" "git+https://github.com/ocpmax/pgocaml.git" ]
+  [ "pgocaml_ppx.4.2.1" "git+https://github.com/ocpmax/pgocaml.git" ]
 ]
 build: [
   [ make "submodules" "all" ]

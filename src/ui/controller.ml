@@ -1,5 +1,6 @@
-open Lwt
+open Timeline_data
 open Data_types
+open Ui_common
 
 exception IncorrectInput of string
 let incorrect_input s = raise (IncorrectInput s)
@@ -20,17 +21,12 @@ let create_timeline name descr =
     | _ -> name, name
   in
   let title = Utils.to_title_event headline descr in
-  Request.create_timeline timeline_id title true (
-    fun res ->
-      let () = match res with
-        | Error _->
-          Js_utils.log "Error from timeline API"       
-        (* Todo: better error message *)
-        | Ok id ->
-          let new_page = Format.sprintf "/timeline?timeline=%s" id in
-          Js_utils.log "Going to %s" new_page;
-          Ui_utils.goto_page new_page
-      in finish res
+  let error e = Lwt.return @@ Error e in 
+  Request.create_timeline ~error timeline_id title true (
+    fun id ->
+      let new_page = Format.sprintf "/timeline?timeline=%s" id in
+      Js_utils.log "Going to %s" new_page;
+      finish @@ Ok (Ui_utils.goto_page new_page)
     )
 
 let add_event
@@ -79,11 +75,12 @@ let add_event
       last_update = Some (CalendarLib.Date.today ());
       tags
     } in
-    Request.add_event timeline event (function
-        | Ok _id -> Js_utils.reload (); Lwt.return (Ok ())
-        | Error s ->
-          Js_utils.alert (Format.sprintf "Error: %s" s);
-          Lwt.return (Error (Xhr_lwt.Str_err s)))
+    let error s =
+      Js_utils.alert (Format.asprintf "Error: %a" Xhr_lwt.pp_err s);
+      Lwt.return (Error s) in
+    Request.add_event
+      ~error timeline
+      event (fun _ -> Js_utils.reload (); Lwt.return (Ok ()))
   with
     IncorrectInput s -> 
     Js_utils.alert (Format.sprintf "Error: %s" s);
@@ -101,8 +98,7 @@ let update_event
     ~group
     ~ponderation
     ~confidential
-    ~tags
-    ~timeline =
+    ~tags =
   let unique_id =
     match unique_id with
     | "" ->
@@ -131,23 +127,28 @@ let update_event
     last_update = Some (CalendarLib.Date.today ());
     tags
   } in
-  Request.update_event id ~old_event ~new_event (function
+  let error e =
+    let error = Format.asprintf "%s: %a" (Lang.t_ Text.s_alert_edition_failed) Xhr_lwt.pp_err e in
+    Js_utils.alert error;
+    Lwt.return (Error e) in
+
+  Request.update_event
+    ~error ~id
+    ~old_event ~new_event (function
     | Success ->
       Js_utils.reload (); Lwt.return (Ok ())
-    | Modified t ->
+    | Modified _t ->
       Js_utils.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
-    | Failed s -> 
-      let error = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_edition_failed) s in
-      Js_utils.alert error;
-      Lwt.return (Error (Xhr_lwt.Str_err s))
     )
 
 let removeEvent i =
+  let error e =
+    let code, err = Xhr_lwt.error_content e in
+    Js_utils.alert (Format.asprintf "Error %i while removing event: %s" code err);
+    Error e in
   if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_event) then
-    Request.remove_event (string_of_int i) (function
-        | Ok () -> Js_utils.reload (); Lwt.return (Ok ())
-        | Error s -> Js_utils.alert ("Error while removing event: " ^ s); Lwt.return (Error (Xhr_lwt.Str_err s))
-      )
+    Request.remove_event ~error (string_of_int i)
+      (fun () -> Js_utils.reload (); Lwt.return (Ok ()))
   else Lwt.return (Ok ())
 
 let viewToken ?(args = []) vue tid =
@@ -170,25 +171,31 @@ let viewToken ?(args = []) vue tid =
         "", []
     end
   in
-  Request.get_view_token timeline_id_str 
+  let error e =
+    let msg =
+      Format.asprintf "%s: %a"
+        (Lang.t_ Text.s_alert_error_view_token)
+        Xhr_lwt.pp_err e in
+    Js_utils.alert msg; Error e
+  in    
+  Request.get_view_token ~error
+    timeline_id_str 
     (function
-      | Error s -> 
-        let msg = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_error_view_token) s in
-        Js_utils.alert msg; Lwt.return (Error (Xhr_lwt.Str_err s))
-      | Ok [] ->
+      | [] ->
         Js_utils.alert (Lang.t_ Text.s_alert_no_view_token);
-        Lwt.return (Error (Xhr_lwt.Str_err "No token"))
-      | Ok (s::_) ->
-        let host, port =
+        Lwt.return (Error "No token")
+      | (s::_) ->
+        let _host, port =
           match Jsloc.url () with
           | Http hu | Https hu -> hu.hu_host, hu.hu_port
-          | File fu -> "localhost", 80
+          | File _fu -> "localhost", 80
         in
         let str_port =
           if port = 80 then "" else ":" ^ string_of_int port in
         let url = 
           Format.asprintf "%s%s/view?timeline=%s&%a" (Jsloc.host ()) str_port s Args.print args
-        in vue##.shareURL := Ocp_js.Js.string url;
+        in
+        vue##.shareURL := Ocp_js.Js.string url;
         Lwt.return (Ok ())
        )
 

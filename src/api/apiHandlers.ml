@@ -1,12 +1,19 @@
-open Lwt
 open EzAPI.TYPES
-open ApiData
+open Api_data.ApiData
+open Database_reader_lib
+open Database_writer_lib
+open Timeline_data
 
 module StringMap = StringCompat.StringMap
 
-module Reader = Reader.Reader_generic (Monad_lwt)
+module Reader = Reader.Reader_generic (Database_interface.Monad_lwt)
 
-let unauthorized () = EzAPIServerUtils.return (Error "Error 403")
+let (>>=) = Lwt.(>>=)
+
+let unauthorized () = EzAPIServerUtils.return (Error ("Error 403"))
+let not_found s = EzAPIServerUtils.return (Error ("Error 404: " ^ s))
+let unknown_error s = EzAPIServerUtils.return (Error ("Error: " ^ s))
+let ok e = EzAPIServerUtils.return (Ok e)
 
 let is_auth req cont =
   let email =
@@ -37,62 +44,62 @@ let edition_rights (req, tid) cont =
         cont true
       else
         confidential_rights (req, tid) cont
-    | Error e -> cont false)
+    | Error _e -> cont false)
 
 let if_ ~error has args cont =
   has args (fun right -> if right then cont () else error ())
 
-let event (req, id) () =
+let event (req, id) _ () =
   Lwt_io.printl "CALL event" >>= (fun () ->
     Reader.timeline_of_event id >>= (function
     | Some tid ->
-      confidential_rights (req, tid) (fun has_rights ->
+      edition_rights (req, tid) (fun has_rights ->
         if has_rights then
-          Reader.event id >>= EzAPIServerUtils.return
+          Reader.event id >>= function
+          | Some e -> ok e
+          | None -> not_found "[event] Event not found"
         else 
-          EzAPIServerUtils.return None
+          unauthorized ()
         )
-    | None -> EzAPIServerUtils.return None
+    | None -> not_found "[event] Timeline not found"
         )
     )
 
-let events (req,timeline_id) () =
+let events (req,timeline_id) _ () =
   Lwt_io.printl "CALL events" >>= (fun () ->
     confidential_rights (req, timeline_id) (fun has_rights ->
-      Reader.events has_rights timeline_id >>= EzAPIServerUtils.return)
+      Reader.events has_rights timeline_id >>= ok)
     )
 
-let title (req,timeline_id) () =
-  Lwt_io.printl "CALL title" >>= (fun () -> 
-    (* To respect privacy, error is the same whether the timeline exists or not. *)
-    let error () = EzAPIServerUtils.return (Error "Unknown title") in 
+let title (req,timeline_id) _ () =
+  Lwt_io.printl "CALL title" >>= (fun () ->
     Reader.title timeline_id >>= (function
-      | None -> error ()
+      | None -> ok None
       | Some (id, title) ->
         if title.confidential then
           confidential_rights (req, timeline_id) (fun has_rights ->
               if has_rights then
-                EzAPIServerUtils.return (Ok (id, title))
-              else error ()
+                ok (Some (id, title))
+              else unauthorized ()
             )
-        else EzAPIServerUtils.return (Ok (id, title))
+        else ok (Some (id, title))
       )
     )
 
-let add_event (req, timeline_id) event =
+let add_event (req, timeline_id) _ event =
   Lwt_io.printl "CALL add_event" >>= (fun () ->
     if_ ~error:unauthorized edition_rights (req,timeline_id) (fun () ->
       EzAPIServerUtils.return @@ Writer.add_event event timeline_id
     )
   )
 
-let update_event req (id, old_event, event) =
+let update_event req _ (id, old_event, event) =
   Lwt_io.printl "CALL update_event" >>= (fun () ->
     Reader.timeline_of_event id >>= (function
-    | None -> EzAPIServerUtils.return (Failed "Event associated to no timeline")
+    | None -> not_found "[update_event] Event associated to no timeline"
     | Some tid ->
       if_
-        ~error:(fun () -> EzAPIServerUtils.return (Failed "Error 403"))
+        ~error:unauthorized
         edition_rights
         (req, tid)
         (fun () ->
@@ -101,13 +108,13 @@ let update_event req (id, old_event, event) =
            Reader.event id >>= (function
              | None ->
                Format.printf "Deleted element while editing@.";
-               EzAPIServerUtils.return (Modified None)
+               ok (Modified None) 
              | Some should_be_old_event ->
                Format.printf "Event in the db: %a@. Expected event: %a@."
                  Utils.pp_title should_be_old_event
                  Utils.pp_title old_event
                ;
-               if old_event = should_be_old_event then begin
+               if old_event = should_be_old_event then begin (* Todo: merge modifications *)
                  let is_title =
                    match old_event.start_date with
                    | None -> true
@@ -115,28 +122,27 @@ let update_event req (id, old_event, event) =
                  in
                  if is_title then begin
                    match Writer.update_title id event with
-                   | Ok _s ->   EzAPIServerUtils.return Success
-                   | Error s -> EzAPIServerUtils.return (Failed s)
+                   | Ok _s -> ok Success
+                   | Error s -> unknown_error s 
                  end else begin
                    match Utils.metaevent_to_event event with
                    | None ->
-                     EzAPIServerUtils.return
-                       (Failed "Cannot update an event with a missing start date")
+                     unknown_error "Cannot update an event with a missing start date"
                    | Some e ->
                      match Writer.update_event id e with
-                     | Ok _s ->   EzAPIServerUtils.return Success
-                     | Error s -> EzAPIServerUtils.return (Failed s)
+                     | Ok _s ->   ok Success
+                     | Error s -> unknown_error s
                  end
                end else begin
                  Format.printf "Modified element while editing@.";
-                 EzAPIServerUtils.return (Modified (Some should_be_old_event))
+                 ok (Modified (Some should_be_old_event))
                end
              )
         )
       )
     )
 
-let timeline_data (req, tid) () =
+let timeline_data (req, tid) _ () =
   Lwt_io.printl "CALL timeline_data" >>= (fun () ->
   let start_date =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
@@ -188,10 +194,10 @@ let timeline_data (req, tid) () =
       () >>= EzAPIServerUtils.return
     )
 
-let remove_event (req, id) () =
+let remove_event (req, id) _ () =
   Lwt_io.printl "CALL remove_event" >>= (fun () ->
   Reader.timeline_of_event id >>= (function
-    | None -> EzAPIServerUtils.return (Error "Event does not exist")
+    | None -> not_found "[remove_event] Event does not exist"
     | Some tid ->
       if_ ~error:unauthorized edition_rights (req, tid) (fun () ->
           EzAPIServerUtils.return @@ Writer.remove_event id
@@ -199,27 +205,29 @@ let remove_event (req, id) () =
       )
     )
 
-let categories (req, id) () =
+let categories (req, id) _ () =
   Lwt_io.printl "CALL categories" >>= fun () ->
   edition_rights (req, id) (fun rights ->
-      ((Reader.categories rights id) >>= EzAPIServerUtils.return)
+      ((Reader.categories rights id) >>= ok)
     )
 
-let register_user _ (email, pwdhash) =
+let register_user _ _ (email, pwdhash) =
   Lwt_io.printl "CALL register_user" >>= fun () ->
   EzAPIServerUtils.return (Writer.register_user email pwdhash)
   
 
-let login _ (email, pwdhash) =
+let login _ _ (email, pwdhash) =
   Lwt_io.printl "CALL login" >>= fun () ->
-  Reader.Login.login email pwdhash >>= EzAPIServerUtils.return
+  Reader.Login.login email pwdhash >>= function
+  | None -> unauthorized ()
+  | Some s -> ok s
 
-let logout _ (email, cookie) =
+let logout _ _ (email, cookie) =
   Lwt_io.printl "CALL logout" >>= fun () ->
-  Reader.Login.logout email cookie >>= EzAPIServerUtils.return
+  Reader.Login.logout email cookie >>= ok
 
 
-let export_database (req, timeline_id) () =
+let export_database (req, timeline_id) _ () =
   Lwt_io.printl "CALL export_database" >>= fun () ->
   edition_rights (req, timeline_id) (fun rights ->
     Reader.title timeline_id >>= (fun title ->
@@ -227,7 +235,6 @@ let export_database (req, timeline_id) () =
         try
           let events = List.map snd events in
           let title =
-
             match title with
             | None -> None
             | Some (_, t) -> if rights || not t.confidential then Some t else None in
@@ -239,7 +246,7 @@ let export_database (req, timeline_id) () =
     )
   )
 
-let create_timeline (req, name) (title, public) =
+let create_timeline (req, name) _ (title, public) =
   Lwt_io.printl "CALL create_database" >>= fun () ->
   let name = Utils.trim name in
   is_auth req (fun auth ->
@@ -253,17 +260,17 @@ let create_timeline (req, name) (title, public) =
         EzAPIServerUtils.return @@ Writer.create_public_timeline title name
   )
 
-let user_timelines req () =
+let user_timelines req _ () =
   Lwt_io.printl "CALL user_timelines" >>= fun () ->
   if_ is_auth ~error:unauthorized req (fun () ->
     match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
     | None ->
-      EzAPIServerUtils.return (Error "[user_timelines] Error: email should be in params")
+      unknown_error "[user_timelines] Error: email should be in params"
     | Some email ->
-      Reader.user_timelines email >>= fun l -> EzAPIServerUtils.return (Ok l)
+      Reader.user_timelines email >>= fun l -> ok l
     )
 
-let allow_user req (email, timeline_id) =
+let allow_user req _ (email, timeline_id) =
   Lwt_io.printl "CALL allow_user" >>= fun () ->
   if_ ~error:unauthorized has_admin_rights (req, timeline_id) (fun () ->
     if_ ~error:unauthorized has_admin_rights (req, timeline_id) (fun () ->
@@ -271,36 +278,36 @@ let allow_user req (email, timeline_id) =
     )
   )
 
-let timeline_users (req,tid) () =
+let timeline_users (req,tid) _ () =
   Lwt_io.printl "CALL timeline_users" >>= fun () ->
   if_ ~error:unauthorized edition_rights (req,tid) (fun () ->
-      Reader.timeline_users tid >>= fun l -> EzAPIServerUtils.return (Ok l)
+      Reader.timeline_users tid >>= fun l -> ok l
   )
   
 
-let remove_user req () =
+let remove_user req _ () =
   Lwt_io.printl "CALL remove_user" >>= fun () ->
   if_ ~error:unauthorized is_auth req (fun () ->
     match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
     | None ->
-      EzAPIServerUtils.return (Error "[user_timelines] Error: email should be in params")
+      unknown_error "[user_timelines] Error: email should be in params"
     | Some email -> EzAPIServerUtils.return @@ Writer.remove_user email
   )
 
-let remove_timeline (req,tid) () =
+let remove_timeline (req,tid) _ () =
   Format.eprintf "CALL remove_timeline";
   if_ ~error:unauthorized edition_rights (req,tid) (fun () -> 
     EzAPIServerUtils.return @@ Writer.remove_timeline tid    
   )
 
-let get_view_token (_, tid) () =
+let get_view_token (_, tid) _ () =
   Lwt_io.printl "CALL get_view_token" >>= fun () ->
   Reader.get_view_token tid >>= 
   (function
-   | Ok str -> Lwt_io.printl ("Token = " ^ str) >>= (fun () -> EzAPIServerUtils.return (Ok [str]))
-   | Error e -> EzAPIServerUtils.return (Error e))
+   | Ok str -> Lwt_io.printl ("Token = " ^ str) >>= (fun () -> ok [str])
+   | Error e -> unknown_error e)
 
-let view (req, tid) () =
+let view (req, tid) _ () =
   Lwt_io.printl "CALL view" >>= (fun () ->
       let start_date =
         Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
@@ -332,17 +339,17 @@ let view (req, tid) () =
       >>= EzAPIServerUtils.return
     )
 
-let is_auth req () =
+let is_auth req _ () =
   Lwt_io.printl "CALL is_auth" >>= fun () ->
-  is_auth req EzAPIServerUtils.return 
+  is_auth req ok
 
-let has_admin_rights (req, tid) () =
+let has_admin_rights (req, tid) _ () =
   Lwt_io.printl "CALL has_admin_rights" >>= fun () ->
-  has_admin_rights (req, tid) EzAPIServerUtils.return 
+  has_admin_rights (req, tid) ok
 
-let version _ () =
+let version _ _ () =
   Lwt_io.printl "CALL version" >>= fun () ->
-  EzAPIServerUtils.return "0.1"
+  ok "0.1"
 
 (*
 let reinitialize _ events =

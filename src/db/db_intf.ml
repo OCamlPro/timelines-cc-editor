@@ -1,6 +1,3 @@
-
-open Data_types
-
 module type MONAD =
 sig
   type 'a t

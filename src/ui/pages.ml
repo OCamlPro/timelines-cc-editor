@@ -1,8 +1,8 @@
-open Js_utils
-open Js_of_ocaml_tyxml.Tyxml_js.Html
-open Controller
+open Ui_common
 
-type dispatcher = args:(string * string) list -> (unit, unit Xhr_lwt.error) result Lwt.t
+open Timeline_data
+
+type dispatcher = args:(string * string) list -> (unit, string) result Lwt.t
 
 let pages : (string, dispatcher) Hashtbl.t = Hashtbl.create 3
 
@@ -14,7 +14,7 @@ let rec dispatch ~path ~args =
   try
     match Hashtbl.find pages path with
     | exception Not_found -> dispatch ~path:"" ~args
-    | init -> init args
+    | init -> init ~args
   with exn ->
     Js_utils.log "Exception in dispatch of %s: %s"
       path
@@ -31,21 +31,13 @@ let timeline_page ~args =
     Timeline_vue.(init ~on_page:No_timeline ~categories:[]);
     finish ()
   | Some tid ->
-    Request.timeline_data ~args tid (fun data ->
+    Request.timeline_data ~args tid (fun events ->
       Request.title ~args tid (fun title ->
-        let _, events =
-          match data with
-          | Error s -> Js_utils.alert s;
-            None, []
-          | Ok t -> t in
-        let title =
-          match title with
-          | Error _ -> None
-          | Ok t -> Some t in
+        let _, events = events in  
         let on_page =
-          match data with
-          | Error _ -> Timeline_vue.No_timeline
-          | Ok t -> Timeline_vue.Timeline {title; events; name = tid} in
+          match title, events with
+          | None, [] -> Timeline_vue.No_timeline
+          | _ -> Timeline_vue.Timeline {title; events; name = tid} in
         let categories =
           List.fold_left
             (fun acc (_, {Data_types.group; _}) ->
@@ -63,22 +55,17 @@ let timeline_page ~args =
             [] in
         Timeline_vue.init ~categories ~on_page;
         finish ()
-          )
+        )
       )
 
 let view_page ~args =
   match Args.get_timeline args with
   | None -> View_vue.init None []; finish ()
   | Some tid ->
-    Request.view ~args tid (function
-      | Ok (title, events) ->
-        View_vue.init title events;
-        finish ()
-      | Error s ->
-        Js_utils.alert ("Error while requesting view: " ^ s);
-        View_vue.init None [];
-        finish ()
-      )
+    Request.view ~args tid (fun (title, events) ->
+      View_vue.init title events;
+      finish ()
+    )
 
 let () =
   Dispatcher.dispatch := dispatch;

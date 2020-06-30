@@ -137,3 +137,7 @@ let post ~base ?(eprint = Format.eprintf) ?args ?content_type input_enc output_e
     | Error e ->
       let code, error = error_content e in
       eprint "[Xhr_lwt.post] Error %i: %s@." code error; return (Error e))
+
+let pp_err fmt e =
+  let code, err = error_content e in
+  Format.fprintf fmt "Error %i: %s" code err 

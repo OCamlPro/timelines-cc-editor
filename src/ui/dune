@@ -1,0 +1,15 @@
+(library
+ (name ui_common)
+ (modules ui_utils request lang text args)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries js_of_ocaml-tyxml xhr_lwt data_encoding api_data ezjs-utils.xhr ezjs-utils.loc ez-api.server ezjs-utils.lang config api_lib))
+
+(executable
+ (name ocptimeline_js)
+ (modes js)
+ (modules dispatcher controller timeline_display home_vue timeline_vue view_vue pages ocptimeline_js)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries vue-jsoo ui_common js_of_ocaml js_of_ocaml-tyxml js_of_ocaml-lwt
+   yojson xhr_lwt config timeline_data data_encoding api_data))

@@ -1,5 +1,3 @@
-open Lwt
-
 module H = ApiHandlers
 module S = ApiServices
 

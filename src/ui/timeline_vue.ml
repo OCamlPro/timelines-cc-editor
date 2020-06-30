@@ -1,6 +1,8 @@
+open Timeline_data
 open Data_types
-open Ui_utils
 
+open Ui_common
+open Ui_utils
 open Lang
 open Text
 
@@ -222,7 +224,7 @@ let category_filter_component data =
      <label :for=category.catId>{{category.catName}}</label>\n\
      </div>" in
   let props = Vue_component.PrsArray ["category"(*; "checkedCategories"*)] in
-  Vue_js.component "cat" ~template ~props ~data
+  Vue_component.make "cat" ~template ~props ~data
 
 let category_select_component data =
   let template =
@@ -238,7 +240,7 @@ let category_select_component data =
      <label :for=category.catId>{{category.catName}}</label>\n\
      </div>" in
   let props = Vue_component.PrsArray ["category"(*; "checkedCategories"*)] in
-  Vue_js.component "cat-select" ~template ~data ~props
+  Vue_component.make "cat-select" ~template ~data ~props
 
 type on_page =
   | No_timeline
@@ -384,8 +386,7 @@ let addEvent title events self adding : unit =
             ~group
             ~ponderation
             ~confidential
-            ~tags
-            ~timeline in
+            ~tags in
         ()
   end
 
@@ -395,7 +396,7 @@ let removeEvent title events self =
     match List.find_opt (fun (_, e) -> e.unique_id = u_id) events with
     | None -> begin
         match title with
-        | Some (i, {unique_id; _}) when unique_id = u_id ->
+        | Some (_i, {unique_id; _}) when unique_id = u_id ->
           Js_utils.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
@@ -450,7 +451,7 @@ let filter self =
     ignore @@ !Dispatcher.dispatch ~path:"timeline" ~args
   with Failure s -> Js_utils.alert s
 
-let first_connexion vue =
+let first_connexion _vue =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
   Ui_utils.click (Js_utils.find_component "add-event-span")
 
@@ -472,8 +473,8 @@ let init
   Vue.add_method0 "exportTimeline" (export title events);
   Vue.add_method0 "filter" filter;
 
-  let _cat = category_filter_component data_js in
-  let _cat = category_select_component data_js in
+  let _cat = category_filter_component (fun _ -> data_js) in
+  let _cat = category_select_component (fun _ -> data_js) in
   let vue = Vue.init ~data_js () in
 
   (* Now displaying timeline *)
@@ -481,7 +482,7 @@ let init
   let () =
     match on_page with
     | No_timeline -> Js_utils.alert "No timeline has been selected"
-    | Timeline {title; events; name} ->
+    | Timeline {title; events; name=_} ->
       match events with
       | [] -> first_connexion vue
       | _ -> display_timeline vue title events 

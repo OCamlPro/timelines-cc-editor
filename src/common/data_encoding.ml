@@ -1,3 +1,4 @@
+open Timeline_data
 open Data_types
 open Utils
 
@@ -20,7 +21,7 @@ let to_event
     ~start_date
     ~end_date
     ~typ
-    ~typ2
+    ~typ2:_
     ~ponderation
     ~confidential
     ~media
@@ -244,7 +245,7 @@ let file_to_json f =
   Json_encoding.construct timeline_encoding timeline
 
 let str_to_events ~log_error str =
-  let rec loop = function
+  let loop = function
     | [] -> failwith "Empty file"
     | [title] -> {title = Some (to_title title) ; events = []}
     | title :: header :: tl ->

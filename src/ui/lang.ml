@@ -1,3 +1,5 @@
+open Timeline_data
+
 let default_lang = "en"
 
 module Encoding = struct

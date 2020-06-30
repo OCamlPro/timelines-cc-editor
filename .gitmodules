@@ -7,6 +7,6 @@
 [submodule "libs/ez-pgocaml"]
 	path = libs/ez-pgocaml
 	url = https://github.com/Stevendeo/ez-pgocaml.git
-[submodule "libs/vue_jsoo"]
-	path = libs/vue_jsoo
-	url = https://gitlab.com/o-labs/vue_jsoo.git
+[submodule "libs/vue-jsoo"]
+	path = libs/vue-jsoo
+	url = git@gitlab.com:o-labs/vue-jsoo.git
