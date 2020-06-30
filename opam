@@ -18,6 +18,9 @@ depexts: [
   "libgmp-dev"
 ]
 depends: [
+  "core"
+  "cohttp-lwt"
+  "cohttp-lwt-jsoo"
   "dune"
   "ocamlfind" { build }
   "camlp4"
@@ -45,6 +48,8 @@ depends: [
   "js_of_ocaml-ppx"
   "js_of_ocaml-compiler"
   "ppx_deriving"
+  "pgocaml"
+  "pgocaml_ppx"
   "base64" { >= "3.2.0" }
   "cohttp-lwt" {>= "0.99.0" }
   "cohttp-lwt-unix"
