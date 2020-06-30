@@ -60,7 +60,6 @@ depends: [
   "faraday-lwt-unix"
   "faraday-async"
   "angstrom-unix"
-  "pgocaml" { = "3.2" }
   "sha"
   "extunix"
 ]
