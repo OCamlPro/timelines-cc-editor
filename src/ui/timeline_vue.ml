@@ -101,7 +101,7 @@ class type data = object
   method currentTimeline : Js.js_string Js.t Js.readonly_prop
   (* Name of the current timeline *)
 
-  method events : jsEvent Js.t Js.js_array Js.t Js.readonly_prop
+  method event_list : jsEvent Js.t Js.js_array Js.t Js.readonly_prop
 end
 
 module PageContent = struct
@@ -199,7 +199,7 @@ let page_vue
 
     val currentTimeline = jss timeline_name
 
-    val events =
+    val event_list =
       Js.array @@ Array.of_list @@
       List.map
         (fun (_, e) ->
