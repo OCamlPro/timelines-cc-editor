@@ -1,7 +1,8 @@
 open Js_of_ocaml.Url
 open Lwt
-open Api_lib
 open Timeline_data
+
+module ApiServices = Api_services.ApiServices
 
 let api () =
   Http {

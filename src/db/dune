@@ -14,7 +14,7 @@
  (preprocessor_deps (env_var PGDATABASE))
  (preprocess
   (pps pgocaml_ppx))
- (libraries timeline_data database_interface ez-pgocaml config lwt lwt.unix))
+ (libraries timeline_data database_interface ez-pgocaml config lwt lwt.unix sha))
 
 (library
  (name database_writer_lib)

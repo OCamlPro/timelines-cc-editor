@@ -1,5 +1,5 @@
 module H = ApiHandlers
-module S = ApiServices
+module S = Api_services.ApiServices
 
 let start () =
   let dir =

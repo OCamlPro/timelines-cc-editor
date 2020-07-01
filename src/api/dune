@@ -9,6 +9,11 @@
  (libraries timeline_data data_encoding))
 
 (library
+ (name api_services)
+ (modules apiServices)
+ (libraries ez-api.common timeline_data api_data))
+
+(library
  (name api_lib)
- (modules apiHandlers apiServices apiServer)
- (libraries config ez-api.server api_data database_reader_lib database_writer_lib timeline_data data_encoding core threads))
+ (modules apiHandlers apiServer)
+ (libraries config ez-api.server api_data database_reader_lib database_writer_lib timeline_data data_encoding api_services))

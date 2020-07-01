@@ -16,7 +16,7 @@ build: website
 	_build/default/src/db/dBUpdater.exe
 	PGDATABASE=$(DATABASE) dune build
 	cp -f _build/default/src/api/api.exe api
-	cp -f _build/default/src/ui/ocptimeline_js.bc.runtime.js www/assets/js/ocptimeline-js.js
+	cp -f _build/default/src/ui/ocptimeline_js.bc.js www/assets/js/ocptimeline-js.js
 
 website:
 	cp -f libs/vue-jsoo/js/* www/assets/js/ 
