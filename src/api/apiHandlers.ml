@@ -93,52 +93,55 @@ let add_event (req, timeline_id) _ event =
     )
   )
 
-let update_event req _ (id, old_event, event) =
+let update_event req _ (id, old_event, event, timeline_id) =
   Lwt_io.printl "CALL update_event" >>= (fun () ->
     Reader.timeline_of_event id >>= (function
     | None -> not_found "[update_event] Event associated to no timeline"
     | Some tid ->
-      if_
-        ~error:unauthorized
-        edition_rights
-        (req, tid)
-        (fun () ->
-           Format.printf "Updating event %i with %a@." id Utils.pp_title event;
-           (* Check if the old event has been modified *)
-           Reader.event id >>= (function
-             | None ->
-               Format.printf "Deleted element while editing@.";
-               ok (Modified None) 
-             | Some should_be_old_event ->
-               Format.printf "Event in the db: %a@. Expected event: %a@."
-                 Utils.pp_title should_be_old_event
-                 Utils.pp_title old_event
-               ;
-               if old_event = should_be_old_event then begin (* Todo: merge modifications *)
-                 let is_title =
-                   match old_event.start_date with
-                   | None -> true
-                   | Some _ -> false (* May be a title, but that is not important *)
-                 in
-                 if is_title then begin
-                   match Writer.update_title id event with
-                   | Ok _s -> ok Success
-                   | Error s -> unknown_error s 
-                 end else begin
-                   match Utils.metaevent_to_event event with
-                   | None ->
-                     unknown_error "Cannot update an event with a missing start date"
-                   | Some e ->
-                     match Writer.update_event id e with
-                     | Ok _s ->   ok Success
-                     | Error s -> unknown_error s
-                 end
-               end else begin
-                 Format.printf "Modified element while editing@.";
-                 ok (Modified (Some should_be_old_event))
-               end
-             )
-        )
+      if tid = timeline_id then
+        if_
+          ~error:unauthorized
+          edition_rights
+          (req, tid)
+          (fun () ->
+             Format.printf "Updating event %i with %a@." id Utils.pp_title event;
+             (* Check if the old event has been modified *)
+             Reader.event id >>= (function
+                 | None ->
+                   Format.printf "Deleted element while editing@.";
+                   ok (Modified None) 
+                 | Some should_be_old_event ->
+                   Format.printf "Event in the db: %a@. Expected event: %a@."
+                     Utils.pp_title should_be_old_event
+                     Utils.pp_title old_event
+                   ;
+                   if old_event = should_be_old_event then begin (* Todo: merge modifications *)
+                     let is_title =
+                       match old_event.start_date with
+                       | None -> true
+                       | Some _ -> false (* May be a title, but that is not important *)
+                     in
+                     if is_title then begin
+                       match Writer.update_title id event with
+                       | Ok _s -> ok Success
+                       | Error s -> unknown_error s 
+                     end else begin
+                       match Utils.metaevent_to_event event with
+                       | None ->
+                         unknown_error "Cannot update an event with a missing start date"
+                       | Some e ->
+                         match Writer.update_event id e with
+                         | Ok _s ->   ok Success
+                         | Error s -> unknown_error s
+                     end
+                   end else begin
+                     Format.printf "Modified element while editing@.";
+                     ok (Modified (Some should_be_old_event))
+                   end
+               )
+          )
+      else
+        unauthorized ()
       )
     )
 
@@ -194,15 +197,26 @@ let timeline_data (req, tid) _ () =
       () >>= EzAPIServerUtils.return
     )
 
-let remove_event (req, id) _ () =
+let remove_event (req, timeline_id) _ () =
   Lwt_io.printl "CALL remove_event" >>= (fun () ->
-  Reader.timeline_of_event id >>= (function
-    | None -> not_found "[remove_event] Event does not exist"
-    | Some tid ->
-      if_ ~error:unauthorized edition_rights (req, tid) (fun () ->
-          EzAPIServerUtils.return @@ Writer.remove_event id
-        )
-      )
+      match StringMap.find_opt "event_id" req.req_params with
+      | None | Some [] -> not_found "Event id"
+      | Some (id :: _) ->
+        try
+          let id = int_of_string id in
+          Reader.timeline_of_event id >>= (function
+            | None -> not_found "[remove_event] Event does not exist"
+            | Some tid ->
+              if tid = timeline_id then (* Otherwise, it is possible to easily remove 
+                                           all public events *)
+                if_ ~error:unauthorized edition_rights (req, tid) (fun () ->
+                    EzAPIServerUtils.return @@ Writer.remove_event id
+                  )
+              else
+                unauthorized ()
+            )
+        with
+          _ -> unknown_error "Event id not an integer"
     )
 
 let categories (req, id) _ () =
@@ -246,19 +260,47 @@ let export_database (req, timeline_id) _ () =
     )
   )
 
+let create_timeline_lwt req auth title name public =
+  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
+  | None ->
+    Writer.create_public_timeline title name
+  | Some email ->
+    if not public && auth then
+      Writer.create_private_timeline email title name
+    else
+      Writer.create_public_timeline title name
+
 let create_timeline (req, name) _ (title, public) =
   Lwt_io.printl "CALL create_database" >>= fun () ->
   let name = Utils.trim name in
   is_auth req (fun auth ->
-    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
-    | None ->
-      EzAPIServerUtils.return @@ Writer.create_public_timeline title name
-    | Some email ->
-      if not public && auth then
-        EzAPIServerUtils.return @@ Writer.create_private_timeline email title name
-      else
-        EzAPIServerUtils.return @@ Writer.create_public_timeline title name
+    EzAPIServerUtils.return @@ create_timeline_lwt req auth title name public
   )
+
+let import_timeline (req, name) _ (title, events, public) =
+  Lwt_io.printl "CALL import_database" >>= fun () ->
+  let name = Utils.trim name in
+  is_auth req (fun auth ->
+    match create_timeline_lwt req auth title name public with
+  | Error e -> EzAPIServerUtils.return (Error e)
+  | Ok tmp_tid ->
+    let exception Stop of string in
+    let handle_event e =
+      match Writer.add_event e tmp_tid with
+      | Ok _ -> ()
+      | Error s ->
+        let _ = Writer.remove_timeline tmp_tid in
+        raise (Stop s)
+    in
+    let add_events =
+      try
+        List.iter handle_event events;
+        let _ = Writer.remove_timeline name in 
+        Writer.rename_timeline tmp_tid name
+      with
+      | Stop s -> Error s
+    in
+    EzAPIServerUtils.return add_events) 
 
 let user_timelines req _ () =
   Lwt_io.printl "CALL user_timelines" >>= fun () ->

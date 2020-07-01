@@ -152,8 +152,10 @@ module Reader_generic (M : MONAD) = struct
       []
       l
 
-  (* Do not export this function is API: admin check is not performed as
-     calling this function is required to check admin in 'update_event' *)
+  (* Do NOT export this function is API: admin check is not performed as
+     calling this function is required to check admin in 'update_event'. Also, knowing
+     the timeline name from an id could lead to a very simple attack: 
+       for i = 0 to max_int do remove_event (timeline_of_event id) id done *)
   let timeline_of_event (id : int) =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
@@ -319,7 +321,7 @@ module Reader_generic (M : MONAD) = struct
         )
         []
         l
-
+  
   let is_public (tid : string) =
     with_dbh >>> fun dbh ->
     [%pgsql dbh "SELECT public_ FROM timeline_ids_ WHERE id_=$tid"] >>=

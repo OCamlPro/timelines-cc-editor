@@ -57,42 +57,18 @@ let to_event
     tags
   }
 
-let line_to_event line_cpt (header : Header.t) line =
+let line_to_event line_id  (header : Header.t) line =
   let data = String.split_on_char '\t' line in
   (*Format.printf "Splitted data = %a@."
     (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
   let data = Array.of_list data in
   let start_date =
-    match Header.start_year header data with
-      | None -> failwith "There should be a start year for an event"
-      | Some start_year ->
-        let start_month =
-          match opt int_of_string (Header.start_month header data) with
-            None -> None
-          | res -> res
-          | exception Failure _ -> None in
-        try
-          Some (to_date (int_of_string start_year) start_month None)
-        with Failure _ -> raise (NewLine ("Error trying to parse start year " ^ start_year))
-  in
-  let end_date =
-    match Header.end_year header data with
-    | None | Some "" -> None
-    | Some end_year ->
-      let end_month =
-        match opt int_of_string (Header.end_month header data) with
-          None -> None
-        | res -> res
-        | exception Failure _ -> None
-      in
-      try
-        Some (to_date (int_of_string end_year) end_month None)
-      with
-        Failure _ ->
-        failwith ("Error trying to parse end year year " ^ end_year)
+    match Header.start_date header data with
+      | None | Some "" -> None
+      | Some start -> Utils.string_to_date start
   in
   let ponderation, confidential =
-    match Header.confidentiel header data, Header.importance header data with
+    match Header.confidential header data, Header.importance header data with
     | Some b, None ->
         0, (try bool_of_string b with _ -> true)
     | Some b, Some i -> begin
@@ -104,15 +80,16 @@ let line_to_event line_cpt (header : Header.t) line =
     | None, Some str ->
       try int_of_string str, false with
       | _ -> 0, false in
+  let end_date     = Utils.fopt Utils.string_to_date @@ Header.end_date  header data in
   let typ          = Header.typ         header data in
   let typ2         = Header.typ2        header data in
   let media        = Header.media       header data in
   let title        = Header.title       header data in
   let text         = Header.text        header data in
   let unique_id    =
-    match title with
-    | None -> ("id-" ^ string_of_int line_cpt)
-    | Some t -> Utils.short_title t in
+    match Header.unique_id header data with
+    | None -> Format.sprintf "unique-id-%i" line_id
+    | Some s -> s in
   to_event
     ~start_date
     ~end_date
@@ -124,7 +101,7 @@ let line_to_event line_cpt (header : Header.t) line =
     ~text
     ~confidential
     ~unique_id
-    ~last_update:None
+    ~last_update:(Some (CalendarLib.Date.today ()))
     ~tags:[]
 
 let date_encoding =
@@ -203,7 +180,6 @@ let id_timeline_encoding =
       (req "events" (list event_encoding))
       (opt "title" title_encoding))
 
-
 let file_to_events f =
   let chan = open_in f in
   let title = to_title @@ input_line chan in
@@ -277,8 +253,8 @@ let str_to_events ~log_error str =
                | _ -> log_error line "Exception"
             ) tl
         in !l
-  in {title = Some title; events}
-in
+      in {title = Some title; events}
+  in
 loop @@ String.split_on_char '\n' str
 
 let write_json json f =
@@ -294,11 +270,6 @@ let title_to_csv ~sep (title : title) =
     title.text.headline
     sep
     title.text.text
-
-let header ~sep =
-  Format.asprintf
-    "Start%sEnd%sMedia%sGroup%sConfidential%sPonderation%sTitle%sText"
-    sep sep sep sep sep sep sep
 
 let event_to_csv ~sep (event : event) =
   Format.asprintf (* start date, end_date, media, group, confidential, ponderation, title, text *)

@@ -49,6 +49,7 @@ let to_title_event headline text = {
 
 let to_title line =
   match String.split_on_char '\t' line with
+  | title :: [] -> to_title_event title ""
   | title :: text :: _ -> to_title_event title text
   | _ -> raise (Invalid_argument (Format.sprintf "Missing elements for building title (%s)" line))
 
@@ -142,17 +143,37 @@ module Header = struct
       None -> None
     | Some i -> try Some (data.(i)) with Invalid_argument _ -> None
 
-  let start_year   : t -> string array -> string option = get_elt "Debut"
-  let start_month  : t -> string array -> string option = get_elt "Debut mois"
-  let end_year     : t -> string array -> string option = get_elt "Fin"
-  let end_month    : t -> string array -> string option = get_elt "Fin mois"
-  let typ          : t -> string array -> string option = get_elt "Type"
-  let typ2         : t -> string array -> string option = get_elt "Type 2"
-  let importance   : t -> string array -> string option = get_elt "Ponderation"
-  let media        : t -> string array -> string option = get_elt "Media"
-  let confidentiel : t -> string array -> string option = get_elt "Confidentiel"
-  let title        : t -> string array -> string option = get_elt "Titre"
-  let text         : t -> string array -> string option = get_elt "Narration"
+  
+  
+  let start_name        = "Start"
+  let end_name          = "End"
+  let typ_name          = "Group"
+  let typ2_name         = "Tags"
+  let importance_name   = "Ponderation"
+  let media_name        = "Media"
+  let confidential_name = "Confidential"
+  let title_name        = "Title"
+  let text_name         = "Narration"
+  let unique_id_name    = "Unique Id"
+
+  let names = [
+    start_name; end_name;
+    typ_name; typ2_name;
+    importance_name; media_name;
+    confidential_name; text_name;
+    unique_id_name; title_name (* Let title at the end of this list *)
+  ]
+  
+  let start_date   : t -> string array -> string option = get_elt start_name
+  let end_date     : t -> string array -> string option = get_elt end_name
+  let typ          : t -> string array -> string option = get_elt typ_name
+  let typ2         : t -> string array -> string option = get_elt typ2_name
+  let importance   : t -> string array -> string option = get_elt importance_name
+  let media        : t -> string array -> string option = get_elt media_name
+  let confidential : t -> string array -> string option = get_elt confidential_name
+  let title        : t -> string array -> string option = get_elt title_name
+  let text         : t -> string array -> string option = get_elt text_name
+  let unique_id    : t -> string array -> string option = get_elt unique_id_name
 
   let pp fmt header =
     Format.fprintf fmt
@@ -160,6 +181,12 @@ module Header = struct
       (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt (str, i) -> Format.fprintf fmt "%s -> %i" str i))
       (List.of_seq (StringMap.to_seq header))
 
+  let str_header sep =
+    Format.asprintf "%a"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt _ -> Format.fprintf fmt "%s" sep)
+         (fun fmt -> Format.fprintf fmt "%s")) names
+      
 end
 
 let pp_opt pp fmt = function

@@ -3,10 +3,8 @@ open Database_writer_lib
 open Database_reader_lib
 open Database_interface
 
-let timeline_name = "main_timeline"
-
 let () =
-  let file =
+  let timeline_name =
     try Sys.argv.(1) with
       _ -> Format.printf "You must provide a data file"; exit 1 in
   let option =
@@ -14,7 +12,7 @@ let () =
       _ -> None in
   match option with
   | Some "--db" ->
-    let {title; events} = Data_encoding.file_to_events file in
+    let {title; events} = Data_encoding.file_to_events timeline_name in
     let () =
       match title with
       | None -> ()
@@ -35,7 +33,7 @@ let () =
         let json =
           Json_encoding.construct
             Data_encoding.timeline_encoding {title = Some (snd @@ title); events} in
-        Data_encoding.write_json json (file ^ ".json")
+        Data_encoding.write_json json (timeline_name ^ ".json")
     end
   | Some "--to-csv" -> begin
       let open Db_intf.Default_monad in
@@ -48,15 +46,15 @@ let () =
         | None -> sep
         | Some title -> Data_encoding.title_to_csv ~sep (snd title)
       in
-      let header = Data_encoding.header ~sep in
+      let header = Timeline_data.Utils.Header.str_header "," in
       let events =
         List.fold_left
           (fun acc event -> acc ^ Data_encoding.event_to_csv ~sep event^"\n")
           ""
           events in
-      let chan = open_out (file ^ ".data") in
+      let chan = open_out (timeline_name ^ ".data") in
       output_string chan (title ^ "\n" ^ header ^ "\n" ^ events);
       close_out chan
     end
-  | Some _s -> failwith "Error: unknown option s"
+  | Some s -> failwith ("Error: unknown option " ^s)
   | None -> failwith "Error: expection option --db or --json"

@@ -19,6 +19,7 @@ let start () =
     |> EzAPIServerUtils.register S.has_admin_rights H.has_admin_rights
     |> EzAPIServerUtils.register S.export_database H.export_database
     |> EzAPIServerUtils.register S.create_timeline H.create_timeline
+    |> EzAPIServerUtils.register S.import_timeline H.import_timeline
     |> EzAPIServerUtils.register S.user_timelines H.user_timelines
     |> EzAPIServerUtils.register S.allow_user H.allow_user
     |> EzAPIServerUtils.register S.timeline_users H.timeline_users

@@ -77,6 +77,15 @@ let ponderation_param name = {
   param_examples = ["0"; "9"]
 }
 
+let event_id = {
+  param_value = "event_id";
+  param_name  = Some "event_id";
+  param_descr = Some "EventId";
+  param_type = PARAM_INT;
+  param_required = true;
+  param_examples = ["0"; "9"; "42"]
+}
+
 let auth_params = {
   param_value = "auth_email";
   param_name  = Some "auth_email";
@@ -127,11 +136,11 @@ let add_event : (string, Data_types.event, string) post_service1 =
     ~output:string
     Path.(root // "add_event" /: arg_timeline ())
 
-let update_event : (int * Data_types.title * Data_types.title, update_title_res) post_service0 =
+let update_event : (int * Data_types.title * Data_types.title * string, update_title_res) post_service0 =
   post_service
     ~params:auth_params
     ~name:"update_event"
-    ~input:(tup3 tup1_int Data_encoding.title_encoding Data_encoding.title_encoding)
+    ~input:(tup4 tup1_int Data_encoding.title_encoding Data_encoding.title_encoding string)
     ~output:update_title_res_encoding
     Path.(root // "update_event")
 
@@ -151,12 +160,12 @@ let timeline_data :
     ])
     Path.(root // "timeline_data" /: arg_timeline ())
 
-let remove_event : (int, unit) service1 =
+let remove_event : (string, unit) service1 =
   service
-    ~params:auth_params
+    ~params:(event_id :: auth_params)
     ~name:"remove_event"
     ~output:unit
-    Path.(root // "remove_event" /: (arg_default "event_key"))
+    Path.(root // "remove_event" /: arg_timeline ())
 
 let categories : (string, string list) service1 =
   service
@@ -216,6 +225,14 @@ let create_timeline : (string, (Data_types.title * bool), string) post_service1 
     ~input:(tup2 Data_encoding.title_encoding bool)
     ~output:string
     Path.(root // "create_timeline" /: arg_timeline ())
+
+let import_timeline : (string, (Data_types.title * Data_types.event list * bool), unit) post_service1 =
+  post_service
+    ~params:auth_params
+    ~name:"import_timeline"
+    ~input:(tup3 Data_encoding.title_encoding (list Data_encoding.event_encoding) bool)
+    ~output:unit
+    Path.(root // "import_timeline" /: arg_timeline ())
 
 let user_timelines : (unit, string list) post_service0 =
   post_service

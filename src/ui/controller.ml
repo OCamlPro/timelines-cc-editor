@@ -98,7 +98,8 @@ let update_event
     ~group
     ~ponderation
     ~confidential
-    ~tags =
+    ~tags
+    ~timeline_id =
   let unique_id =
     match unique_id with
     | "" ->
@@ -134,20 +135,21 @@ let update_event
 
   Request.update_event
     ~error ~id
-    ~old_event ~new_event (function
+    ~old_event ~new_event
+    ~timeline_id (function
     | Success ->
       Js_utils.reload (); Lwt.return (Ok ())
     | Modified _t ->
       Js_utils.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
     )
 
-let removeEvent i =
+let removeEvent ~id ~timeline_id =
   let error e =
     let code, err = Xhr_lwt.error_content e in
     Js_utils.alert (Format.asprintf "Error %i while removing event: %s" code err);
     Error e in
   if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_event) then
-    Request.remove_event ~error (string_of_int i)
+    Request.remove_event ~error ~id:(string_of_int id) ~timeline_id
       (fun () -> Js_utils.reload (); Lwt.return (Ok ()))
   else Lwt.return (Ok ())
 
@@ -200,20 +202,37 @@ let viewToken ?(args = []) vue tid =
        )
 
 let export_timeline title events =
-  let sep = "," in
-  let title =
-    match title with
-    | None -> sep
-    | Some (_, title) -> Data_encoding.title_to_csv ~sep title in
-  let header = Data_encoding.header ~sep in
-  let events =
-    List.fold_left
-      (fun acc event ->
-        acc ^ Data_encoding.event_to_csv ~sep event ^ ";\n")
-      ""
-      (snd @@ List.split events) in
-  let str =  (title ^ ";\n" ^ header ^ ";\n" ^ events) in
-  Ui_utils.download "timeline.csv" str
+  let title_line = match title with
+    | None -> []
+    | Some (_, t) -> Csv_utils.title_to_csv_line  t in
+  let csv =
+    title_line ::
+    (List.map (fun (_, e) -> Csv_utils.title_to_csv_line (Utils.event_to_metaevent e)) events) in
+  Ui_utils.download "timeline.csv" (Csv_utils.to_string csv)
+
+let import_timeline tid is_public elt =
+  Js_utils.log "Importing timeline";
+  if Js_utils.confirm "You are about to replace your timeline by the current one. Are you sure?" then
+  Js_utils.Manip.upload_input ~btoa:false elt
+    (fun file_content ->
+       let title, events = Csv_utils.from_string file_content in
+       let title =
+         match title with
+         | None -> Utils.to_title_event "Title" "Text"
+         | Some t -> t in
+       let _lwt =
+         Request.import_timeline
+           ~error:(fun e ->
+               Js_utils.alert @@
+               Format.asprintf "Error while imporing timeline: %a" Xhr_lwt.pp_err e;
+               Lwt.return (Error e)
+             )
+           ~args:[]
+           tid title
+           events is_public
+           (fun () -> Js_utils.alert "Success!"; Js_utils.reload (); finish (Ok ())) in () 
+    )
+    else false
 
 (*open Data_types
 

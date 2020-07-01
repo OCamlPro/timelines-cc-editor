@@ -67,6 +67,7 @@ depends: [
   "angstrom-unix"
   "sha"
   "extunix"
+  "csv"
 ]
 pin-depends: [
   [ "pgocaml.4.2.1" "git+https://github.com/ocpmax/pgocaml.git" ]

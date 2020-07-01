@@ -10,8 +10,8 @@
 
 (library
  (name timeline_data)
- (modules data_types utils)
- (libraries calendar))
+ (modules data_types utils csv_utils)
+ (libraries calendar csv))
 
 (library
  (name config)

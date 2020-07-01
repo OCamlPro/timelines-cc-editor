@@ -386,12 +386,14 @@ let addEvent title events self adding : unit =
             ~group
             ~ponderation
             ~confidential
-            ~tags in
+            ~tags
+            ~timeline_id:timeline in
         ()
   end
 
 let removeEvent title events self =
   let u_id = Js.to_string self##.currentEventInForm in
+  let timeline_id = Js.to_string self##.currentTimeline in
   let event_id =
     match List.find_opt (fun (_, e) -> e.unique_id = u_id) events with
     | None -> begin
@@ -408,10 +410,14 @@ let removeEvent title events self =
   match event_id with
   | None -> ()
   | Some id ->
-    let _l : _ Lwt.t = Controller.removeEvent id in
+    let _l : _ Lwt.t = Controller.removeEvent ~id ~timeline_id in
     ()
 
 let export title events _ = Controller.export_timeline title events  
+
+let import self =
+  let timeline_id = Js.to_string self##.currentTimeline in
+  Controller.import_timeline timeline_id true (Js_utils.find_component "import-form")
 
 (* Timeline initializer *)
 let display_timeline self title events =
@@ -469,6 +475,7 @@ let init
   Vue.add_method1 "addEvent" (addEvent title events);
   Vue.add_method0 "removeEvent" (removeEvent title events);
   Vue.add_method0 "exportTimeline" (export title events);
+  Vue.add_method0 "importTimeline" import;
   Vue.add_method0 "filter" filter;
 
   Js_utils.log "Adding components@.";

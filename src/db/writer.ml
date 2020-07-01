@@ -163,6 +163,16 @@ let create_public_timeline (title : title) (timeline_id : string) =
       | Error e -> Error e
       with e -> Error (Printexc.to_string e)
 
+let rename_timeline (old_timeline_id : string) (new_timeline_id : string) =
+  if Reader.timeline_exists new_timeline_id then
+    Error (new_timeline_id ^ "already exists")
+  else
+    let () = [%pgsql dbh
+        "UPDATE events_ SET timeline_id_=$new_timeline_id WHERE timeline_id_=$old_timeline_id"] in
+    let () = [%pgsql dbh
+        "UPDATE timeline_ids_ SET id_=$new_timeline_id WHERE id_=$old_timeline_id"]
+    in Ok ()
+
 let allow_user_to_timeline (email : string) (timeline : string) =
   if Reader.timeline_exists timeline then
     match Reader.user_exists email with

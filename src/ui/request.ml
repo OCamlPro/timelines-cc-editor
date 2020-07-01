@@ -165,21 +165,21 @@ let add_event ~error (tid : string) (event : Data_types.event) cont =
     event
     cont
 
-let update_event ~error ~id ~old_event ~new_event cont =
+let update_event ~error ~id ~old_event ~new_event ~timeline_id cont =
   let args = args_from_session ["id", string_of_int id] in
   post
     ~args
     ~error
     ApiServices.update_event []
-    (id, old_event, new_event)
+    (id, old_event, new_event, timeline_id)
     cont
 
-let remove_event ~error id cont =
-  let args = args_from_session [] in
+let remove_event ~error ~id ~timeline_id cont =
+  let args = args_from_session ["event_id", id] in
   get
     ~error
     ~args
-    ApiServices.remove_event [id]
+    ApiServices.remove_event [timeline_id]
     cont
 
 let register_user email password cont =
@@ -287,4 +287,16 @@ let view ~args timeline cont =
     ~error:(fun _ -> Js_utils.alert "GET view failed"; Ok (None, []))
     ~args
     ApiServices.view [timeline]
+    cont
+
+let import_timeline
+    ~error ~args
+    (timeline : string) (title : Data_types.title)
+    (events : Data_types.event list) (is_public : bool)
+    cont =
+  post
+    ~error
+    ~args
+    ApiServices.import_timeline [timeline]
+    (title, events, is_public)
     cont
