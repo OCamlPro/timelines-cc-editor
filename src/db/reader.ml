@@ -46,7 +46,7 @@ module Reader_generic (M : MONAD) = struct
     let dispose conn =
       PGOCaml.close conn in
     M.pool_create ~check ~validate ~dispose 20 (fun () ->
-      let open Config in
+      let open Config.DB in
       PGOCaml.connect ?host ?port ?user ?password ~database ())
 
   let with_dbh f = M.pool_use dbh_pool f

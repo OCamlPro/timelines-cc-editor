@@ -3,8 +3,8 @@ open Timeline_data.Utils
 open Database_reader_lib
 
 let dbh : _ PGOCaml.t PGOCaml.monad =
-  let open Config in
-  PGOCaml.connect ?host ?password ?port ?user ~database:Config.database ()
+  let open Config.DB in
+  PGOCaml.connect ?host ?password ?port ?user ~database ()
 
 let last_update_timeline (tid : string) last_update =
   [%pgsql dbh "UPDATE timeline_ids_ SET last_update_=$?last_update WHERE id_=$tid"]

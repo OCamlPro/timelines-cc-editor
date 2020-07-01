@@ -1,5 +1,5 @@
 open Database_version.DBVersions
-open Config
+open Config.DB
 
 let () =
   EzPGUpdater.main

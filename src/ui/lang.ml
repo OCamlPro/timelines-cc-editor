@@ -9,7 +9,7 @@ module Encoding = struct
     obj2
       (req "lang" string)
       (req "translations" (list (tup2 string string)))
-end
+      end
 
 let set_lang name =
   Jslang.set ~set:`Cookie name
@@ -21,7 +21,7 @@ let () =
 
 let init draw =
   let download_lang_url lang_file =
-    Xhr.get "lang" lang_file
+    Xhr.get "lang" (Format.sprintf "%s/%s" Config.web_host lang_file)
       (fun res ->
          Js_utils.log "Lang OK";
          (try
