@@ -1,6 +1,6 @@
 
 let api_port = 13579
-let api_host = "ez-timeline.ocamlpro.com"
+let api_host = "localhost"
 
 module DB = struct
   let database = "ocptl_db"
@@ -10,4 +10,4 @@ module DB = struct
   let password = None
 end
 
-let web_host = "http://ez-timeline.ocamlpro.com"
+let web_host = "http://localhost:8000"
