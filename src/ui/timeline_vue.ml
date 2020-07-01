@@ -101,7 +101,7 @@ class type data = object
   method currentTimeline : Js.js_string Js.t Js.readonly_prop
   (* Name of the current timeline *)
 
-  method event_list : jsEvent Js.t Js.js_array Js.t Js.readonly_prop
+  method event_list_ : jsEvent Js.t Js.js_array Js.t Js.readonly_prop
 end
 
 module PageContent = struct
@@ -199,7 +199,7 @@ let page_vue
 
     val currentTimeline = jss timeline_name
 
-    val event_list =
+    val event_list_ =
       Js.array @@ Array.of_list @@
       List.map
         (fun (_, e) ->
@@ -287,7 +287,7 @@ let updateVueFromEvent self e =
 
 
 (* Methods of the view *)
-let showForm title events (self : 'a) (adding : bool) : unit =
+let showForm title event_list (self : 'a) (adding : bool) : unit =
   Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible";
   self##.addingNewEvent := (Js.bool adding);
   if adding then begin
@@ -310,7 +310,7 @@ let showForm title events (self : 'a) (adding : bool) : unit =
       match title with
       | Some (_, title) when title.unique_id = current_event_id -> title
       | _ ->
-        let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) events in
+        let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) event_list in
         Utils.event_to_metaevent e in
     updateVueFromEvent self current_event
   end;
@@ -320,7 +320,7 @@ let hideForm self =
   Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible";
   self##.addingNewEvent := (Js.bool false)
 
-let addEvent title events self adding : unit =
+let addEvent title event_list self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
   if timeline = "" then
     Js_utils.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
@@ -360,7 +360,7 @@ let addEvent title events self adding : unit =
     else
       let u_id = Js.to_string self##.currentEventInForm in
       let old_event =
-        match List.find_opt (fun (_, e) -> e.unique_id = u_id) events with
+        match List.find_opt (fun (_, e) -> e.unique_id = u_id) event_list with
         | None -> begin
             match title with
             | Some (_, {unique_id; _}) when unique_id = u_id -> title
@@ -390,10 +390,10 @@ let addEvent title events self adding : unit =
         ()
   end
 
-let removeEvent title events self =
+let removeEvent title event_list self =
   let u_id = Js.to_string self##.currentEventInForm in
   let event_id =
-    match List.find_opt (fun (_, e) -> e.unique_id = u_id) events with
+    match List.find_opt (fun (_, e) -> e.unique_id = u_id) event_list with
     | None -> begin
         match title with
         | Some (_i, {unique_id; _}) when unique_id = u_id ->
@@ -411,20 +411,18 @@ let removeEvent title events self =
     let _l : _ Lwt.t = Controller.removeEvent id in
     ()
 
-let export title events _ = Controller.export_timeline title events
-
-  
+let export title event_list _ = Controller.export_timeline title event_list  
 
 (* Timeline initializer *)
-let display_timeline self title events =
-  Timeline_display.display_timeline title events;
+let display_timeline self title event_list =
+  Timeline_display.display_timeline title event_list;
   let whenOnSlide = function
     | None ->
       Js_utils.log "Error during slide change, assuming not changed"
     | Some s ->
       self##.currentEvent := jss s;
       Js_utils.log "Current event is %s" s in
-  Timeline_display.init_slide_from_url ~whenOnSlide title events
+  Timeline_display.init_slide_from_url ~whenOnSlide title event_list
 
 let filter self =
   try
@@ -459,25 +457,26 @@ let init
     ~(on_page: on_page)
     ~(categories : (string * bool) list) =
 
-  (* First : displaying titles *)
-
-  let name,events, title =
+  Js_utils.log "Creating vue@.";
+  let name,event_list, title =
     match on_page with
     | Timeline {name; events; title} -> name, events, title
     | No_timeline -> "", [], None in
-  let data_js = page_vue name categories events in
-  Vue.add_method1 "showForm" (showForm title events);
+  let data_js = page_vue name categories event_list in
+  Js_utils.log "Adding methods@.";
+  Vue.add_method1 "showForm" (showForm title event_list);
   Vue.add_method0 "hideForm" hideForm;
-  Vue.add_method1 "addEvent" (addEvent title events);
-  Vue.add_method0 "removeEvent" (removeEvent title events);
-  Vue.add_method0 "exportTimeline" (export title events);
+  Vue.add_method1 "addEvent" (addEvent title event_list);
+  Vue.add_method0 "removeEvent" (removeEvent title event_list);
+  Vue.add_method0 "exportTimeline" (export title event_list);
   Vue.add_method0 "filter" filter;
 
+  Js_utils.log "Adding components@.";
   let _cat = category_filter_component (fun _ -> data_js) in
   let _cat = category_select_component (fun _ -> data_js) in
+  Js_utils.log "Initializing vue@.";
   let vue = Vue.init ~data_js () in
-
-  (* Now displaying timeline *)
+  Js_utils.log "Displaying timeline@.";
 
   let () =
     match on_page with
