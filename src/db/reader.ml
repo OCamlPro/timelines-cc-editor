@@ -53,10 +53,10 @@ module Reader_generic (M : MONAD) = struct
 
   let (>>>) f g = f g
 
-  let line_to_event ?(with_end_date=true) line : int * title =
+  let line_to_event ?(with_end_date=true) line : bool * int * title =
     match line with
       (id, start_date, end_date, headline, text, url, group, confidential,
-       ponderation, unique_id, last_update, tags) ->
+       ponderation, unique_id, last_update, tags, is_title) ->
       let tags = 
         match tags with 
           | None -> []
@@ -69,6 +69,7 @@ module Reader_generic (M : MONAD) = struct
               []
               p
       in
+      is_title,
       Int32.to_int id, {
         start_date;
         end_date = if with_end_date then end_date else None;
@@ -127,23 +128,24 @@ module Reader_generic (M : MONAD) = struct
     with_dbh >>> fun dbh ->
       [%pgsql dbh
       "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-              confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
+              confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ FROM events_ \
        WHERE (id_ = $id)"] >>= function
     | res :: _ ->
-      let (_, event) = line_to_event res in
+      let (_, _, event) = line_to_event res in
       return (Some event)
     | _ -> return None
 
   let events (with_confidential : bool) (tid : string) =
     with_dbh >>> fun dbh ->
     [%pgsql dbh "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
-                WHERE timeline_id_ = $tid AND ($with_confidential OR NOT confidential_) AND \
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
+                FROM events_ WHERE \
+                timeline_id_ = $tid AND ($with_confidential OR NOT confidential_) AND \
                 NOT is_title_ ORDER BY id_ DESC"] >>=
     fun l ->
     return @@
     List.fold_left (fun acc l ->
-        let (id, e) = line_to_event l in
+        let (_, id, e) = line_to_event l in
         match metaevent_to_event @@ e with
         | None -> acc
         | Some e -> (id, e) :: acc)
@@ -164,11 +166,13 @@ module Reader_generic (M : MONAD) = struct
     with_dbh >>> fun dbh ->
     [%pgsql dbh
       "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ from events_ \
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ from events_ \
        WHERE timeline_id_ = $tid AND is_title_"] >>=
     function
     | [] -> return None
-    | l :: _ -> return (Some (line_to_event l))
+    | l :: _ ->
+      let _, id, e = line_to_event l in
+      return (Some (id, e))
 
   let used_unique_id id =
     with_dbh >>> fun dbh ->
@@ -199,7 +203,7 @@ module Reader_generic (M : MONAD) = struct
       | [], [] -> begin
           [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
              FROM events_ WHERE \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
@@ -208,7 +212,8 @@ module Reader_generic (M : MONAD) = struct
       | _, [] ->
         [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
+                    confidential_, ponderation_, unique_id_, last_update_, tags_ , is_title_ \
+             FROM events_ WHERE \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
@@ -217,7 +222,8 @@ module Reader_generic (M : MONAD) = struct
       | [], _ ->
         [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
+             FROM events_ WHERE \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
              ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
@@ -225,7 +231,8 @@ module Reader_generic (M : MONAD) = struct
       | _ ->
         [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
+             FROM events_ WHERE \
              group_ IN $@groups AND \
              (start_date_ BETWEEN $start_date AND $end_date) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
@@ -238,13 +245,15 @@ module Reader_generic (M : MONAD) = struct
           let events =
             List.fold_left (
               fun acc l ->
-                let id, event = line_to_event ~with_end_date:true l in
-                match metaevent_to_event event with
-                | Some e -> (id, e) :: acc
-                | None -> (* Should be a title *)
+                let is_title, id, event = line_to_event ~with_end_date:true l in
+                if is_title then 
                   match !title with
                   | None -> title := Some (id, event); acc
                   | Some _ -> raise TwoTitles
+                else
+                match metaevent_to_event event with
+                | Some e  -> (id, e) :: acc
+                | None -> acc
             ) [] l
           in return (Ok (!title, events))
         with TwoTitles -> return (Error "Two titles in database")
