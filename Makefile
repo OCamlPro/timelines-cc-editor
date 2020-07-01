@@ -19,6 +19,7 @@ build: website
 	cp -f _build/default/src/ui/ocptimeline_js.bc.runtime.js www/assets/js/ocptimeline-js.js
 
 website:
+	cp -f libs/vue-jsoo/js/* www/assets/js/ 
 	bash generate_website.sh
 
 clean:

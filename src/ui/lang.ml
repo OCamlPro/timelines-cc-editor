@@ -23,6 +23,7 @@ let init draw =
   let download_lang_url lang_file =
     Xhr.get "lang" lang_file
       (fun res ->
+         Js_utils.log "Lang OK";
          (try
             let lang, translations =
               EzEncoding.destruct Encoding.translations res
