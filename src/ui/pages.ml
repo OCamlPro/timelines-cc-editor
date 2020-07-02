@@ -11,6 +11,7 @@ let add_page path f = Hashtbl.add pages path f
 let finish () = Lwt.return (Ok ())
 
 let rec dispatch ~path ~args =
+  Js_utils.log "Path = %s" path;
   try
     match Hashtbl.find pages path with
     | exception Not_found -> dispatch ~path:"" ~args
@@ -22,10 +23,12 @@ let rec dispatch ~path ~args =
     raise exn
 
 let home_page ~args:_ =
+  Js_utils.log "Loading home page";
   Home_vue.init ();
   finish ()
 
 let timeline_page ~args =
+  Js_utils.log "Loading timeline page";
   match Args.get_timeline args with
   | None ->
     Timeline_vue.(init ~on_page:No_timeline ~categories:[]);
