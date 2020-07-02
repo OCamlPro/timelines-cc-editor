@@ -6,7 +6,9 @@ type dispatcher = args:(string * string) list -> (unit, string) result Lwt.t
 
 let pages : (string, dispatcher) Hashtbl.t = Hashtbl.create 3
 
-let add_page path f = Hashtbl.add pages path f
+let add_page path f =
+  Hashtbl.add pages path f
+  
 
 let finish () = Lwt.return (Ok ())
 
@@ -75,4 +77,6 @@ let () =
   add_page ""              home_page;
   add_page "home"          home_page;
   add_page "timeline"      timeline_page;
-  add_page "view"          view_page
+  add_page "timeline/"     timeline_page;
+  add_page "view"          view_page;
+  add_page "view/"          view_page
