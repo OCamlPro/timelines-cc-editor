@@ -21,7 +21,7 @@ let () =
 
 let init draw =
   let download_lang_url lang_file =
-    Xhr.get "lang" (Format.sprintf "%s/%s" Config.web_host lang_file)
+    Xhr.get "lang" (Format.sprintf "%s/%s" (Ui_utils.get_path ()) lang_file)
       (fun res ->
          Js_utils.log "Lang OK";
          (try

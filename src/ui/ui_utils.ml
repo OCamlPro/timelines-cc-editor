@@ -111,6 +111,10 @@ let download filename filecontent =
   Js_utils.Manip.appendChild body filelink;
   (Js_utils.Manip.get_elt "click" filelink)##click
 
+let get_path () =
+  match Jsloc.url () with
+      Http h | Https h -> h.hu_path_string
+    | File _ -> ""
 (*
 let link ?(args=[]) path =
   match args with
