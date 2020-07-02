@@ -121,6 +121,11 @@ let get_host () =
     Http h | Https h -> h.hu_host
   | File _ -> ""
 
+let get_port () =
+  match Jsloc.url () with
+    Http h | Https h -> h.hu_port
+  | File _ -> 80
+
 let is_https () =
   match Jsloc.url () with
     Http _ | File _ -> false
