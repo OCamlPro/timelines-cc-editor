@@ -114,7 +114,16 @@ let download filename filecontent =
 let get_path () =
   match Jsloc.url () with
       Http h | Https h -> h.hu_path_string
-    | File _ -> ""
+  | File _ -> ""
+
+let is_https () =
+  match Jsloc.url () with
+    Http _ | File _ -> false
+  | Https _ -> true
+
+let get_url_prefix () =
+  if is_https () then "https://" else "http://"
+  
 (*
 let link ?(args=[]) path =
   match args with
