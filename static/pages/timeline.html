@@ -19,14 +19,19 @@
     </span>
   </span>
   <span
-    class="tooltip fa fa-download fa-2x"
+    class="tooltip fa fa-floppy-o fa-2x"
     @click="exportTimeline()"
     >
     <span class="tooltiptext">
       {{exportHelp}}
     </span>
   </span>
-  <input type="file" id="import-form" @change="importTimeline()">
+  <span class="tooltip fa fa-upload fa-2x" > 
+    <input type="file" style="opacity: 0.0; position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height:100%;" id="import-form" @change="importTimeline()"/>
+    <span class="tooltiptext">
+      {{importHelp}}
+    </span>
+  </span>
 </header>
 
 

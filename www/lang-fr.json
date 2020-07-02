@@ -41,6 +41,7 @@
         ["homeNav", "Commencer" ],
         ["homeSubtitle", "Bienvenue dans Facile-Frise" ],
         ["homeTitle", "Ordonnez votre histoire en toute simplicité" ],
+        ["importHelp", "Importez votre frise depuis un fichier CSV" ],
         ["minimalPonderation", "Pondération minimale" ],
         ["maximalPonderation", "Pondération maximale" ],
         ["media", "Media" ],

@@ -41,6 +41,7 @@
         ["homeNav", "Start a new timeline" ],
         ["homeSubtitle", "EZ-Timeline: your history, your timeline"],
         ["homeTitle", "Make your own timeline and show the world!" ],
+        ["importHelp", "Import your timeline from a CSV file" ],
         ["media", "Media" ],
         ["mediaFormHelp", "You may add to your event an image, a video, a pdf, ... The full documentation of possible media formats can be found below:" ],
         ["minimalPonderation", "Minimal display level" ],

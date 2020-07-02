@@ -36,6 +36,7 @@ class type data = object
   method addElementHelp  : Js.js_string Js.t Js.readonly_prop
   method editElementHelp : Js.js_string Js.t Js.readonly_prop
   method exportHelp : Js.js_string Js.t Js.readonly_prop
+  method importHelp : Js.js_string Js.t Js.readonly_prop
   method filterHelp : Js.js_string Js.t Js.readonly_prop
 
   method startDateFormTitle    : Js.js_string Js.t Js.readonly_prop
@@ -143,6 +144,7 @@ let page_vue
     val addElementHelp      = tjs_ s_add_element_help
     val filterHelp          = tjs_ s_filter_help 
     val exportHelp          = tjs_ s_export_help 
+    val importHelp          = tjs_ s_import_help 
 
     val startDateFormTitle    = tjs_ s_from
     val endDateFormTitle      = tjs_ s_to
