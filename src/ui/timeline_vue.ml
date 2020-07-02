@@ -106,7 +106,7 @@ end
 
 module PageContent = struct
   type nonrec data = data
-  let id = "page-content"
+  let id = "page_content"
 end
 
 module Vue = Vue_js.Make (PageContent)
