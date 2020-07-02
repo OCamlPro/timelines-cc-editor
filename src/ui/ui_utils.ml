@@ -113,7 +113,12 @@ let download filename filecontent =
 
 let get_path () =
   match Jsloc.url () with
-      Http h | Https h -> h.hu_path_string
+    Http h | Https h -> h.hu_path_string
+  | File _ -> ""
+
+let get_host () =
+  match Jsloc.url () with
+    Http h | Https h -> h.hu_host
   | File _ -> ""
 
 let is_https () =
