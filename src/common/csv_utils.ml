@@ -10,6 +10,7 @@ let header =
    "Last updated"; "Tags"]
 
 let quote_to_doublequote str =
+  if str = "" then "" else
   let quoted, str =
     match str.[0] with
       '"' -> true, String.sub str 1 ((String.length str) - 2)
