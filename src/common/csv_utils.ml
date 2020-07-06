@@ -41,8 +41,8 @@ let csv_line_to_title uids = function
     let text = {headline; text} in
     let media = if media = "" then None else Some {url = media} in
     let group = if group = "" then None else Some group in
-    let confidential = bool_of_string confidential in
-    let ponderation = int_of_string ponderation in
+    let confidential = try bool_of_string confidential with _ -> true in
+    let ponderation = try int_of_string ponderation with _ -> 0 in
 
     let unique_id =
       let id =
