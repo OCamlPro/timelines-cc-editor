@@ -2,18 +2,6 @@ open Timeline_data
 open Data_types
 open Utils
 
-(* Format évènement:
-   * Debut année
-   * Debut mois
-   * Fin année
-   * Fin mois
-   * Type (logiciel, personne, client, + OCaml, blockchain, partenariat/écosystème, etc.)
-   * Type 2 (à déterminer)
-   * Pondération (0 = confidentiel à masquer)
-   * Lien (blogpost, github, lien video etc.)
-   * Titre
-   * Narration (optionnel)   *)
-
 exception NewLine of string
 
 let to_event
