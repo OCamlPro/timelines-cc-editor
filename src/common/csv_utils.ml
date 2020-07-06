@@ -9,6 +9,19 @@ let header =
    "Group"; "Confidential"; "Ponderation"; "Unique Id";
    "Last updated"; "Tags"]
 
+let quote_to_doublequote str =
+  let quoted, str =
+    match str.[0] with
+      '"' -> true, String.sub str 1 ((String.length str) - 2)
+    | _ -> false, str in
+  let new_string =
+    let l = String.split_on_char '"' str in
+    String.concat "\"\"" l
+  in
+  if quoted then
+    "\"" ^ new_string ^ "\""
+  else new_string
+
 let title_to_csv_line ({
     start_date;
     end_date;
@@ -23,8 +36,8 @@ let title_to_csv_line ({
   } : title) : string list = [
     Format.asprintf "%a" (Utils.pp_opt (CalendarLib.Printer.Date.fprint "%Y-%m-%d")) start_date;
     Format.asprintf "%a" (Utils.pp_opt (CalendarLib.Printer.Date.fprint "%Y-%m-%d")) end_date;
-    s text.headline;
-    s text.text;
+    s (quote_to_doublequote text.headline);
+    s (quote_to_doublequote text.text);
     Format.asprintf "%a" (Utils.pp_opt (fun fmt m -> Format.fprintf fmt "%s" m.url)) media;
     Format.asprintf "%a" (Utils.pp_opt (fun fmt -> Format.fprintf fmt "%s")) group;
     string_of_bool confidential;
@@ -34,26 +47,11 @@ let title_to_csv_line ({
     Format.asprintf "\"%a\"" (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt "%c" tag_separator) (fun fmt -> Format.fprintf fmt "%s")) tags
   ]
 
-let quote_to_doublequote str =
-  let quoted, str =
-    match str.[0] with
-      '"' -> true, String.sub str 1 ((String.length str) - 2)
-    | _ -> false, str in
-  let new_string =
-    let l = String.split_on_char '"' str in
-    String.concat "\"\"" l
-  in
-  if quoted then
-    "\"" ^ new_string ^ "\""
-  else new_string
-
 let csv_line_to_title uids = function
     start_date :: end_date :: headline :: text :: media :: group :: confidential :: ponderation :: unique_id :: rest ->
     let start_date = Utils.string_to_date start_date in
     let end_date = Utils.string_to_date end_date in
     let text =
-      let headline = quote_to_doublequote headline in
-      let text = quote_to_doublequote text in
       {headline; text} in
     let media = if media = "" then None else Some {url = media} in
     let group = if group = "" then None else Some group in
