@@ -11,7 +11,7 @@
 (library
  (name api_services)
  (modules apiServices)
- (libraries ez-api.common timeline_data api_data))
+ (libraries ez-api.common timeline_data api_data config))
 
 (library
  (name api_lib)

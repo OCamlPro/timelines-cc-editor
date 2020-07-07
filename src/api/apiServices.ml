@@ -14,6 +14,11 @@ type nonrec ('a, 'b) service1 = ('a, 'b, string, no_security) service1
 type nonrec ('a, 'b) post_service0 = ('a, 'b, string, no_security) post_service0
 type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, no_security) post_service1
 
+let api_root = 
+  match Config.api_root with
+  | None -> Path.root
+  | Some p -> Path.(root // p) 
+
 (*
 let arg_address_key = arg_default "address_key"
 
@@ -112,21 +117,21 @@ let event : (int, Data_types.title) service1 =
     ~params:auth_params
     ~name:"event"
     ~output:(Data_encoding.title_encoding)
-    Path.(root // "event" /: (arg_default "event_key"))
+    Path.(api_root // "event" /: (arg_default "event_key"))
 
 let events : (string, (int * Data_types.event) list) service1 =
   service
     ~params:auth_params
     ~name:"events"
     ~output:(list (tup2 int Data_encoding.event_encoding))
-    Path.(root // "events" /: arg_timeline ())
+    Path.(api_root // "events" /: arg_timeline ())
 
 let title : (string, (int * Data_types.title) option) service1 =
   service
     ~params:auth_params
     ~name:"title"
     ~output:title_api_result_encoding
-    Path.(root // "title" /: arg_timeline ())
+    Path.(api_root // "title" /: arg_timeline ())
 
 let add_event : (string, Data_types.event, string) post_service1 =
   post_service
@@ -134,7 +139,7 @@ let add_event : (string, Data_types.event, string) post_service1 =
     ~name:"add_event"
     ~input:Data_encoding.event_encoding
     ~output:string
-    Path.(root // "add_event" /: arg_timeline ())
+    Path.(api_root // "add_event" /: arg_timeline ())
 
 let update_event : (int * Data_types.title * Data_types.title * string, update_title_res) post_service0 =
   post_service
@@ -142,7 +147,7 @@ let update_event : (int * Data_types.title * Data_types.title * string, update_t
     ~name:"update_event"
     ~input:(tup4 tup1_int Data_encoding.title_encoding Data_encoding.title_encoding string)
     ~output:update_title_res_encoding
-    Path.(root // "update_event")
+    Path.(api_root // "update_event")
 
 let timeline_data :
   (string,
@@ -158,42 +163,42 @@ let timeline_data :
       ponderation_param "max_level";
       tags_param;
     ])
-    Path.(root // "timeline_data" /: arg_timeline ())
+    Path.(api_root // "timeline_data" /: arg_timeline ())
 
 let remove_event : (string, unit) service1 =
   service
     ~params:(event_id :: auth_params)
     ~name:"remove_event"
     ~output:unit
-    Path.(root // "remove_event" /: arg_timeline ())
+    Path.(api_root // "remove_event" /: arg_timeline ())
 
 let categories : (string, string list) service1 =
   service
     ~params:auth_params
     ~name:"categories"
     ~output:(list string)
-    Path.(root // "categories" /: arg_timeline ())
+    Path.(api_root // "categories" /: arg_timeline ())
 
 let register_user : (string * string, unit) post_service0 =
   post_service
     ~name:"register_user"
     ~input:(tup2 string string)
     ~output:unit
-    Path.(root // "register_user")
+    Path.(api_root // "register_user")
 
 let login : (string * string, string) post_service0 =
   post_service
     ~name:"login"
     ~input:(tup2 string string)
     ~output:string
-    Path.(root // "login")
+    Path.(api_root // "login")
 
 let logout : (string * string, unit) post_service0 =
   post_service
     ~name:"login"
     ~input:(tup2 string string)
     ~output:unit
-    Path.(root // "logout")
+    Path.(api_root // "logout")
 
 
 let is_auth : (unit, bool) post_service0 =
@@ -201,7 +206,7 @@ let is_auth : (unit, bool) post_service0 =
     ~name:"is_auth"
     ~input:unit
     ~output:bool
-    Path.(root // "is_auth")
+    Path.(api_root // "is_auth")
 
 let has_admin_rights : (string, unit, bool) post_service1 =
   post_service
@@ -209,14 +214,14 @@ let has_admin_rights : (string, unit, bool) post_service1 =
     ~name:"has_admin_rights"
     ~input:unit
     ~output:bool
-    Path.(root // "has_admin_rights" /: arg_timeline ())
+    Path.(api_root // "has_admin_rights" /: arg_timeline ())
 
 let export_database : (string, unit) service1 =
   service
     ~params:auth_params
     ~name:"export_database"
     ~output:unit
-    Path.(root // "export_database" /: arg_timeline ())
+    Path.(api_root // "export_database" /: arg_timeline ())
 
 let create_timeline : (string, (Data_types.title * bool), string) post_service1 =
   post_service
@@ -224,7 +229,7 @@ let create_timeline : (string, (Data_types.title * bool), string) post_service1 
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
     ~output:string
-    Path.(root // "create_timeline" /: arg_timeline ())
+    Path.(api_root // "create_timeline" /: arg_timeline ())
 
 let import_timeline : (string, (Data_types.title * Data_types.event list * bool), unit) post_service1 =
   post_service
@@ -232,7 +237,7 @@ let import_timeline : (string, (Data_types.title * Data_types.event list * bool)
     ~name:"import_timeline"
     ~input:(tup3 Data_encoding.title_encoding (list Data_encoding.event_encoding) bool)
     ~output:unit
-    Path.(root // "import_timeline" /: arg_timeline ())
+    Path.(api_root // "import_timeline" /: arg_timeline ())
 
 let user_timelines : (unit, string list) post_service0 =
   post_service
@@ -240,7 +245,7 @@ let user_timelines : (unit, string list) post_service0 =
     ~name:"user_timeline"
     ~input:unit
     ~output:(list string)
-    Path.(root // "user_timelines")
+    Path.(api_root // "user_timelines")
 
 let allow_user : (string * string, unit) post_service0 =
   post_service
@@ -248,7 +253,7 @@ let allow_user : (string * string, unit) post_service0 =
     ~name:"allow_user"
     ~input:(tup2 string string)
     ~output:unit
-    Path.(root // "allow_user")
+    Path.(api_root // "allow_user")
 
 let timeline_users : (string, unit, string list) post_service1 =
   post_service
@@ -256,7 +261,7 @@ let timeline_users : (string, unit, string list) post_service1 =
     ~name:"timeline_user"
     ~input:unit
     ~output:(list string)
-    Path.(root // "timeline_users"/: arg_timeline ())
+    Path.(api_root // "timeline_users"/: arg_timeline ())
 
 let remove_user : (unit, unit) post_service0 =
   post_service
@@ -264,7 +269,7 @@ let remove_user : (unit, unit) post_service0 =
     ~name:"remove_user"
     ~input:unit
     ~output:unit
-    Path.(root // "remove_user")
+    Path.(api_root // "remove_user")
 
 let remove_timeline : (string, unit, unit) post_service1 =
   post_service
@@ -272,14 +277,14 @@ let remove_timeline : (string, unit, unit) post_service1 =
     ~name:"remove_timeline"
     ~input:unit
     ~output:unit
-    Path.(root // "remove_timeline"/: arg_timeline ())
+    Path.(api_root // "remove_timeline"/: arg_timeline ())
 
 let get_view_token : (string, string list) service1 =
   service
     ~params:auth_params
     ~name:"get_view_token"
     ~output:(list string)
-    Path.(root // "get_view_token" /: arg_timeline ())
+    Path.(api_root // "get_view_token" /: arg_timeline ())
 
 let view :
   (string,
@@ -295,10 +300,10 @@ let view :
       ponderation_param "max_level";
       tags_param;
     ])
-    Path.(root // "view" /: arg_timeline ())
+    Path.(api_root // "view" /: arg_timeline ())
 
 let version : string service0 =
   service
     ~name:"version"
     ~output:Json_encoding.string
-    Path.(root // "version")
+    Path.(api_root // "version")
