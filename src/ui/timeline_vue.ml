@@ -96,7 +96,7 @@ class type data = object
   method otherCategoryFormValue : Js.js_string Js.t Js.prop
 
   method editionURL : Js.js_string Js.t Js.prop
-  method readURL    : Js.js_string Js.t Js.prop
+  method shareURL    : Js.js_string Js.t Js.prop
 
   method addingNewEvent : bool Js.t Js.prop
   (* Is the form here to add (true) or edit (false) an event *)
@@ -111,6 +111,7 @@ class type data = object
   (* Name of the current timeline *)
 
   method events_ : jsEvent Js.t Js.js_array Js.t Js.readonly_prop
+
 end
 
 module PageContent = struct
@@ -216,7 +217,7 @@ let page_vue
     val mutable otherCategoryFormValue = jss ""
 
     val mutable editionURL = jss ""
-    val mutable readURL = jss ""
+    val mutable shareURL = jss ""
 
     val mutable addingNewEvent = Js.bool false
 
@@ -462,11 +463,9 @@ let copy _ v =
 let loadURLs timeline_name self =
   let editionURL = 
     Format.sprintf "%s/timeline?timeline=%s" (Ui_utils.get_host ()) timeline_name in
-  let viewURL = 
-    Format.sprintf "%s/view?timeline=%s" (Ui_utils.get_host ()) timeline_name in
   self##.editionURL := jss editionURL;
-  self##.readURL    := jss viewURL
-
+  Controller.viewToken self timeline_name
+  
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
