@@ -70,3 +70,6 @@ let s_alert_timeline_creation = ss_ "alertTimelineCreation"
 
 let s_confirm_remove_event = ss_ "confirmRemoveEvent"
 let s_new_category = ss_ "newCategory"
+
+let s_edition_link_text = ss_ "editionLinkText"
+let s_read_link_text = ss_ "readLinkText"

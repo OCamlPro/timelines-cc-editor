@@ -71,10 +71,15 @@ class type data = object
   method addEventButtonText    : Js.js_string Js.t Js.readonly_prop
   method updateEventButtonText : Js.js_string Js.t Js.readonly_prop
 
+  method editionLinkText       : Js.js_string Js.t Js.readonly_prop
+  method readLinkText          : Js.js_string Js.t Js.readonly_prop
+
   (* Values *)
 
   method minPonderationFilter : int Js.prop
   method maxPonderationFilter : int Js.prop
+
+  method timelineName : Js.js_string Js.t Js.prop
 
   method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
 
@@ -89,6 +94,9 @@ class type data = object
   method ponderationFormValue   : int Js.prop
   method confidentialFormValue  : bool Js.t Js.prop
   method otherCategoryFormValue : Js.js_string Js.t Js.prop
+
+  method editionURL : Js.js_string Js.t Js.prop
+  method readURL    : Js.js_string Js.t Js.prop
 
   method addingNewEvent : bool Js.t Js.prop
   (* Is the form here to add (true) or edit (false) an event *)
@@ -114,6 +122,7 @@ module Vue = Vue_js.Make (PageContent)
 
 let page_vue
     (timeline_name : string)
+    (args : Args.t)
     (categories : (string * bool) list)
     (events : (int * event) list)
   : data Js.t =
@@ -178,9 +187,21 @@ let page_vue
     val addEventButtonText    = tjs_ s_add_new_event
     val updateEventButtonText = tjs_ s_edit_event
     
-    val mutable minPonderationFilter = 0
-    val mutable maxPonderationFilter = 100
+    val editionLinkText = tjs_ s_edition_link_text
+    val readLinkText    = tjs_ s_read_link_text
+
+    val mutable minPonderationFilter =
+      match Args.get_min args with
+      | None -> 0
+      | Some i -> i
+
+    val mutable maxPonderationFilter =
+      match Args.get_max args with
+      | None -> 100
+      | Some i -> i
     val mutable categories     = categories
+
+    val mutable timelineName = jss timeline_name
 
     val mutable startDateFormValue     = jss ""
     val mutable endDateFormValue       = jss ""
@@ -193,6 +214,9 @@ let page_vue
     val mutable ponderationFormValue   = 0
     val mutable confidentialFormValue  = Js.bool false
     val mutable otherCategoryFormValue = jss ""
+
+    val mutable editionURL = jss ""
+    val mutable readURL = jss ""
 
     val mutable addingNewEvent = Js.bool false
 
@@ -289,8 +313,13 @@ let updateVueFromEvent self e =
 
 
 (* Methods of the view *)
+
+let showMenu (_self : 'a) : unit = 
+  Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible"
+
 let showForm title events (self : 'a) (adding : bool) : unit =
-  Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible";
+  showMenu self;
+  Js_utils.Manip.addClass (Js_utils.find_component "formPanel") "visible";
   self##.addingNewEvent := (Js.bool adding);
   if adding then begin
     updateVueFromEvent self {
@@ -319,8 +348,12 @@ let showForm title events (self : 'a) (adding : bool) : unit =
   ()
 
 let hideForm self =
-  Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible";
+  Js_utils.Manip.removeClass (Js_utils.find_component "formPanel") "visible";
   self##.addingNewEvent := (Js.bool false)
+
+let hideMenu (self : 'a) : unit =
+  hideForm self;
+  Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible"
 
 let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
@@ -421,6 +454,19 @@ let import self =
   let timeline_id = Js.to_string self##.currentTimeline in
   Controller.import_timeline timeline_id true (Js_utils.find_component "import-form")
 
+let copy _ v =
+  let v = Js.to_string v in
+  Js_utils.log "Copying %s" v;
+  Js_utils.Clipboard.copy v
+
+let loadURLs timeline_name self =
+  let editionURL = 
+    Format.sprintf "%s/timeline?timeline=%s" (Ui_utils.get_host ()) timeline_name in
+  let viewURL = 
+    Format.sprintf "%s/view?timeline=%s" (Ui_utils.get_host ()) timeline_name in
+  self##.editionURL := jss editionURL;
+  self##.readURL    := jss viewURL
+
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
@@ -453,15 +499,16 @@ let filter self =
       let max_ponderation = self##.maxPonderationFilter in
       Args.(set_min min_ponderation @@ set_max max_ponderation args)
     in
-    Ui_utils.(push (url "timeline" args));
+    Ui_utils.(push (url "" args));
     ignore @@ !Dispatcher.dispatch ~path:"timeline" ~args
   with Failure s -> Js_utils.alert s
 
-let first_connexion _vue =
+let first_connexion self =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
-  Ui_utils.click (Js_utils.find_component "add-event-span")
+  showForm None [] self true
 
 let init
+    ~(args: Args.t) 
     ~(on_page: on_page)
     ~(categories : (string * bool) list) =
 
@@ -470,8 +517,10 @@ let init
     match on_page with
     | Timeline {name; events; title} -> name, events, title
     | No_timeline -> "", [], None in
-  let data_js = page_vue name categories events in
+  let data_js = page_vue name args categories events in
   Js_utils.log "Adding methods@.";
+  Vue.add_method0 "showMenu" showMenu;
+  Vue.add_method0 "hideMenu" hideMenu;
   Vue.add_method1 "showForm" (showForm title events);
   Vue.add_method0 "hideForm" hideForm;
   Vue.add_method1 "addEvent" (addEvent title events);
@@ -479,12 +528,14 @@ let init
   Vue.add_method0 "exportTimeline" (export title events);
   Vue.add_method0 "importTimeline" import;
   Vue.add_method0 "filter" filter;
+  Vue.add_method1 "copy" copy;
+  Vue.add_method0 "loadURLs" (loadURLs name);
 
   Js_utils.log "Adding components@.";
   let _cat = category_filter_component (fun _ -> data_js) in
   let _cat = category_select_component (fun _ -> data_js) in
   Js_utils.log "Initializing vue@.";
-  let vue = Vue.init ~data_js () in
+  let vue = Vue.init ~data_js ~show:true () in
   Js_utils.log "Displaying timeline@.";
 
   let () =

@@ -1,3 +1,4 @@
+
 /* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern University a project of the Northwestern University Knight Lab, originally created by Zach Wise https://github.com/NUKnightLab/TimelineJS3 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
@@ -2686,18 +2687,22 @@ tr:hover.clickable {
     color: #d4e0ef
 }
 
+#page_content{
+    display: block;
+    z-index: 0
+}
 
 /* Tooltip (from w3schools) */
 
 .tooltip {
-  position: relative;
+    position: relative;
 }
 
 /* Tooltip text */
-.tooltip .tooltiptext {
+.tooltip .tooltipcontent {
   visibility: hidden;
-  background-color: #5385c1;
-  color: #d4e0ef;
+  background-color: #75a7e3;
+  color: white;
   text-align: center;
   padding: 10px;
   border-radius: 6px;
@@ -2705,22 +2710,36 @@ tr:hover.clickable {
  
   /* Position the tooltip text */
   position: absolute;
-  z-index: 2;
+  z-index: 10004;
+
+  overflow: visible;
 
   top: -5px;
-  right: 105%;
+  right: 100%;
   font-size: 20px;    
   font-family: "Courier New", monospace;
-
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
+.tooltip:hover .tooltipcontent {
   visibility: visible;
 }
 
-.tooltip .tooltiptext:hover {
-  visibility: hidden;
+.tooltip .tooltipcontent:hover {
+    visibility: visible;
+    cursor: auto
+}
+
+#timeline-header{
+    height: 3em;
+    text-align: center;
+    width: 100%;
+    color: white	    
+}
+
+#timeline-header span.title{
+    margin: auto;
+    font-size:30px
 }
 
 #header span.fa{
@@ -2729,7 +2748,49 @@ tr:hover.clickable {
     z-index: 10;
 }
 
+#timeline-show{
+    float: right;
+    margin-top: 0.2em;
+    margin-right: 0.2em;
+}
+
+.timeline-menu-token{
+    margin-top: 2em;
+    padding-left: 0.4em;
+    max-height: 2em; 
+}
+
+.timeline-menu-token:hover{
+    cursor:pointer
+}
+
+.timeline-menu-token img{
+    width: 2em
+}
+
+.timeline-menu-token.fa{
+    margin-top: 1em
+}
+
 /* Very small text */
 .verysmall{
     font-size:10px
+}
+
+.showFormSpan:hover{
+    cursor:pointer
+}
+
+#timeline-header{
+    background: #75a7e3;
+}
+
+.url{
+  border: 1px solid white
+}
+
+.tooltipcontent .button{
+    line-height: 0px;
+    padding: 3%;
+    height: 1em
 }
