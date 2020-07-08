@@ -33,7 +33,7 @@ let timeline_page ~args =
   Js_utils.log "Loading timeline page";
   match Args.get_timeline args with
   | None ->
-    Timeline_vue.(init ~on_page:No_timeline ~categories:[]);
+    Timeline_vue.(init ~args ~on_page:No_timeline ~categories:[]);
     finish ()
   | Some tid ->
     Request.timeline_data ~args tid (fun events ->
@@ -58,7 +58,7 @@ let timeline_page ~args =
             (fun s acc -> (s, List.mem s in_args) :: acc)
             categories
             [] in
-        Timeline_vue.init ~categories ~on_page;
+        Timeline_vue.init ~args ~categories ~on_page;
         finish ()
         )
       )

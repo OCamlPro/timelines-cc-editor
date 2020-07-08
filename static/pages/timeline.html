@@ -1,77 +1,85 @@
 
 <!-- Header -->
-<header id="header" style="position: sticky; height: 0px; top: 0px;">
-  <span
-    class="showFormSpan tooltip fa fa-pencil fa-2x"
-    @click="showForm(false)"
-    v-show="events.length != 0">
-    <span class="tooltiptext">
-      {{editElementHelp}}
-    </span>
-  </span>
-  <span
-    id="add-event-span"
-    class="showFormSpan tooltip fa fa-plus fa-2x"
-    @click="showForm(true)"
-    >
-    <span class="tooltiptext">
-      {{addElementHelp}}
-    </span>
-  </span>
-  <span
-    class="tooltip fa fa-floppy-o fa-2x"
-    @click="exportTimeline()"
-    >
-    <span class="tooltiptext">
-      {{exportHelp}}
-    </span>
-  </span>
-  <span class="tooltip fa fa-upload fa-2x" > 
-    <input type="file" style="opacity: 0.0; position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height:100%;" id="import-form" @change="importTimeline()"/>
-    <span class="tooltiptext">
-      {{importHelp}}
-    </span>
-  </span>
+<header id="timeline-header">
+  <span class="title">{{timelineName}}</span>
+  <span style="position: relative; float: right">
+  <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span> </span>
 </header>
-
 
 <!-- Timeline -->
 <div id="timeline-embed" style="height: 600px;"></div>
 
-<!-- Filters & Panel -->
-
-<div class="row uniform" id="timeline-filters" style="margin:10px">
-  <form method="post" action="#" class="6u">
-    <h3>{{categoryHeader}}</h3>
-    <cat
-      v-for="categ in categories"
-      :category="categ"
-      :key="categ.id"
-      ></cat>
-    <h3>{{otherFiltersHeader}}</h3>
-    <input
-      v-model.number="minPonderationFilter"
-      type="number"
-      id="min-ponderation"
-      min="0"
-      :max=maxPonderationFilter
-      :title="ponderationHelp">
-    <label for="min-ponderation"> {{minPonderationLabel}} </label>
-    <input
-      v-model.number="maxPonderationFilter"
-      type="number"
-      :min=minPonderationFilter
-      :title="ponderationHelp">
-    <label for="max-ponderation"> {{maxPonderationLabel}} </label>
-    <div class="button special" :title="filterHelp" @click="filter()"> {{filterButtonText}} </div>
-  </form>
-  
-  <div class="6u">
-    <h3>{{panelHeader}}</h3>
+<div class="panel" id="navPanel">
+  <div class="tooltip fa fa-times fa-2x" id="close" @click="hideMenu()">
+  </div>
+  <div class="section" style="height:435px">
+    <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
+      <!-- Todo -->
+    </div>
+    <div class="timeline-menu-token tooltip" @mouseover="loadURLs()">
+      <img src="/images/share.svg">
+      <div class="tooltipcontent">
+	<div id="editionLink">
+	  {{editionLinkText}}
+	  <div class="url" @click="copy(editionURL)">{{editionURL}}</div>
+	</div>
+	<div id="readLink">
+	  {{readLinkText}}
+	  <div class="url" @click="copy(readURL)">{{readURL}}</div>
+	</div>
+      </div>
+    </div>
+    <div class="timeline-menu-token tooltip">
+      <img src="/images/upload.svg">
+      <div class="tooltipcontent">
+	<div>
+	  Export <br/>
+	  <div class="button" @click="exportTimeline()">csv</div>
+	</div>
+	<div>
+	  Import <br/>
+	  <div class="button" style="position:relative; line-height: 0px">
+	    <input type="file" style="opacity: 0.0; width: 100%; height: 100%; position: absolute; right:0px; cursor: pointer" id="import-form" @change="importTimeline()">
+	    csv
+	  </div>
+	</div>
+      </div>
+    </div>
+    <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
+      <!-- Todo -->
+    </div>
+  </div>
+  <div class="section">
+      <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
+	<!-- Todo -->
+      </div>
+      <div class="timeline-menu-token tooltip" @click="showForm(true)">
+      <img src="/images/add.svg">
+      <div class="tooltipcontent">
+	{{addEventButtonText}}
+      </div>
+    </div>
+    <div
+      class="timeline-menu-token tooltip fa fa-pencil fa-2x"
+      @click="showForm(false)"
+      v-show="events.length != 0"
+      >
+      <div class="tooltipcontent">
+	{{updateEventButtonText}}
+      </div>
+    </div>
+    <div
+      class="timeline-menu-token tooltip"
+      v-show="events.length != 0 && false">
+      <img src="/images/filter.svg">
+      <div class="tooltipcontent">
+	Filtrer
+      </div>
+    </div>
   </div>
 </div>
 
-<div id="navPanel">
+<div class="panel" id="formPanel">
   <h3 style="color: white">
     <span v-if="addingNewEvent">{{formNameAdding}}</span>
     <span v-else> {{formNameEditing}}</span>    
