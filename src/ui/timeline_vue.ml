@@ -183,7 +183,7 @@ let page_vue
     val backButton            = tjs_ s_back
     val removeButton          = tjs_ s_remove_event
 
-    val formNameAdding        = tjs_ s_add_new_event
+    val formNameAdding        = tjs_ s_add_element_help
     val formNameEditing       = tjs_ s_edit_event
     val addEventButtonText    = tjs_ s_add_new_event
     val updateEventButtonText = tjs_ s_edit_event

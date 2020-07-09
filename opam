@@ -33,7 +33,7 @@ depends: [
   "conf-libcurl"
   "ocurl" { >= "0.9.1" }
   "zarith"
-  "lwt" { = "4.5.0" }
+  "lwt"
   "lwt_log"
   "extunix"
   "menhir"

@@ -11,11 +11,15 @@ init:
 	bash opam_build.sh
 	bash build_deps.sh
 
-build: website
-	PGDATABASE=$(DATABASE) dune build src/db/dBUpdater.exe
-	_build/default/src/db/dBUpdater.exe
+build: db-update js website
 	PGDATABASE=$(DATABASE) dune build
 	cp -f _build/default/src/api/api.exe api
+
+db-update:
+	PGDATABASE=$(DATABASE) dune build src/db/dBUpdater.exe
+	_build/default/src/db/dBUpdater.exe
+js:
+	dune build src/ui/ocptimeline_js.bc.js --profile release
 	cp -f _build/default/src/ui/ocptimeline_js.bc.js www/assets/js/ocptimeline-js.js
 
 website:
