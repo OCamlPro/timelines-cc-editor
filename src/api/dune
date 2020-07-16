@@ -6,7 +6,7 @@
 (library
  (name api_data)
  (modules apiData)
- (libraries timeline_data data_encoding))
+ (libraries timeline_data data_encoding dbData))
 
 (library
  (name api_services)

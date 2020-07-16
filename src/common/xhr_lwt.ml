@@ -103,12 +103,7 @@ let construct enc o = match enc with
   | Raw (to_string, _) -> Printf.sprintf "%S" (to_string o)
   | Enc enc -> EzEncoding.construct enc o *)
 
-let get ~base ?args url = get_raw ~base ?args url
-
-let post ~base ?(eprint = Format.eprintf) ?args ?content_type input_enc output_encs url contents =
-  let contents = construct input_enc contents in
-  let contents = Format.asprintf "%a" (Json_repr.pp_any ()) (Json_repr.to_any contents) in
-  post_raw ~base ?args ?content_type url contents >>=
+let cook ?(eprint = Format.eprintf) encs = 
   (function
     | Ok res -> begin
         eprint "[Xhr_lwt.post] Code %i: %s@." 200 res;
@@ -128,15 +123,26 @@ let post ~base ?(eprint = Format.eprintf) ?args ?content_type input_enc output_e
                    None
             )
             None
-            output_encs                   
+            encs    
         in
         match res with
-        | None ->     return (Error (Str_err "Error: cannot destruct value"))
+        | None ->
+          return (Error (Str_err "Error: cannot destruct value"))
         | Some res -> return (Ok res)
       end      
     | Error e ->
       let code, error = error_content e in
       eprint "[Xhr_lwt.post] Error %i: %s@." code error; return (Error e))
+
+let get ~base ?(eprint = Format.eprintf) ?args url output_encs =
+  get_raw ~base ?args url >>=
+  (cook ~eprint output_encs)
+
+let post ~base ?(eprint = Format.eprintf) ?args ?content_type input_enc output_encs url contents =
+  let contents = construct input_enc contents in
+  let contents = Format.asprintf "%a" (Json_repr.pp_any ()) (Json_repr.to_any contents) in
+  post_raw ~base ?args ?content_type url contents >>=
+  (cook ~eprint output_encs)
 
 let pp_err fmt e =
   let code, err = error_content e in

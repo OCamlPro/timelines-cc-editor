@@ -100,6 +100,7 @@ let sql_upgrade_6_to_7 =  [
 
 let sql_downgrade_8_to_7 = [
   {| ALTER TABLE timeline_ids_ DROP COLUMN public_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN last_update_ |};
 ]
 
 let sql_upgrade_7_to_8 = [
@@ -107,12 +108,39 @@ let sql_upgrade_7_to_8 = [
   {| ALTER TABLE timeline_ids_ ADD COLUMN last_update_ DATE|};
   {| CREATE EXTENSION pgcrypto |}; (* For allowing hash functions on columns *)
 ]
+
 let sql_downgrade_9_to_8 = [
   {| ALTER TABLE timeline_ids_ DROP COLUMN main_title_ |};
 ]
 
 let sql_upgrade_8_to_9 = [
   {| ALTER TABLE timeline_ids_ ADD COLUMN main_title_ VARCHAR|};
+]
+
+let sql_downgrade_10_to_9 = [
+  {| ALTER TABLE timeline_ids_ DROP COLUMN alias_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN readonly_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN pretty_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN min_level_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN max_level_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN categories_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN tags_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN confidential_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN after_ |};
+  {| ALTER TABLE timeline_ids_ DROP COLUMN before_ |};  
+]
+
+let sql_upgrade_9_to_10 = [
+  {| ALTER TABLE timeline_ids_ ADD COLUMN alias_ VARCHAR REFERENCES timeline_ids_(id_) |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN readonly_ BOOLEAN NOT NULL DEFAULT TRUE |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN pretty_ VARCHAR |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN max_level_ INT |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN min_level_ INT |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN categories_ VARCHAR[] |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN tags_ VARCHAR[] |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN confidential_ BOOLEAN NOT NULL DEFAULT FALSE |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN after_ DATE |};
+  {| ALTER TABLE timeline_ids_ ADD COLUMN before_ DATE |};
 ]
 
 let ( upgrades, downgrades ) =
@@ -132,6 +160,7 @@ let ( upgrades, downgrades ) =
         sql_upgrade_6_to_7, sql_downgrade_7_to_6;
         sql_upgrade_7_to_8, sql_downgrade_8_to_7;
         sql_upgrade_8_to_9, sql_downgrade_9_to_8;
+        sql_upgrade_9_to_10, sql_downgrade_10_to_9;
       ]
   in
   (versions, !rev_versions)

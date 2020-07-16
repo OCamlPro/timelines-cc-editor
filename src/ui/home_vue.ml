@@ -34,6 +34,7 @@ class type data = object
 
 module Input = struct
   type nonrec data = data
+  type all = data
   let id = "page_content"
 end
 
@@ -45,12 +46,14 @@ let createTimeline (self : data Vue_js.vue) =
     (Js_of_ocaml.Js.to_string self##.createDescrValue) >>=
   (fun _ -> Js_utils.log "Ok!"; Lwt.return (Ok ()))
 
+(*
 let shareClick self =
   let tid = Js.to_string self##.shareNameValue in
   Controller.viewToken self tid
+*)
 
 let init () =
-  let data_js : data Js.t =
+  let data : data Js.t =
     object%js
       val logo = tjs_ s_ez_timeline
       val navHome = tjs_ s_nav_home
@@ -77,8 +80,8 @@ let init () =
       val mutable shareURL = jss ""
     end
   in
-  Vue.add_method0 "createTimeline" createTimeline;
-  Vue.add_method0 "shareClick" shareClick;
+  Vue.add_method0 "createTimeline" createTimeline;(*
+  Vue.add_method0 "shareClick" shareClick; *)
     
 
-  let _obj = Vue.init ~data_js () in ()
+  let _obj = Vue.init ~data () in ()

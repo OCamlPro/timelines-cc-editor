@@ -133,7 +133,23 @@ let is_https () =
 
 let get_url_prefix () =
   if is_https () then "https://" else "http://"
-  
+
+let timeline_arg_from_id ?name id =
+  match name with
+    None -> id
+  | Some name -> name ^ "-" ^ id
+
+let timeline_id_from_arg a =
+  match List.rev (String.split_on_char '-' a) with
+  | [] -> assert false
+  | [id] -> "Timeline", id
+  | id :: rest -> 
+    String.concat " " (List.rev rest),
+    id
+
+let list_to_jsarray l = 
+  Js.array @@ Array.of_list l
+
 (*
 let link ?(args=[]) path =
   match args with

@@ -3,6 +3,7 @@ open Api_data.ApiData
 open Database_reader_lib
 open Database_writer_lib
 open Timeline_data
+open Data_types
 
 module StringMap = StringCompat.StringMap
 
@@ -48,7 +49,7 @@ let edition_rights (req, tid) cont =
 
 let if_ ~error has args cont =
   has args (fun right -> if right then cont () else error ())
-
+(*
 let event (req, id) _ () =
   Lwt_io.printl "CALL event" >>= (fun () ->
     Reader.timeline_of_event id >>= (function
@@ -63,28 +64,7 @@ let event (req, id) _ () =
         )
     | None -> not_found "[event] Timeline not found"
         )
-    )
-
-let events (req,timeline_id) _ () =
-  Lwt_io.printl "CALL events" >>= (fun () ->
-    confidential_rights (req, timeline_id) (fun has_rights ->
-      Reader.events has_rights timeline_id >>= ok)
-    )
-
-let title (req,timeline_id) _ () =
-  Lwt_io.printl "CALL title" >>= (fun () ->
-    Reader.title timeline_id >>= (function
-      | None -> ok None
-      | Some (id, title) ->
-        if title.confidential then
-          confidential_rights (req, timeline_id) (fun has_rights ->
-              if has_rights then
-                ok (Some (id, title))
-              else unauthorized ()
-            )
-        else ok (Some (id, title))
-      )
-    )
+    ) *)
 
 let add_event (req, timeline_id) _ event =
   Lwt_io.printl "CALL add_event" >>= (fun () ->
@@ -93,7 +73,8 @@ let add_event (req, timeline_id) _ event =
     )
   )
 
-let update_event req _ (id, old_event, event, timeline_id) =
+let update_event req _ ((id : int), (old_event : title), (event : title), (timeline_id : string)) :
+  (date option update_meta_event_res, sub_event_type) result EzAPIServerUtils.answer Lwt.t =
   Lwt_io.printl "CALL update_event" >>= (fun () ->
     Reader.timeline_of_event id >>= (function
     | None -> not_found "[update_event] Event associated to no timeline"
@@ -115,14 +96,15 @@ let update_event req _ (id, old_event, event, timeline_id) =
                      Utils.pp_title should_be_old_event
                      Utils.pp_title old_event
                    ;
-                   if old_event = should_be_old_event then begin (* Todo: merge modifications *)
+                   if old_event = should_be_old_event then begin
+                     (* Todo: merge modifications *)
                      let is_title =
                        match old_event.start_date with
                        | None -> true
                        | Some _ -> false (* May be a title, but that is not important *)
                      in
                      if is_title then begin
-                       match Writer.update_title id event with
+                       match Writer.update_title timeline_id id event with
                        | Ok _s -> ok Success
                        | Error s -> unknown_error s 
                      end else begin
@@ -130,7 +112,7 @@ let update_event req _ (id, old_event, event, timeline_id) =
                        | None ->
                          unknown_error "Cannot update an event with a missing start date"
                        | Some e ->
-                         match Writer.update_event id e with
+                         match Writer.update_event timeline_id id e with
                          | Ok _s ->   ok Success
                          | Error s -> unknown_error s
                      end
@@ -163,8 +145,8 @@ let timeline_data (req, tid) _ () =
 
   let start_date = Utils.fopt Utils.string_to_date start_date in
   let end_date = Utils.fopt Utils.string_to_date end_date in
-  let min_ponderation = Utils.fopt int_of_string_opt min_ponderation in
-  let max_ponderation = Utils.fopt int_of_string_opt max_ponderation in
+  let min_ponderation = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation in
+  let max_ponderation = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation in
   let tags =
     Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
   let confidential =
@@ -210,7 +192,7 @@ let remove_event (req, timeline_id) _ () =
               if tid = timeline_id then (* Otherwise, it is possible to easily remove 
                                            all public events *)
                 if_ ~error:unauthorized edition_rights (req, tid) (fun () ->
-                    EzAPIServerUtils.return @@ Writer.remove_event id
+                    EzAPIServerUtils.return @@ Writer.remove_event timeline_id id
                   )
               else
                 unauthorized ()
@@ -240,25 +222,23 @@ let logout _ _ (email, cookie) =
   Lwt_io.printl "CALL logout" >>= fun () ->
   Reader.Login.logout email cookie >>= ok
 
-
-let export_database (req, timeline_id) _ () =
+let export_database (_req, timeline_id) _ () =
   Lwt_io.printl "CALL export_database" >>= fun () ->
-  edition_rights (req, timeline_id) (fun rights ->
-    Reader.title timeline_id >>= (fun title ->
-      Reader.events rights timeline_id >>= (fun events ->
-        try
-          let events = List.map snd events in
-          let title =
-            match title with
-            | None -> None
-            | Some (_, t) -> if rights || not t.confidential then Some t else None in
-          let json =
-            Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
-          EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
-        with Failure s -> EzAPIServerUtils.return (Error s)
-      )
+  Reader.timeline_data ~with_confidential:true ~tid:timeline_id () >>= (function
+    | Ok (title, events) -> begin
+      try
+        let events = List.map snd events in
+        let title =
+          match title with
+          | None -> None
+          | Some (_, t) -> Some t in
+        let json =
+          Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
+        EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
+      with Failure s -> EzAPIServerUtils.return (Error s)
+    end
+    | Error e -> EzAPIServerUtils.return (Error e)
     )
-  )
 
 let create_timeline_lwt req auth title name public =
   match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
@@ -295,12 +275,12 @@ let import_timeline (req, name) _ (title, events, public) =
     let add_events =
       try
         List.iter handle_event events;
-        let _ = Writer.remove_timeline name in 
-        Writer.rename_timeline tmp_tid name
+        Lwt_io.printl (Format.sprintf "Renaming %s by %s" tmp_tid name) >>=
+        fun _ -> Lwt.return @@ Writer.replace_timeline tmp_tid name
       with
-      | Stop s -> Error s
-    in
-    EzAPIServerUtils.return add_events) 
+      | Stop s ->
+        Lwt.return @@ Error s
+    in add_events >>= EzAPIServerUtils.return) 
 
 let user_timelines req _ () =
   Lwt_io.printl "CALL user_timelines" >>= fun () ->
@@ -342,13 +322,7 @@ let remove_timeline (req,tid) _ () =
     EzAPIServerUtils.return @@ Writer.remove_timeline tid    
   )
 
-let get_view_token (_, tid) _ () =
-  Lwt_io.printl "CALL get_view_token" >>= fun () ->
-  Reader.get_view_token tid >>= 
-  (function
-   | Ok str -> Lwt_io.printl ("Token = " ^ str) >>= (fun () -> ok [str])
-   | Error e -> unknown_error e)
-
+(*
 let view (req, tid) _ () =
   Lwt_io.printl "CALL view" >>= (fun () ->
       let start_date =
@@ -380,6 +354,78 @@ let view (req, tid) _ () =
         ?tags
       >>= EzAPIServerUtils.return
     )
+*)
+
+let decode_token_params req =
+  let after =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
+  let before =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
+  let groups =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "group_list" req.req_params in
+  let min_ponderation =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
+  let max_ponderation =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "max_level"  req.req_params in
+  let confidential =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "confidential"  req.req_params in
+  let tags =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "tags"  req.req_params in
+  let readonly =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "readonly" req.req_params in
+  let pretty =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.req_params in
+
+  let after = Utils.fopt Utils.string_to_date after in
+  let before = Utils.fopt Utils.string_to_date before in
+  let min_level = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation in
+  let max_level = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation in
+  let tags =
+    Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
+  let categories = Utils.opt (String.split_on_char ',') groups in
+  let confidential =
+    match confidential with
+    | Some "false" -> false
+    | _ -> true in
+  let readonly =
+    match readonly with
+    | Some "false" -> false
+    | _ -> true in
+  (after, before, min_level, max_level, tags, categories, confidential, readonly, pretty)
+
+let create_token (req, tid) _ () =
+  let after, before, min_level, max_level, tags, categories, confidential, readonly, pretty =
+    decode_token_params req in
+  
+  EzAPIServerUtils.return @@
+  Writer.create_token
+    ?after ?before
+    ?categories ?min_level
+    ?max_level ~confidential
+    ?tags ~readonly ?pretty
+    tid
+
+let update_token (req, token) _ tid =
+  Lwt_io.printl "CALL update_token" >>= (fun () ->
+  let after, before, min_level, max_level, tags, categories, confidential, readonly, pretty =
+    decode_token_params req in
+  let res = 
+    Writer.update_token
+      ?after ?before
+      ?categories ?min_level
+      ?max_level ~confidential
+      ?tags ~readonly ?pretty
+      ~token tid in
+  Lwt_io.printl "update_token OK" >>= (fun () ->  
+      EzAPIServerUtils.return res
+    )
+)
+
+let remove_token (_req, token) _ tid =
+  EzAPIServerUtils.return @@ Writer.remove_token tid token
+
+let get_tokens (_req, tid) _ () =
+  Reader.get_tokens tid >>= EzAPIServerUtils.return
 
 let is_auth req _ () =
   Lwt_io.printl "CALL is_auth" >>= fun () ->

@@ -2703,7 +2703,6 @@ tr:hover.clickable {
   visibility: hidden;
   background-color: #75a7e3;
   color: white;
-  text-align: center;
   padding: 10px;
   border-radius: 6px;
   box-shadow: 0 0 1.5em 0 rgba(0, 0, 0, 0.2);

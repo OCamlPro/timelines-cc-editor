@@ -10,7 +10,7 @@ let add_page path f =
   Hashtbl.add pages path f
   
 
-let finish () = Lwt.return (Ok ())
+let finish e = Lwt.return (Ok e)
 
 let rec dispatch ~path ~args =
   Js_utils.log "Path = %s" path;
@@ -33,16 +33,19 @@ let timeline_page ~args =
   Js_utils.log "Loading timeline page";
   match Args.get_timeline args with
   | None ->
-    Timeline_vue.(init ~args ~on_page:No_timeline ~categories:[]);
+    Js_utils.log "No id found";
+    Timeline_vue.(init ~args ~on_page:No_timeline ~categories:[] ~tokens:[]);
     finish ()
   | Some tid ->
-    Request.timeline_data ~args tid (fun events ->
-      Request.title ~args tid (fun title ->
-        let _, events = events in  
+    Js_utils.log "Id: %s" tid;
+    let name, tid = Ui_utils.timeline_id_from_arg tid in
+    Js_utils.log "Name = %s" name;
+    Request.get_tokens tid (fun tokens ->
+      Request.timeline_data ~args tid (fun (title, events) ->
         let on_page =
           match title, events with
           | None, [] -> Timeline_vue.No_timeline
-          | _ -> Timeline_vue.Timeline {title; events; name = tid} in
+          | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
         let categories =
           List.fold_left
             (fun acc (_, {Data_types.group; _}) ->
@@ -58,16 +61,16 @@ let timeline_page ~args =
             (fun s acc -> (s, List.mem s in_args) :: acc)
             categories
             [] in
-        Timeline_vue.init ~args ~categories ~on_page;
+        Timeline_vue.init ~args ~categories ~on_page ~tokens;
         finish ()
         )
       )
-
 let view_page ~args =
   match Args.get_timeline args with
   | None -> View_vue.init None []; finish ()
   | Some tid ->
-    Request.view ~args tid (fun (title, events) ->
+    let _name, tid = Ui_utils.timeline_id_from_arg tid in
+    Request.timeline_data ~args tid (fun (title, events) ->
       View_vue.init title events;
       finish ()
     )
@@ -76,7 +79,7 @@ let () =
   Dispatcher.dispatch := dispatch;
   add_page ""              home_page;
   add_page "home"          home_page;
-  add_page "timeline"      timeline_page;
-  add_page "timeline/"     timeline_page;
+  add_page "edit"      timeline_page;
+  add_page "edit/"     timeline_page;
   add_page "view"          view_page;
   add_page "view/"          view_page

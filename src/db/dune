@@ -1,7 +1,12 @@
 (library
+ (name dbData)
+ (modules dbData)
+ (libraries timeline_data calendar))
+
+(library
  (name database_interface)
  (modules monad_lwt db_intf)
- (libraries lwt.unix timeline_data calendar))
+ (libraries lwt.unix timeline_data calendar dbData))
 
 (library
  (name database_version)
@@ -31,7 +36,9 @@
  (libraries database_version))
 
 (executable
- (name csv_dbparser)
- (modules csv_dbparser)
- (libraries database_writer_lib database_reader_lib timeline_data
-   data_encoding))
+ (name cleaner)
+ (modules cleaner)
+ (preprocessor_deps (env_var PGDATABASE))
+ (preprocess
+ (pps pgocaml_ppx))
+ (libraries ocplib-json-typed yojson database_reader_lib database_writer_lib))

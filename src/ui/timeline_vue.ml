@@ -20,6 +20,90 @@ class type categoryFilter = object
   method checked : bool Js.t Js.prop
 end
 
+class type filter = object
+  method id : int Js.readonly_prop
+  method filter_id_ : Js.js_string Js.t Js.readonly_prop
+  method pretty : Js.js_string Js.t Js.prop
+  method readonly : bool Js.t Js.prop
+  method after : Js.js_string Js.t Js.optdef Js.prop
+  method before : Js.js_string Js.t Js.optdef Js.prop
+  method min_level_ : Js.js_string Js.t Js.optdef Js.prop
+  method max_level_ : Js.js_string Js.t Js.optdef Js.prop
+  method categories : Js.js_string Js.t Js.js_array Js.t Js.optdef Js.prop
+  method tags : Js.js_string Js.t Js.js_array Js.t Js.optdef Js.prop
+  method confidential_rights_ : bool Js.t Js.prop
+
+  method isEditing : bool Js.t Js.prop
+  method editing : Js.js_string Js.t Js.optdef Js.prop
+  
+end
+
+let filter_to_jsfilter =
+  let i = ref 0 in fun DbData.{timeline; kind; pretty; after; 
+          before; min_level; max_level; 
+          categories; tags; confidential_rights} : filter Js.t ->
+  let readonly = 
+    match kind with
+    | View -> true 
+    | Edit -> false in
+
+  let pretty =
+     match pretty with
+     | None -> timeline
+     | Some p -> p in
+ 
+  let after = 
+     match after with
+     | None -> Js.Optdef.empty
+     | Some d -> 
+       Js.Optdef.return @@ jss @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") d in
+ 
+  let before = 
+     match before with
+     | None -> Js.Optdef.empty
+     | Some d -> 
+       Js.Optdef.return @@ jss @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") d in
+ 
+  let min_level = 
+    match min_level with
+    | None -> Js.Optdef.empty
+    | Some m -> Js.Optdef.return @@ jss @@ Int32.to_string m in
+
+  let max_level = 
+    match max_level with
+    | None -> Js.Optdef.empty
+    | Some m -> Js.Optdef.return @@ jss @@ Int32.to_string m in
+
+  let categories = 
+    match categories with
+    | None -> Js.Optdef.empty
+    | Some l -> Js.Optdef.return @@ Ui_utils.list_to_jsarray @@ List.map jss l in
+
+  let tags =
+    match tags with
+    | None -> Js.Optdef.empty
+    | Some l -> Js.Optdef.return @@ Ui_utils.list_to_jsarray @@ List.map jss l in
+  let obj =
+    object%js
+      val id = !i
+      val filter_id_ = jss timeline
+      val mutable pretty = jss pretty
+      val mutable readonly = Js.bool readonly
+      val mutable after = after
+      val mutable before = before
+      val mutable min_level_ = min_level
+      val mutable max_level_ = max_level
+      val mutable categories = categories
+      val mutable tags = tags 
+      val mutable confidential_rights_ = Js.bool confidential_rights
+
+      val mutable isEditing = Js.bool false
+      val mutable editing = Js.Optdef.empty
+    end
+  in i := !i + 1;
+  obj
+  
+
 class type data = object
 
   (* Text to display on the page *)
@@ -83,6 +167,8 @@ class type data = object
 
   method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
 
+  
+
   method startDateFormValue     : Js.js_string Js.t Js.prop
   method endDateFormValue       : Js.js_string Js.t Js.prop
   method mediaFormValue         : Js.js_string Js.t Js.prop
@@ -94,9 +180,6 @@ class type data = object
   method ponderationFormValue   : int Js.prop
   method confidentialFormValue  : bool Js.t Js.prop
   method otherCategoryFormValue : Js.js_string Js.t Js.prop
-
-  method editionURL : Js.js_string Js.t Js.prop
-  method shareURL    : Js.js_string Js.t Js.prop
 
   method addingNewEvent : bool Js.t Js.prop
   (* Is the form here to add (true) or edit (false) an event *)
@@ -111,25 +194,30 @@ class type data = object
   (* Name of the current timeline *)
 
   method events_ : jsEvent Js.t Js.js_array Js.t Js.readonly_prop
+  (* Current events *)
 
+  method filters : filter Js.t Js.js_array Js.t Js.prop
+  (* Tokens *)
 end
 
 module PageContent = struct
   type nonrec data = data
+  type all = data
   let id = "page_content"
 end
 
 module Vue = Vue_js.Make (PageContent)
 
 let page_vue
+    (timeline_id : string)
     (timeline_name : string)
     (args : Args.t)
     (categories : (string * bool) list)
     (events : (int * event) list)
+    (tokens : DbData.filter list)
   : data Js.t =
   let categories : categoryFilter Js.t Js.js_array Js.t =
-    Js.array @@
-    Array.of_list @@
+    Ui_utils.list_to_jsarray @@ 
     List.mapi
       (fun i (c, checked) ->
          object%js
@@ -216,15 +304,12 @@ let page_vue
     val mutable confidentialFormValue  = Js.bool false
     val mutable otherCategoryFormValue = jss ""
 
-    val mutable editionURL = jss ""
-    val mutable shareURL = jss ""
-
     val mutable addingNewEvent = Js.bool false
 
     val mutable currentEvent = jss ""
     val mutable currentEventInForm = jss ""
 
-    val currentTimeline = jss timeline_name
+    val currentTimeline = jss timeline_id
 
     val events_ =
       Js.array @@ Array.of_list @@
@@ -237,45 +322,24 @@ let page_vue
            end
         )
         events
+
+    val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens 
   end
 
-let category_filter_component data =
-  let template =
-    "<div class='row uniform'>\n\
-     <input \n\
-     type='checkbox' \n\
-     :id=category.catId\n\
-     :value=category.catName \n\
-     :checked=category.checked \n\
-     v-model=category.checked>\n\
-     <label :for=category.catId>{{category.catName}}</label>\n\
-     </div>" in
-  let props = Vue_component.PrsArray ["category"(*; "checkedCategories"*)] in
-  Vue_component.make "cat" ~template ~props ~data
-
-let category_select_component data =
-  let template =
-    "<div class='row uniform'>\n\
-     <input \n\
-     type='radio' \n\
-     name='category-selection' \n\
-     :id=category.catId \n\
-     :value=category.catName \n\
-     :checked='category.catName == categoriesFormValue' \n\
-     v-model=categoriesFormValue \n\
-     >\n\
-     <label :for=category.catId>{{category.catName}}</label>\n\
-     </div>" in
-  let props = Vue_component.PrsArray ["category"(*; "checkedCategories"*)] in
-  Vue_component.make "cat-select" ~template ~data ~props
 
 type on_page =
   | No_timeline
   | Timeline of {
       name: string;
+      id: string;
       title: (int * title) option;
       events: (int * event) list
     }
+
+let update_filters self tokens = 
+  self##.filters := Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
+
+(* Methods of the view *)
 
 let updateVueFromEvent self e =
   let () = (* start_date *)
@@ -311,9 +375,6 @@ let updateVueFromEvent self e =
     self##.confidentialFormValue := Js.bool e.confidential
   in
   ()
-
-
-(* Methods of the view *)
 
 let showMenu (_self : 'a) : unit = 
   Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible"
@@ -427,7 +488,29 @@ let addEvent title events self adding : unit =
         ()
   end
 
-let removeEvent title events self =
+let removeEvent title events self e =
+  let u_id = Js.to_string e in
+  let timeline_id = Js.to_string self##.currentTimeline in
+  let event_id =
+    match List.find_opt (fun (_, e) -> e.unique_id = u_id) events with
+    | None -> begin
+        match title with
+        | Some (_i, {unique_id; _}) when unique_id = u_id ->
+          Js_utils.alert @@ Lang.t_ Text.s_alert_title_deletion;
+          None
+        | _ ->
+          let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in 
+          Js_utils.alert err;
+          None
+      end
+    | Some (i, _e) -> Some i in
+  match event_id with
+  | None -> ()
+  | Some id ->
+    let _l : _ Lwt.t = Controller.removeEvent ~id ~timeline_id in
+    ()
+
+let removeFromForm title events self =
   let u_id = Js.to_string self##.currentEventInForm in
   let timeline_id = Js.to_string self##.currentTimeline in
   let event_id =
@@ -455,17 +538,70 @@ let import self =
   let timeline_id = Js.to_string self##.currentTimeline in
   Controller.import_timeline timeline_id true (Js_utils.find_component "import-form")
 
-let copy _ v =
-  let v = Js.to_string v in
-  Js_utils.log "Copying %s" v;
-  Js_utils.Clipboard.copy v
+let addEditionToken self =
+  Controller.addToken ~readonly:false (Js.to_string self##.currentTimeline) (update_filters self)
+let addReadOnlyToken self =
+  Controller.addToken ~readonly:true (Js.to_string self##.currentTimeline) (update_filters self)
 
-let loadURLs timeline_name self =
-  let editionURL = 
-    Format.sprintf "%s/timeline?timeline=%s" (Ui_utils.get_host ()) timeline_name in
-  self##.editionURL := jss editionURL;
-  Controller.viewToken self timeline_name
-  
+let setTokenAsReadOnly self token =
+  Controller.updateTokenFilter ~readonly:true (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
+
+let setTokenAsEdition self token =
+  Controller.updateTokenFilter ~readonly:false (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
+
+let editAlias self token pretty =
+  match Js.Optdef.to_option self##.editing with
+  | None -> (* Entering edition mode *)
+    self##.editing := Js.Optdef.return pretty
+  | Some f -> (* Sending new pretty alias *)
+    Js_utils.log "New alias treatment";
+    if f = self##.filter_id_ then () else
+      ignore @@
+      Controller.updateTokenName
+        (Js.to_string pretty)
+        (Js.to_string self##.currentTimeline)
+        (Js.to_string token)
+        (fun () ->
+           self##.editing := Js.Optdef.empty)
+
+let removeToken self token =
+  Controller.removeToken (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
+
+let copyLink timeline_name _self readonly filter_id =
+  let readonly = if Js.to_bool readonly then "view" else "edit" in
+  let filter_id = Js.to_string filter_id in
+  let link = Format.asprintf "https://ez-timeline.ocamlpro.com/%s?timeline=%s-%s" readonly timeline_name filter_id in
+  Js_utils.Clipboard.set_copy ();
+  Js_utils.Clipboard.copy link;
+  Js_utils.alert "Link copied to clipboard"
+
+(* Components *)
+
+let token_elt_component data =
+  let template = 
+    "<li>\n\
+       <input type='text' v-model='token.pretty' style='width:25em' v-show='token.isEditing'>\n\
+       <span v-show='!token.isEditing'>{{token.pretty}}</span>\n\
+       <span v-show='token.filter_id==currentTimeline'>(You)</span>\n\
+       <div style='float: right'>\n\
+         <span class='fa fa-link fa-2x' @click='copyLink(token.readonly, token.filter_id)'></span>\n\
+         <span class='fa fa-pencil fa-2x' @click='editAlias(token.filter_id, token.pretty); token.isEditing=!token.isEditing'></span>\n\
+         <span v-show='token.readonly' class='fa fa-eye fa-2x' @click='setTokenAsEdition(token.filter_id); token.readonly=!token.readonly;'></span>\n\
+         <span v-show='!token.readonly' class='fa fa-black-tie fa-2x' @click='setTokenAsReadOnly(token.filter_id); token.readonly=!token.readonly;'></span>\n\
+         <span class='fa fa-trash fa-2x' @click='removeToken(token.filter_id)'></span>\n\
+       </div>
+     </li>" in
+  let methods =
+    Mjs.L [
+      "setTokenAsEdition", Mjs.to_any (Js.wrap_meth_callback setTokenAsEdition);
+      "setTokenAsReadOnly", Mjs.to_any (Js.wrap_meth_callback setTokenAsReadOnly);
+      "removeToken", Mjs.to_any (Js.wrap_meth_callback removeToken);
+      "editAlias", Mjs.to_any (Js.wrap_meth_callback editAlias);
+      "copyLink", Mjs.to_any (Js.wrap_meth_callback (copyLink (Js.to_string data##.timelineName)))
+    ] in
+  let props = Vue_component.PrsArray ["token"] in
+  Vue_component.make "tokens" ~template ~data:(fun _ -> data)  ~props ~methods
+
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
@@ -499,7 +635,7 @@ let filter self =
       Args.(set_min min_ponderation @@ set_max max_ponderation args)
     in
     Ui_utils.(push (url "" args));
-    ignore @@ !Dispatcher.dispatch ~path:"timeline" ~args
+    ignore @@ !Dispatcher.dispatch ~path:"edit" ~args
   with Failure s -> Js_utils.alert s
 
 let first_connexion self =
@@ -509,38 +645,42 @@ let first_connexion self =
 let init
     ~(args: Args.t) 
     ~(on_page: on_page)
-    ~(categories : (string * bool) list) =
-
+    ~(categories : (string * bool) list) 
+    ~(tokens : DbData.filter list) =
   Js_utils.log "Creating vue@.";
-  let name,events, title =
+  Js_utils.log "Tokens: %i@." (List.length tokens);
+  let name, id, events, title =
     match on_page with
-    | Timeline {name; events; title} -> name, events, title
-    | No_timeline -> "", [], None in
-  let data_js = page_vue name args categories events in
+    | Timeline {name; id; events; title} -> name, id, events, title
+    | No_timeline -> "", "", [], None in
+  let data = page_vue id name args categories events tokens in
   Js_utils.log "Adding methods@.";
   Vue.add_method0 "showMenu" showMenu;
   Vue.add_method0 "hideMenu" hideMenu;
   Vue.add_method1 "showForm" (showForm title events);
   Vue.add_method0 "hideForm" hideForm;
   Vue.add_method1 "addEvent" (addEvent title events);
-  Vue.add_method0 "removeEvent" (removeEvent title events);
+  Vue.add_method1 "removeEvent" (removeEvent title events);
+  Vue.add_method0 "removeFromForm" (removeFromForm title events);
   Vue.add_method0 "exportTimeline" (export title events);
   Vue.add_method0 "importTimeline" import;
   Vue.add_method0 "filter" filter;
-  Vue.add_method1 "copy" copy;
-  Vue.add_method0 "loadURLs" (loadURLs name);
-
+  Vue.add_method0 "addEditionToken" addEditionToken;
+  Vue.add_method0 "addReadOnlyToken" addReadOnlyToken;
+  Vue.add_method1 "setTokenAsEdition" setTokenAsEdition;
+  Vue.add_method1 "setTokenAsReadOnly" setTokenAsReadOnly;
+  
   Js_utils.log "Adding components@.";
-  let _cat = category_filter_component (fun _ -> data_js) in
-  let _cat = category_select_component (fun _ -> data_js) in
   Js_utils.log "Initializing vue@.";
-  let vue = Vue.init ~data_js ~show:true () in
+  let token_component = token_elt_component data in
+  let () = Vue.add_component "tokens" token_component in
+  let vue = Vue.init ~data ~show:true () in
   Js_utils.log "Displaying timeline@.";
 
   let () =
     match on_page with
     | No_timeline -> Js_utils.alert "No timeline has been selected"
-    | Timeline {title; events; name=_} ->
+    | Timeline {title; events; _} ->
       match events with
       | [] -> first_connexion vue
       | _ -> display_timeline vue title events 
