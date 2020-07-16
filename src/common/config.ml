@@ -11,5 +11,3 @@ module DB = struct
   let user = None
   let password = None
 end
-
-let web_host = "http://localhost:8000"

@@ -273,3 +273,23 @@ let check_unique_id check_is_used id =
       else new_name
     in loop 2
   else id
+
+let min32 (i1 : Int32.t) (i2 : Int32.t) = 
+ if i1 < i2 then i1 else i2
+
+let max32 (i1 : Int32.t) (i2  : Int32.t) =
+ if i1 > i2 then i1 else i2
+
+let intersect_list l1 l2 =
+  List.fold_left
+    (fun acc e -> if List.mem e l1 then e :: acc else acc)
+    []
+    l2
+
+let min_date d1 d2 =
+  if CalendarLib.Date.compare d1 d2 < 0 then d1 else d2
+
+let max_date d1 d2 =
+  if CalendarLib.Date.compare d1 d2 > 0 then d1 else d2
+
+let is_empty_list = function [] -> true | _ -> false

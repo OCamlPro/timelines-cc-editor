@@ -3,7 +3,7 @@
 <header id="timeline-header">
   <span class="title">{{timelineName}}</span>
   <span style="position: relative; float: right">
-  <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span> </span>
+    <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span> </span>
 </header>
 
 <!-- Timeline -->
@@ -16,16 +16,25 @@
     <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
       <!-- Todo -->
     </div>
-    <div class="timeline-menu-token tooltip" @mouseover="loadURLs()">
+    <div
+      class="timeline-menu-token tooltip"
+      v-show="filters.length != 0">
       <img src="/images/share.svg">
-      <div class="tooltipcontent">
-	<div id="editionLink">
-	  {{editionLinkText}}
-	  <div class="url" @click="copy(editionURL)">{{editionURL}}</div>
-	</div>
-	<div id="readLink">
-	  {{readLinkText}}
-	  <div class="url" @click="copy(readURL)">{{shareURL}}</div>
+      <div class="tooltipcontent" style='width:40em'>
+	<ul>
+	  <tokens
+            v-for="filter in filters"
+	    v-bind:token="filter"
+	    v-bind:key="filter.id">
+	  </tokens>
+	</ul>
+	<div>
+	  <div class='button' @click="addEditionToken()">
+            Add edition token
+	  </div>
+	  <div class='button' @click="addReadOnlyToken()">
+            Add readonly token
+	  </div>
 	</div>
       </div>
     </div>
@@ -39,7 +48,7 @@
 	<div>
 	  Import <br/>
 	  <div class="button" style="position:relative; line-height: 0px">
-	    <input type="file" style="opacity: 0.0; width: 100%; height: 100%; position: absolute; right:0px; cursor: pointer" id="import-form" @change="importTimeline()">
+	    <input type="file" style="opacity: 0.0; width: 100%; height: 100%; position: absolute; right:0px; cursor: pointer; top:0em" id="import-form" @change="importTimeline()">
 	    csv
 	  </div>
 	</div>
@@ -50,10 +59,10 @@
     </div>
   </div>
   <div class="section">
-      <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
-	<!-- Todo -->
-      </div>
-      <div class="timeline-menu-token tooltip" @click="showForm(true)">
+    <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
+      <!-- Todo -->
+    </div>
+    <div class="timeline-menu-token tooltip" @click="showForm(true)">
       <img src="/images/add.svg">
       <div class="tooltipcontent">
 	{{formNameAdding}}
@@ -76,6 +85,14 @@
 	Filtrer
       </div>
     </div>
+    <div
+      v-show="events.length != 0"
+      class="timeline-menu-token tooltip fa fa-trash fa-2x"
+      @click='removeEvent(currentEvent)'>
+      <div class="tooltipcontent">
+	{{removeButton}}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -96,7 +113,7 @@
 	  class="form-element-field"
 	  :placeholder="headlineFormHelp"
 	  type="input"
-	  :value="headlineFormValue"
+	  v-model="headlineFormValue"
 	  required/>
 	<div class="form-element-bar">
 	</div>
@@ -111,7 +128,7 @@
 	    class="form-element-field -hasvalue"
 	    :placeholder="new Date()"
 	    type="date"
-	    :value="startDateFormValue"
+	    v-model="startDateFormValue"
 	    required/>
 	  <div class="form-element-bar"></div>
 	  <label class="form-element-label" for="start-date">{{startDateFormTitle}}</label>
@@ -124,7 +141,7 @@
 	      class="form-element-field -hasvalue"
 	      placeholder=" "
 	      type="date"
-	      :value="endDateFormValue"
+	      v-model="endDateFormValue"
 	      />
 	    <div class="form-element-bar"></div>
 	    <label class="form-element-label" for="end-date">{{endDateFormTitle}}</label>
@@ -139,7 +156,7 @@
 	  class="form-element-field"
 	  placeholder=" "
 	  type="link"
-	  :value="mediaFormValue"
+	  v-model="mediaFormValue"
 	  required/>
         <div class="form-element-bar"></div>
         <label class="form-element-label" for="media">{{mediaFormTitle}}</label>
@@ -152,7 +169,7 @@
 	  id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
 	  class="form-element-field"
 	  :placeholder="textFormHelp"
-	  :value="textFormValue"></textarea>
+	  v-model="textFormValue"></textarea>
         <div class="form-element-bar"></div>
         <label class="form-element-label" for="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm">{{textFormTitle}}</label>
       </div>    
@@ -160,20 +177,20 @@
 
       <!-- CATEGORIES, TODO -->
       <!--
-      <div class="form-element form-select">
-        <select id="field-be1h8i-ll2hpg-q4efzm-nfjj1e-udkw5r" class="form-element-field">
-          <option disabled selected value="" class="form-select-placeholder"></option>
-          <option value="Rap">Rap</option>
-          <option value="Pop">Pop</option>
-          <option value="Rock">Rock</option>
-          <option value="Metal">Metal</option>
-          <option value="R&amp;B">R&amp;B</option>
-          <option value="__other__">New event</option>
-        </select>
-        <div class="form-element-bar"></div>
-        <label class="form-element-label" for="field-be1h8i-ll2hpg-q4efzm-nfjj1e-udkw5r">Select the categorie of this event</label>
-      </div>
-      -->
+	  <div class="form-element form-select">
+            <select id="field-be1h8i-ll2hpg-q4efzm-nfjj1e-udkw5r" class="form-element-field">
+              <option disabled selected value="" class="form-select-placeholder"></option>
+              <option value="Rap">Rap</option>
+              <option value="Pop">Pop</option>
+              <option value="Rock">Rock</option>
+              <option value="Metal">Metal</option>
+              <option value="R&amp;B">R&amp;B</option>
+              <option value="__other__">New event</option>
+            </select>
+            <div class="form-element-bar"></div>
+            <label class="form-element-label" for="field-be1h8i-ll2hpg-q4efzm-nfjj1e-udkw5r">Select the categorie of this event</label>
+	  </div>
+	  -->
       <!-- TAGS -->   
       <div class="form-element form-input">
         <input
@@ -181,7 +198,7 @@
 	  class="form-element-field"
 	  placeholder=" "
 	  type="link"
-	  :value="tagsFormValue"
+	  v-model="tagsFormValue"
 	  :placeholder="tagsFormHelp"
 	  required/>
         <div class="form-element-bar"></div>
@@ -197,7 +214,7 @@
 	  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
 	  class="form-element-field"
 	  :placeholder="ponderationFormHelp"
-	  :value="ponderationFormValue"
+	  v-model="ponderationFormValue"
 	  type="number" required/>
 	<div class="form-element-bar">
 	</div>
@@ -212,7 +229,7 @@
           <input
 	    class="form-checkbox-field"
 	    type="checkbox"
-	    :value="confidentialFormValue"
+	    v-model="confidentialFormValue"
 	    />
           <i class="form-checkbox-button"></i>
           <span>{{confidentialFormTitle}}</span>
@@ -228,7 +245,7 @@
 	  id="unique-id"
 	  class="form-element-field"
 	  :placeholder="uniqueIdFormHelp"
-	  :value="uniqueIdFormValue"
+	  v-model="uniqueIdFormValue"
 	  type="input" required/>
 	<div class="form-element-bar">
 	</div>
@@ -249,7 +266,7 @@
 	<span v-else>{{updateEventButtonText}}</span>
       </div>
       <div class="button special" id="back-from-edit" @click=hideForm()>{{backButton}}</div>
-      <div class="button special" v-show="!addingNewEvent" @click=removeEvent()>
+      <div class="button special" v-show="!addingNewEvent" @click=removeFromForm()>
 	{{removeButton}}
       </div>
       <span @click=hideForm() class="close"></span>

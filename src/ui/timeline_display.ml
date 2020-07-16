@@ -5,6 +5,20 @@ open Js_of_ocaml_tyxml.Tyxml_js.Html
 open Ui_common
 
 type slide_change = Next | Prev
+(*
+(* 1. EZ-Timeline to Js-Timeline types *)
+
+module T = Timeline
+
+let date d = 
+  let year = CalendarLib.Date.year d in
+  let month = CalendarLib.Date.(int_of_month @@ month d) in
+  let day = CalendarLib.Date.day_of_month d in
+  T.make_date ~day ~month year
+
+let media u = 
+  T.make_media u.url *)
+
 
 let slide_changer slide_change =
   let slide_div =
@@ -33,7 +47,7 @@ let slide_event slide_change i = (* Clicks i times on next or prev *)
   in loop i
 
 let display_timeline title events =
-  Js_utils.log "Displaying timeline";
+  Js_utils.log "[display_timeline] Displaying timeline";
   let title =
     match title with
     | None -> None
@@ -54,15 +68,12 @@ let display_timeline title events =
           {t with text} in
         {e with text}
       ) events in
-  let cmd =
+  let json =
     let timeline = {events; title} in
     let json = Json_encoding.construct (Data_encoding.timeline_encoding) timeline in
     let yoj  = Json_repr.to_yojson json in
-    let str  = Yojson.Safe.to_string yoj in
-    Format.asprintf
-      "window.timeline = new TL.Timeline('timeline-embed',%s)"
-      str in
-  let () = Js_of_ocaml.Js.Unsafe.js_expr cmd in
+    Yojson.Safe.to_string yoj in
+  let () = Timeline.make "timeline-embed" (SStr json) in
   Js_utils.log "Timeline display done"
 
 let url_position order (rev_order : string Utils.IntMap.t) =

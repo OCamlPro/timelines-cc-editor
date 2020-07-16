@@ -10,6 +10,22 @@ let finish =
   | Ok _ -> Lwt.return (Ok ())
   | Error s -> Js_utils.alert ("Error: " ^s); Lwt.return (Ok ())
 
+let custom_error default err =
+  let pp code msg = Format.asprintf "Error %i: %s" code msg in
+  let msg =
+    match err with
+    | Request.Xhr (code, msg) -> pp code msg
+    | Api (code, msg) -> begin
+        match default with
+        | None -> pp code msg
+        | Some m -> m
+      end
+  in
+  Js_utils.alert msg;
+  Lwt.return (Error msg)
+
+let error = custom_error None
+
 let create_timeline name descr =
   let timeline_id, headline =
     match name with
@@ -23,8 +39,9 @@ let create_timeline name descr =
   let title = Utils.to_title_event headline descr in
   let error e = Lwt.return @@ Error e in 
   Request.create_timeline ~error timeline_id title true (
-    fun id ->
-      let new_page = Format.sprintf "/timeline?timeline=%s" id in
+    function id ->
+      let id = Ui_utils.timeline_arg_from_id ~name:headline id in
+      let new_page = Format.sprintf "/edit?timeline=%s" id in
       Js_utils.log "Going to %s" new_page;
       finish @@ Ok (Ui_utils.goto_page new_page)
     )
@@ -75,16 +92,13 @@ let add_event
       last_update = Some (CalendarLib.Date.today ());
       tags
     } in
-    let error s =
-      Js_utils.alert (Format.asprintf "Error: %a" Xhr_lwt.pp_err s);
-      Lwt.return (Error s) in
     Request.add_event
       ~error timeline
       event (fun _ -> Js_utils.reload (); Lwt.return (Ok ()))
   with
     IncorrectInput s -> 
     Js_utils.alert (Format.sprintf "Error: %s" s);
-    Lwt.return (Error (Xhr_lwt.Str_err s))
+    Lwt.return (Error s)
 
 let update_event
     ~id
@@ -128,11 +142,6 @@ let update_event
     last_update = Some (CalendarLib.Date.today ());
     tags
   } in
-  let error e =
-    let error = Format.asprintf "%s: %a" (Lang.t_ Text.s_alert_edition_failed) Xhr_lwt.pp_err e in
-    Js_utils.alert error;
-    Lwt.return (Error e) in
-
   Request.update_event
     ~error ~id
     ~old_event ~new_event
@@ -144,62 +153,10 @@ let update_event
     )
 
 let removeEvent ~id ~timeline_id =
-  let error e =
-    let code, err = Xhr_lwt.error_content e in
-    Js_utils.alert (Format.asprintf "Error %i while removing event: %s" code err);
-    Error e in
   if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_event) then
     Request.remove_event ~error ~id:(string_of_int id) ~timeline_id
       (fun () -> Js_utils.reload (); Lwt.return (Ok ()))
   else Lwt.return (Ok ())
-
-let viewToken ?(args = []) vue tid =
-  let timeline_id_str, args =
-    match String.split_on_char '/' tid with
-    | [] -> assert false
-    | [tid] -> tid, args (* Not an URL *)
-    | _ -> begin (* This is an URL *)
-      match Ocp_js.Url.url_of_string tid with
-      | Some (Ocp_js.Url.Http h) | Some (Https h) -> begin
-        let args = h.Ocp_js.Url.hu_arguments in
-        match Args.get_timeline args with
-        | None -> 
-          Js_utils.log "Cannot read timeline ID on URL %s" tid; 
-          "", []
-        | Some tid -> tid, [] 
-      end
-      | _ -> (* Unknown URL *)
-        Js_utils.log "Cannot decode URL %s" tid; 
-        "", []
-    end
-  in
-  let error e =
-    let msg =
-      Format.asprintf "%s: %a"
-        (Lang.t_ Text.s_alert_error_view_token)
-        Xhr_lwt.pp_err e in
-    Js_utils.alert msg; Error e
-  in    
-  Request.get_view_token ~error
-    timeline_id_str 
-    (function
-      | [] ->
-        Js_utils.alert (Lang.t_ Text.s_alert_no_view_token);
-        Lwt.return (Error "No token")
-      | (s::_) ->
-        let _host, port =
-          match Jsloc.url () with
-          | Http hu | Https hu -> hu.hu_host, hu.hu_port
-          | File _fu -> "localhost", 80
-        in
-        let str_port =
-          if port = 80 then "" else ":" ^ string_of_int port in
-        let url = 
-          Format.asprintf "%s%s/view?timeline=%s&%a" (Jsloc.host ()) str_port s Args.print args
-        in
-        vue##.shareURL := Ocp_js.Js.string url;
-        Lwt.return (Ok ())
-       )
 
 let export_timeline title events =
   let title_line = match title with
@@ -222,17 +179,46 @@ let import_timeline tid is_public elt =
          | Some t -> t in
        let _lwt =
          Request.import_timeline
-           ~error:(fun e ->
-               Js_utils.alert @@
-               Format.asprintf "Error while imporing timeline: %a" Xhr_lwt.pp_err e;
-               Lwt.return (Error e)
-             )
+           ~error:error
            ~args:[]
            tid title
            events is_public
            (fun () -> Js_utils.alert "Success!"; Js_utils.reload (); finish (Ok ())) in () 
     )
     else false
+
+let addToken ~readonly ?pretty tid with_tokens =
+  let args = ["readonly", string_of_bool readonly] in
+  let args = (* TODO : put complete filter in arguments *)
+    match pretty with
+    | None -> args
+    | Some p -> ("pretty", p) :: args in
+  Request.create_token ~error args tid
+    (fun _str ->
+      Request.get_tokens tid (
+        fun tokens -> 
+          with_tokens tokens; 
+          Lwt.return (Ok ())
+      )
+    )
+
+let updateTokenFilter ~readonly tid token update_vue =
+  let args = ["readonly", string_of_bool readonly] in
+  Request.update_token ~error args tid token (fun () -> let () = update_vue () in Lwt.return (Ok ())) 
+
+let updateTokenName pretty tid token update_vue =
+  let args = ["pretty", pretty] in
+  Request.update_token ~error args tid token (fun () -> let () = update_vue () in Lwt.return (Ok ())) 
+
+let removeToken tid token with_tokens =
+  Request.remove_token ~error tid token 
+    (fun () -> 
+      Request.get_tokens tid (
+        fun tokens -> 
+          with_tokens tokens; 
+          Lwt.return (Ok ())
+      )
+    )
 
 (*open Data_types
 

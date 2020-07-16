@@ -7,6 +7,3 @@
 [submodule "libs/ez-pgocaml"]
 	path = libs/ez-pgocaml
 	url = https://github.com/Stevendeo/ez-pgocaml.git
-[submodule "libs/vue-jsoo"]
-	path = libs/vue-jsoo
-	url = https://gitlab.com/o-labs/vue-jsoo.git

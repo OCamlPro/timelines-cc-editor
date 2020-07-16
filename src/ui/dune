@@ -12,4 +12,4 @@
  (preprocess
   (pps js_of_ocaml-ppx))
  (libraries vue-jsoo ui_common js_of_ocaml js_of_ocaml-tyxml js_of_ocaml-lwt
-   xhr_lwt config timeline_data data_encoding api_data))
+   xhr_lwt config timeline_data data_encoding api_data dbData ezjs-timeline))

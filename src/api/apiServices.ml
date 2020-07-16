@@ -7,12 +7,12 @@ let tup1_int = EzEncoding.tup1_int
 
 let arg_default id = arg_int id (-1)
 
-let arg_timeline () = arg_string "timeline-id" "timeline-id"
+let arg_token () = arg_string "timeline-id" "timeline-id"
 
-type nonrec 'a service0 = ('a, string, no_security) service0
-type nonrec ('a, 'b) service1 = ('a, 'b, string, no_security) service1
-type nonrec ('a, 'b) post_service0 = ('a, 'b, string, no_security) post_service0
-type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, no_security) post_service1
+type nonrec 'a service0 = ('a, string, basic_security) service0
+type nonrec ('a, 'b) service1 = ('a, 'b, string, basic_security) service1
+type nonrec ('a, 'b) post_service0 = ('a, 'b, string, basic_security) post_service0
+type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, basic_security) post_service1
 
 let api_root = 
   match Config.api_root with
@@ -46,6 +46,8 @@ let arg_mmsi = arg_string "mmsi" ""
 
 let arg_name = arg_string "name" "" *)
 
+let unit = Api_data.ApiData.unit
+
 let group_param = {
   param_value = "group";
   param_name  = Some "group";
@@ -53,6 +55,15 @@ let group_param = {
   param_type = PARAM_STRING;
   param_required = false;
   param_examples = ["OCaml"; "Software"]
+}
+
+let group_list_param = {
+  param_value = "group_list";
+  param_name  = Some "group_list";
+  param_descr = Some "Categories";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["OCaml"; "Software,OCaml"]
 }
 
 let tags_param = {
@@ -82,6 +93,24 @@ let ponderation_param name = {
   param_examples = ["0"; "9"]
 }
 
+let confid_param = {
+  param_value = "confidential";
+  param_name  = Some "confidential";
+  param_descr = Some "confidential";
+  param_type = PARAM_BOOL;
+  param_required = false;
+  param_examples = ["false"; "true"]  
+}
+
+let readonly_param = {
+  param_value = "readonly";
+  param_name  = Some "readonly";
+  param_descr = Some "readonly";
+  param_type = PARAM_BOOL;
+  param_required = false;
+  param_examples = ["false"; "true"]  
+}
+
 let event_id = {
   param_value = "event_id";
   param_name  = Some "event_id";
@@ -89,6 +118,15 @@ let event_id = {
   param_type = PARAM_INT;
   param_required = true;
   param_examples = ["0"; "9"; "42"]
+}
+
+let pretty_name_param = {
+  param_value = "pretty";
+  param_name  = Some "pretty";
+  param_descr = Some "Pretty name";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["Me"; "Your best friend"]
 }
 
 let auth_params = {
@@ -112,6 +150,7 @@ let param_number =
 let param_page =
   Param.int ~name:"page" ~descr:"Offset in number of pages" "p"
 
+(*
 let event : (int, Data_types.title) service1 =
   service
     ~params:auth_params
@@ -124,25 +163,40 @@ let events : (string, (int * Data_types.event) list) service1 =
     ~params:auth_params
     ~name:"events"
     ~output:(list (tup2 int Data_encoding.event_encoding))
-    Path.(api_root // "events" /: arg_timeline ())
-
+    Path.(api_root // "events" /: arg_token ())
 let title : (string, (int * Data_types.title) option) service1 =
   service
     ~params:auth_params
     ~name:"title"
     ~output:title_api_result_encoding
-    Path.(api_root // "title" /: arg_timeline ())
+    Path.(api_root // "title" /: arg_token ()) *)
+
+let api_error_output =
+  EzAPI.ErrCase {
+    code = 500;
+    name = "Api Error";
+    encoding = (Json_encoding.(obj1 (req "error" string)));
+    select = (fun s -> Some s);
+    deselect = (fun s -> s)             
+  }
+
+let error_outputs = [
+  api_error_output
+] 
+  
 
 let add_event : (string, Data_types.event, string) post_service1 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"add_event"
     ~input:Data_encoding.event_encoding
     ~output:string
-    Path.(api_root // "add_event" /: arg_timeline ())
+    Path.(api_root // "add_event" /: arg_token ())
 
 let update_event : (int * Data_types.title * Data_types.title * string, update_title_res) post_service0 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"update_event"
     ~input:(tup4 tup1_int Data_encoding.title_encoding Data_encoding.title_encoding string)
@@ -153,34 +207,38 @@ let timeline_data :
   (string,
    (((int * Data_types.title) option) * ((int * Data_types.event) list))) service1 =
   service
+    ~error_outputs
     ~name:"timeline_data"
     ~output:timeline_data_api_result_encoding
     ~params:(auth_params @ [
-      date_param "start_date";
-      date_param "end_date";
-      group_param;
-      ponderation_param "min_level";
-      ponderation_param "max_level";
-      tags_param;
-    ])
-    Path.(api_root // "timeline_data" /: arg_timeline ())
+        date_param "start_date";
+        date_param "end_date";
+        group_param;
+        ponderation_param "min_level";
+        ponderation_param "max_level";
+        tags_param;
+      ])
+    Path.(api_root // "timeline_data" /: arg_token ())
 
 let remove_event : (string, unit) service1 =
   service
+    ~error_outputs
     ~params:(event_id :: auth_params)
     ~name:"remove_event"
     ~output:unit
-    Path.(api_root // "remove_event" /: arg_timeline ())
+    Path.(api_root // "remove_event" /: arg_token ())
 
 let categories : (string, string list) service1 =
   service
+    ~error_outputs
     ~params:auth_params
     ~name:"categories"
     ~output:(list string)
-    Path.(api_root // "categories" /: arg_timeline ())
+    Path.(api_root // "categories" /: arg_token ())
 
 let register_user : (string * string, unit) post_service0 =
   post_service
+    ~error_outputs
     ~name:"register_user"
     ~input:(tup2 string string)
     ~output:unit
@@ -188,6 +246,7 @@ let register_user : (string * string, unit) post_service0 =
 
 let login : (string * string, string) post_service0 =
   post_service
+    ~error_outputs
     ~name:"login"
     ~input:(tup2 string string)
     ~output:string
@@ -195,6 +254,7 @@ let login : (string * string, string) post_service0 =
 
 let logout : (string * string, unit) post_service0 =
   post_service
+    ~error_outputs
     ~name:"login"
     ~input:(tup2 string string)
     ~output:unit
@@ -203,6 +263,7 @@ let logout : (string * string, unit) post_service0 =
 
 let is_auth : (unit, bool) post_service0 =
   post_service
+    ~error_outputs
     ~name:"is_auth"
     ~input:unit
     ~output:bool
@@ -210,37 +271,42 @@ let is_auth : (unit, bool) post_service0 =
 
 let has_admin_rights : (string, unit, bool) post_service1 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"has_admin_rights"
     ~input:unit
     ~output:bool
-    Path.(api_root // "has_admin_rights" /: arg_timeline ())
+    Path.(api_root // "has_admin_rights" /: arg_token ())
 
 let export_database : (string, unit) service1 =
   service
+    ~error_outputs
     ~params:auth_params
     ~name:"export_database"
     ~output:unit
-    Path.(api_root // "export_database" /: arg_timeline ())
+    Path.(api_root // "export_database" /: arg_token ())
 
 let create_timeline : (string, (Data_types.title * bool), string) post_service1 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
     ~output:string
-    Path.(api_root // "create_timeline" /: arg_timeline ())
+    Path.(api_root // "create_timeline" /: arg_token ())
 
 let import_timeline : (string, (Data_types.title * Data_types.event list * bool), unit) post_service1 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"import_timeline"
     ~input:(tup3 Data_encoding.title_encoding (list Data_encoding.event_encoding) bool)
     ~output:unit
-    Path.(api_root // "import_timeline" /: arg_timeline ())
+    Path.(api_root // "import_timeline" /: arg_token ())
 
 let user_timelines : (unit, string list) post_service0 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"user_timeline"
     ~input:unit
@@ -249,6 +315,7 @@ let user_timelines : (unit, string list) post_service0 =
 
 let allow_user : (string * string, unit) post_service0 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"allow_user"
     ~input:(tup2 string string)
@@ -257,14 +324,16 @@ let allow_user : (string * string, unit) post_service0 =
 
 let timeline_users : (string, unit, string list) post_service1 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"timeline_user"
     ~input:unit
     ~output:(list string)
-    Path.(api_root // "timeline_users"/: arg_timeline ())
+    Path.(api_root // "timeline_users"/: arg_token ())
 
 let remove_user : (unit, unit) post_service0 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"remove_user"
     ~input:unit
@@ -273,37 +342,72 @@ let remove_user : (unit, unit) post_service0 =
 
 let remove_timeline : (string, unit, unit) post_service1 =
   post_service
+    ~error_outputs
     ~params:auth_params
     ~name:"remove_timeline"
     ~input:unit
     ~output:unit
-    Path.(api_root // "remove_timeline"/: arg_timeline ())
+    Path.(api_root // "remove_timeline"/: arg_token ())
 
-let get_view_token : (string, string list) service1 =
-  service
-    ~params:auth_params
-    ~name:"get_view_token"
-    ~output:(list string)
-    Path.(api_root // "get_view_token" /: arg_timeline ())
+let create_token : (string, unit, string) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:(auth_params @ [
+        date_param "before";
+        date_param "after";
+        group_list_param;
+        ponderation_param "min_level";
+        ponderation_param "max_level";
+        tags_param;
+        confid_param;
+        readonly_param;
+        pretty_name_param
+      ])
+    ~name:"create_token"
+    ~input:unit
+    ~output:string
+    Path.(api_root // "create_token" /: arg_token ())
 
-let view :
-  (string,
-   (((int * Data_types.title) option) * ((int * Data_types.event) list))) service1 =
-  service
-    ~name:"view"
-    ~output:timeline_data_api_result_encoding
-    ~params:([
-      date_param "start_date";
-      date_param "end_date";
-      group_param;
-      ponderation_param "min_level";
-      ponderation_param "max_level";
-      tags_param;
-    ])
-    Path.(api_root // "view" /: arg_timeline ())
+let update_token : (string, string, unit) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:(auth_params @ [
+        date_param "before";
+        date_param "after";
+        group_param;
+        ponderation_param "min_level";
+        ponderation_param "max_level";
+        tags_param;
+        confid_param;
+        readonly_param;
+        pretty_name_param
+      ])
+    ~name:"update_token"
+    ~input:admin_token (* The admin token *)
+    ~output:unit
+    Path.(api_root // "update_token" /: arg_token ())
+
+let remove_token : (string, string, unit) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:[]
+    ~name:"remove_token"
+    ~input:admin_token (* The admin token *)
+    ~output:unit
+    Path.(api_root // "remove_token" /: arg_token ())
+
+let get_tokens : (string, unit, DbData.filter list) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:[]
+    ~name:"get_tokens"
+    ~input:unit
+    ~output:(list Api_data.ApiData.filter_encoding)
+    Path.(api_root // "get_tokens" /: arg_token ())
 
 let version : string service0 =
   service
+    ~error_outputs
     ~name:"version"
     ~output:Json_encoding.string
     Path.(api_root // "version")
