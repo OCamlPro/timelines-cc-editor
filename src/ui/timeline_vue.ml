@@ -29,7 +29,7 @@ class type filter = object
   method before : Js.js_string Js.t Js.optdef Js.prop
   method min_level_ : Js.js_string Js.t Js.optdef Js.prop
   method max_level_ : Js.js_string Js.t Js.optdef Js.prop
-  method categories : Js.js_string Js.t Js.js_array Js.t Js.optdef Js.prop
+  method filterCategories : Js.js_string Js.t Js.js_array Js.t Js.optdef Js.prop
   method tags : Js.js_string Js.t Js.js_array Js.t Js.optdef Js.prop
   method confidential_rights_ : bool Js.t Js.prop
 
@@ -93,7 +93,7 @@ let filter_to_jsfilter =
       val mutable before = before
       val mutable min_level_ = min_level
       val mutable max_level_ = max_level
-      val mutable categories = categories
+      val mutable filterCategories = categories
       val mutable tags = tags 
       val mutable confidential_rights_ = Js.bool confidential_rights
 
@@ -600,7 +600,20 @@ let token_elt_component data =
       "copyLink", Mjs.to_any (Js.wrap_meth_callback (copyLink (Js.to_string data##.timelineName)))
     ] in
   let props = Vue_component.PrsArray ["token"] in
-  Vue_component.make "tokens" ~template ~data:(fun _ -> data)  ~props ~methods
+  Vue_component.make
+    "tokens"
+    ~template
+    ~props
+    ~data:(fun _ -> data)
+    ~methods
+
+let category_select_component () =
+  let template = 
+    "<option \n\ 
+     :value='category.catId' \n\
+     class='form-select-placeholder'>{{category.catName}}</option>" in
+  let props = Vue_component.PrsArray ["category"] in
+  Vue_component.make "categorySelecter" ~template ~props
 
 (* Timeline initializer *)
 let display_timeline self title events =
@@ -673,7 +686,9 @@ let init
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
   let token_component = token_elt_component data in
+  let category_component = category_select_component () in
   let () = Vue.add_component "tokens" token_component in
+  let () = Vue.add_component "categorySelecter" category_component in
   let vue = Vue.init ~data ~show:true () in
   Js_utils.log "Displaying timeline@.";
 
