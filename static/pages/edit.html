@@ -179,14 +179,14 @@
       
       <div class="form-element form-select">
         <select
-	  id="field-be1h8i-ll2hpg-q4efzm-nfjj1e-udkw5r"
+	  id="category-select-form"
 	  class="form-element-field"
 	  v-model="categoriesFormValue"
 	  >
           <option disabled value="" class="form-select-placeholder"></option>
 	  <categorySelecter
 	    v-for="category in categories"
-	    v-bind:category="category"
+	    :category="category"
 	    v-bind:key="category.id">
 	  </categorySelecter>
 	  <option value="__other__category__">Create a new category</option>
@@ -196,7 +196,7 @@
 	  v-model="otherCategoryFormValue"
 	  v-show="categoriesFormValue=='__other__category__'">
         <div class="form-element-bar"></div>
-        <label class="form-element-label" for="field-be1h8i-ll2hpg-q4efzm-nfjj1e-udkw5r">Select the categorie of this event</label>
+        <label class="form-element-label" for="category-select-form">Select the categorie of this event</label>
       </div>
       <!-- TAGS -->   
       <div class="form-element form-input">

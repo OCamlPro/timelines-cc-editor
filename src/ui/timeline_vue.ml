@@ -689,7 +689,8 @@ let init
   let category_component = category_select_component () in
   let () = Vue.add_component "tokens" token_component in
   let () = Vue.add_component "categorySelecter" category_component in
-  let vue = Vue.init ~data ~show:true () in
+  let vue = Vue.init ~data (*~show:true*) () in
+  let () = Ui_utils.slow_hide (Js_utils.find_component "page_content-loading") in
   Js_utils.log "Displaying timeline@.";
 
   let () =
