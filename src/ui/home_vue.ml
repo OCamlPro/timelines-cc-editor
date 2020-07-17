@@ -82,6 +82,7 @@ let init () =
   in
   Vue.add_method0 "createTimeline" createTimeline;(*
   Vue.add_method0 "shareClick" shareClick; *)
-    
 
-  let _obj = Vue.init ~data () in ()
+  let _obj = Vue.init ~data () in
+  Ui_utils.slow_hide (Js_utils.find_component "page_content-loading");
+  ()

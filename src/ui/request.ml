@@ -5,17 +5,15 @@ open Timeline_data
 module ApiServices = Api_services.ApiServices
 
 let api () =
-  let https = Ui_utils.is_https () in
   let h = {
-    hu_host = Config.api_host;
-    hu_port = if https then 443 else 80;
+    hu_host = "localhost";
+    hu_port = 13579;
     hu_path = [];
     hu_path_string = "";
     hu_arguments = [];
     hu_fragment = "" } in
-  if https then
-    Https h
-  else Http h
+  Http h
+  
 (*
   match Js_of_ocaml.Url.Current.get () with
   | Some u -> u

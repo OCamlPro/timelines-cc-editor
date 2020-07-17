@@ -21,8 +21,10 @@ let clean () =
          if 
            Date.Period.compare period (Date.Period.month 1) >= 0 && 
            not (List.mem id !timelines_to_keep) 
-         then
+         then begin
+           Format.eprintf "Removing timeline %s@." id;
            ignore @@ Database_writer_lib.Writer.remove_timeline id
+         end
          else ()
     )
     to_remove
@@ -39,12 +41,18 @@ let load_keep () = try
         !res in
       let json = Json_repr.from_yojson @@ Yojson.Safe.from_string str in
       Json_encoding.(destruct (list string) json) 
-    in timelines_to_keep := l
+    in
+    List.iter
+      (Format.eprintf "Keeping timeline %s@.")
+      l;
+    timelines_to_keep := l
   with _ -> ()
 
-let () = 
+let () =
+  Format.eprintf "Start cleaning@.";  
   while true do
     load_keep ();
     clean ();
+    Format.eprintf "Cleaning done, sleeping a day@.";
     Unix.sleep 86400
   done

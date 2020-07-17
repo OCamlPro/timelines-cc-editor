@@ -150,6 +150,23 @@ let timeline_id_from_arg a =
 let list_to_jsarray l = 
   Js.array @@ Array.of_list l
 
+let slow_hide elt =
+  let open Lwt in
+  let opacity =
+    match Js_utils.Manip.Css.opacity elt with
+    | Some s -> begin try float_of_string s with _ -> 1. end
+    | None  -> 1. in
+    let rec loop opacity =
+      if opacity <= 0. then begin
+        Js_utils.hide elt;
+        Lwt.return ()
+      end else
+        let new_opacity = opacity -. 0.1 in
+        Js_utils.Manip.SetCss.opacity elt @@ Some (string_of_float new_opacity);
+        Js_of_ocaml_lwt.Lwt_js.sleep 0.03 >>= (fun () ->
+            loop new_opacity) in
+    ignore @@ loop opacity
+
 (*
 let link ?(args=[]) path =
   match args with

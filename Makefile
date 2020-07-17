@@ -14,6 +14,7 @@ init:
 build: db-update
 	PGDATABASE=$(DATABASE) dune build
 	cp -f _build/default/src/api/api.exe api
+	cp -f _build/default/src/ui/ocptimeline_js.bc.js www/assets/js/ocptimeline-js.js
 
 db-update:
 	PGDATABASE=$(DATABASE) dune build src/db/dBUpdater.exe
