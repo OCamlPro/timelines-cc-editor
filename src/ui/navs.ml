@@ -11,18 +11,16 @@ module Make(I : Input) = struct
       (fun id ->
         Js_utils.log "Preparing %s" id;
         (id, lazy (Js_utils.find_component id), lazy (Js_utils.find_component (id ^ "-content")))
-      ) 
+      )
       I.ids
 
   let select nav_id =
-     Js_utils.log "Selecting %s" nav_id;
      List.iter
        (fun (id, elt, content) ->
-         Js_utils.log "Treating %s" id;
-         if id = nav_id then 
+         if id = nav_id then
            let () = Manip.addClass (Lazy.force elt) "active" in
            Js_utils.show (Lazy.force content)
-         else 
+         else
            let () = Manip.removeClass (Lazy.force elt) "active" in
            Js_utils.hide (Lazy.force content))
       elts
