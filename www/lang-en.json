@@ -62,7 +62,7 @@
 	["tags", "Tags"],
         ["tagsFormHelp", "Add relevant keywords separated with commas" ],
 	["to", "To"],
-	["uniqueId", "URL Identifier for this event"],
+	["uniqueId", "URL Identifier"],
 	["uniqueIdFormHelp", "Customize your event's URL (by default, the event's title is used)"]
     ]
 }
