@@ -165,7 +165,7 @@ let slow_hide elt =
         Js_utils.Manip.SetCss.opacity elt @@ Some (string_of_float new_opacity);
         Js_of_ocaml_lwt.Lwt_js.sleep 0.03 >>= (fun () ->
             loop new_opacity) in
-    ignore @@ loop opacity
+  ignore @@ loop opacity
 
 (*
 let link ?(args=[]) path =

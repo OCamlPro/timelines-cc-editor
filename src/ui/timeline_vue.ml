@@ -549,71 +549,31 @@ let setTokenAsReadOnly self token =
 let setTokenAsEdition self token =
   Controller.updateTokenFilter ~readonly:false (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
 
-let editAlias self token pretty =
-  match Js.Optdef.to_option self##.editing with
+let editAlias _self filter =
+  match Js.Optdef.to_option filter##.editing with
   | None -> (* Entering edition mode *)
-    self##.editing := Js.Optdef.return pretty
+    filter##.editing := Js.Optdef.return filter##.pretty
   | Some f -> (* Sending new pretty alias *)
     Js_utils.log "New alias treatment";
-    if f = self##.filter_id_ then () else
+    if f = filter##.filter_id_ then () else
       ignore @@
       Controller.updateTokenName
-        (Js.to_string pretty)
-        (Js.to_string self##.currentTimeline)
-        (Js.to_string token)
-        (fun () ->
-           self##.editing := Js.Optdef.empty)
+        (Js.to_string filter##.pretty)
+        (Js.to_string filter##.currentTimeline)
+        (Js.to_string filter##.filter_id)
+        (fun () -> filter##.editing := Js.Optdef.empty)
 
 let removeToken self token =
   Controller.removeToken (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
 
-let copyLink timeline_name _self readonly filter_id =
+let copyLink self readonly filter_id =
+  let timeline_name = Js.to_string self##.timelineName in 
   let readonly = if Js.to_bool readonly then "view" else "edit" in
   let filter_id = Js.to_string filter_id in
   let link = Format.asprintf "https://ez-timeline.ocamlpro.com/%s?timeline=%s-%s" readonly timeline_name filter_id in
   Js_utils.Clipboard.set_copy ();
   Js_utils.Clipboard.copy link;
   Js_utils.alert "Link copied to clipboard"
-
-(* Components *)
-
-let token_elt_component data =
-  let template = 
-    "<li>\n\
-       <input type='text' v-model='token.pretty' style='width:25em' v-show='token.isEditing'>\n\
-       <span v-show='!token.isEditing'>{{token.pretty}}</span>\n\
-       <span v-show='token.filter_id==currentTimeline'>(You)</span>\n\
-       <div style='float: right'>\n\
-         <span class='fa fa-link fa-2x' @click='copyLink(token.readonly, token.filter_id)'></span>\n\
-         <span class='fa fa-pencil fa-2x' @click='editAlias(token.filter_id, token.pretty); token.isEditing=!token.isEditing'></span>\n\
-         <span v-show='token.readonly' class='fa fa-eye fa-2x' @click='setTokenAsEdition(token.filter_id); token.readonly=!token.readonly;'></span>\n\
-         <span v-show='!token.readonly' class='fa fa-black-tie fa-2x' @click='setTokenAsReadOnly(token.filter_id); token.readonly=!token.readonly;'></span>\n\
-         <span class='fa fa-trash fa-2x' @click='removeToken(token.filter_id)'></span>\n\
-       </div>
-     </li>" in
-  let methods =
-    Mjs.L [
-      "setTokenAsEdition", Mjs.to_any (Js.wrap_meth_callback setTokenAsEdition);
-      "setTokenAsReadOnly", Mjs.to_any (Js.wrap_meth_callback setTokenAsReadOnly);
-      "removeToken", Mjs.to_any (Js.wrap_meth_callback removeToken);
-      "editAlias", Mjs.to_any (Js.wrap_meth_callback editAlias);
-      "copyLink", Mjs.to_any (Js.wrap_meth_callback (copyLink (Js.to_string data##.timelineName)))
-    ] in
-  let props = Vue_component.PrsArray ["token"] in
-  Vue_component.make
-    "tokens"
-    ~template
-    ~props
-    ~data:(fun _ -> data)
-    ~methods
-
-let category_select_component () =
-  let template = 
-    "<option \n\ 
-     :value='category.catId' \n\
-     class='form-select-placeholder'>{{category.catName}}</option>" in
-  let props = Vue_component.PrsArray ["category"] in
-  Vue_component.make "categorySelecter" ~template ~props
 
 (* Timeline initializer *)
 let display_timeline self title events =
@@ -682,21 +642,21 @@ let init
   Vue.add_method0 "addReadOnlyToken" addReadOnlyToken;
   Vue.add_method1 "setTokenAsEdition" setTokenAsEdition;
   Vue.add_method1 "setTokenAsReadOnly" setTokenAsReadOnly;
+  Vue.add_method1 "removeToken" removeToken;
+  Vue.add_method1 "editAlias" editAlias;
+  Vue.add_method2 "copyLink" copyLink;
   
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
-  let token_component = token_elt_component data in
-  let category_component = category_select_component () in
-  let () = Vue.add_component "tokens" token_component in
-  let () = Vue.add_component "categorySelecter" category_component in
   let vue = Vue.init ~data (*~show:true*) () in
   let () = Ui_utils.slow_hide (Js_utils.find_component "page_content-loading") in
-  Js_utils.log "Displaying timeline@.";
-
   let () =
     match on_page with
     | No_timeline -> Js_utils.alert "No timeline has been selected"
-    | Timeline {title; events; _} ->
+    | Timeline {title; events; id; _} ->
+      Js_utils.log "Adding timeline to cookies@.";
+      let () = Timeline_cookies.add_timeline id false in
+      Js_utils.log "Displaying timeline@.";
       match events with
       | [] -> first_connexion vue
       | _ -> display_timeline vue title events 

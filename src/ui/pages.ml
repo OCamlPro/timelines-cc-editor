@@ -65,13 +65,14 @@ let timeline_page ~args =
         finish ()
         )
       )
+
 let view_page ~args =
   match Args.get_timeline args with
-  | None -> View_vue.init None []; finish ()
+  | None -> View_vue.init None None []; finish ()
   | Some tid ->
-    let _name, tid = Ui_utils.timeline_id_from_arg tid in
-    Request.timeline_data ~args tid (fun (title, events) ->
-      View_vue.init title events;
+    let _name, tid' = Ui_utils.timeline_id_from_arg tid in
+    Request.timeline_data ~args tid' (fun (title, events) ->
+      View_vue.init (Some tid) title events;
       finish ()
     )
 

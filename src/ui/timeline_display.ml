@@ -19,7 +19,6 @@ let date d =
 let media u = 
   T.make_media u.url *)
 
-
 let slide_changer slide_change =
   let slide_div =
     let cls =
@@ -33,7 +32,7 @@ let slide_changer slide_change =
   | next :: _ -> next
 
 let slide_reinit () =
-  match Manip.by_class "tl-icon-goback" with
+  match Manip.by_class "tl-icton-goback" with
   | [] -> Js_utils.log "Reinit div has not been initialialized"; assert false
   | elt :: _ -> elt
 

@@ -51,6 +51,10 @@
 	  <h3 >{{shareTitle}}</h3>
 	</header>
 	<p>{{shareDescr}}</p>
+	<urls
+            v-for="item in cookieTimelines"
+	    v-bind:item="item"
+	    v-bind:key="item.id"></urls>
       </article>
     </div>
   </div>

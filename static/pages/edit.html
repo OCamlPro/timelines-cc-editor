@@ -22,11 +22,27 @@
       <img src="/images/share.svg">
       <div class="tooltipcontent" style='width:40em'>
 	<ul>
-	  <tokens
-            v-for="filter in filters"
-	    v-bind:token="filter"
-	    v-bind:key="filter.id">
-	  </tokens>
+	  <li v-for="filter in filters">
+	    <input type='text' v-model='filter.pretty' style='width:25em' v-show='filter.isEditing'>
+	    <span v-show='!filter.isEditing'>{{filter.pretty}}</span>
+	    <span v-show='filter.filter_id==currentTimeline'>(You)</span>
+	    <div style='float: right'>
+              <span class='fa fa-link fa-2x'
+		    @click='copyLink(filter.readonly, filter.filter_id)'></span>
+              <span class='fa fa-pencil fa-2x'
+		    @click='editAlias(filter); 
+                            filter.isEditing=!filter.isEditing'></span>
+              <span v-show='filter.readonly' class='fa fa-eye fa-2x'
+		    @click='setTokenAsEdition(filter.filter_id); 
+                            filter.readonly=!filter.readonly;'></span>
+              <span v-show='!filter.readonly'
+		    class='fa fa-black-tie fa-2x'
+		    @click='setTokenAsReadOnly(filter.filter_id); 
+                            filter.readonly=!filter.readonly;'></span>
+              <span class='fa fa-trash fa-2x'
+		    @click='removeFilter(filter.filter_id)'></span>
+	    </div>
+	  </li>
 	</ul>
 	<div>
 	  <div class='button' @click="addEditionToken()">
@@ -58,40 +74,52 @@
       <!-- Todo -->
     </div>
   </div>
-  <div class="section">
-    <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
-      <!-- Todo -->
+  <div
+    class="timeline-menu-token tooltip"
+    v-show="events.length != 0">
+    <img src="/images/filter.svg">
+    <div class="tooltipcontent"> <!--
+				     <div class="panel panel-default">
+				       <div class="panel-heading">
+					 <ul class="nav nav-tabs"> 
+					   <li class="active">
+					     <a href="#categories" data-toggle="tab">Categories</a>
+					   </li>
+					   <li>
+					     <a href="#ponderation" data-toggle="tab">Ponderation</a>
+					   </li>
+					   <li>
+					     <a href="#tags" data-toggle="tab">Tags</a>
+					   </li>
+					   <li>
+					     <a href="#user-profile-skills" data-toggle="tab">Other</a>
+					   </li>
+					 </ul>
+				       </div>
+				     </div> -->
     </div>
-    <div class="timeline-menu-token tooltip" @click="showForm(true)">
-      <img src="/images/add.svg">
-      <div class="tooltipcontent">
-	{{formNameAdding}}
-      </div>
+  </div>
+  <div class="timeline-menu-token tooltip" @click="showForm(true)">
+    <img src="/images/add.svg">
+    <div class="tooltipcontent">
+      {{formNameAdding}}
     </div>
-    <div
-      class="timeline-menu-token tooltip fa fa-pencil fa-2x"
-      @click="showForm(false)"
-      v-show="events.length != 0"
-      >
-      <div class="tooltipcontent">
-	{{updateEventButtonText}}
-      </div>
+  </div>
+  <div
+    class="timeline-menu-token tooltip fa fa-pencil fa-2x"
+    @click="showForm(false)"
+    v-show="events.length != 0"
+    >
+    <div class="tooltipcontent">
+      {{updateEventButtonText}}
     </div>
-    <div
-      class="timeline-menu-token tooltip"
-      v-show="events.length != 0 && false">
-      <img src="/images/filter.svg">
-      <div class="tooltipcontent">
-	Filtrer
-      </div>
-    </div>
-    <div
-      v-show="events.length != 0"
-      class="timeline-menu-token tooltip fa fa-trash fa-2x"
-      @click='removeEvent(currentEvent)'>
-      <div class="tooltipcontent">
-	{{removeButton}}
-      </div>
+  </div>
+  <div
+    v-show="events.length != 0"
+    class="timeline-menu-token tooltip fa fa-trash fa-2x"
+    @click='removeEvent(currentEvent)'>
+    <div class="tooltipcontent">
+      {{removeButton}}
     </div>
   </div>
 </div>
@@ -183,12 +211,7 @@
 	  class="form-element-field"
 	  v-model="categoriesFormValue"
 	  >
-          <option disabled value="" class="form-select-placeholder"></option>
-	  <categorySelecter
-	    v-for="category in categories"
-	    :category="category"
-	    v-bind:key="category.id">
-	  </categorySelecter>
+	  <option v-for="item in categories" :key="item.id" :value="item.catId">{{ item.catName }}</option>
 	  <option value="__other__category__">Create a new category</option>
 	</select>
 	<input
@@ -197,7 +220,7 @@
 	  v-show="categoriesFormValue=='__other__category__'">
         <div class="form-element-bar"></div>
         <label class="form-element-label" for="category-select-form">Select the categorie of this event</label>
-      </div>
+      </div> 
       <!-- TAGS -->   
       <div class="form-element form-input">
         <input
