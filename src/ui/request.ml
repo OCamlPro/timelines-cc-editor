@@ -7,7 +7,11 @@ module ApiServices = Api_services.ApiServices
 let api () =
   let h = {
     hu_host = Config.api_host;
-    hu_port = Config.api_port;
+    hu_port = begin
+      match Config.api_root with
+      | None -> Config.api_port
+      | Some _ -> 443
+    end;
     hu_path = [];
     hu_path_string = "";
     hu_arguments = [];
