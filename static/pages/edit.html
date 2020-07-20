@@ -78,25 +78,29 @@
     class="timeline-menu-token tooltip"
     v-show="events.length != 0">
     <img src="/images/filter.svg">
-    <div class="tooltipcontent"> <!--
-				     <div class="panel panel-default">
-				       <div class="panel-heading">
-					 <ul class="nav nav-tabs"> 
-					   <li class="active">
-					     <a href="#categories" data-toggle="tab">Categories</a>
-					   </li>
-					   <li>
-					     <a href="#ponderation" data-toggle="tab">Ponderation</a>
-					   </li>
-					   <li>
-					     <a href="#tags" data-toggle="tab">Tags</a>
-					   </li>
-					   <li>
-					     <a href="#user-profile-skills" data-toggle="tab">Other</a>
-					   </li>
-					 </ul>
-				       </div>
-				     </div> -->
+    <div class="tooltipcontent"> 
+      <div class="panel-default filtering-form" style='width:30em'>
+	<div class="navbar">
+	  <ul class="inline"> 
+	    <li id="filter-categories" class="active" >
+	      <div>Categories</div>
+	    </li>
+	    <li id="filter-ponderation">
+	      <div>Ponderation</div>
+	    </li>
+	    <li id="filter-tags">
+	      <div>Tags</div>
+	    </li>
+	    <li id="filter-other">
+	      <div>Other</div>
+	    </li>
+	  </ul>
+	</div>
+	<div id="filter-categories-content">Filter by category</div>
+	<div id="filter-ponderation-content" style="display:none">Filter by ponderation</div>
+	<div id="filter-tags-content" style="display:none">Filter by tags</div>
+	<div id="filter-other-content" style="display:none">Other filters</div>
+      </div>
     </div>
   </div>
   <div class="timeline-menu-token tooltip" @click="showForm(true)">

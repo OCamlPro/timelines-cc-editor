@@ -208,6 +208,16 @@ end
 
 module Vue = Vue_js.Make (PageContent)
 
+module FilterNavs = Navs.Make (
+  struct
+    let ids = [
+      "filter-categories";
+      "filter-ponderation";
+      "filter-tags";
+      "filter-other"
+   ]
+  end)
+
 let page_vue
     (timeline_id : string)
     (timeline_name : string)
@@ -649,6 +659,7 @@ let init
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
   let vue = Vue.init ~data (*~show:true*) () in
+  let () = FilterNavs.init () in
   let () = Ui_utils.slow_hide (Js_utils.find_component "page_content-loading") in
   let () =
     match on_page with

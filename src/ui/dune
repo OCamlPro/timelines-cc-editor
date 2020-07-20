@@ -1,6 +1,6 @@
 (library
  (name ui_common)
- (modules ui_utils request lang text args)
+ (modules ui_utils request lang text args navs)
  (preprocess
   (pps js_of_ocaml-ppx))
  (libraries js_of_ocaml-tyxml xhr_lwt data_encoding api_data ezjs-utils.xhr ezjs-utils.loc ezjs-utils.lang config api_services))

@@ -3368,49 +3368,23 @@ select.form-element-field {
   margin: 0;
 }
 
-.panel-heading, .panel-body {
-   border-radius: 0px;
+.inline {
+  text-align: center
 }
-.panel-default >.panel-heading {
-   background-color: #73C92D;
-   text-transform: uppercase;
-   font-weight: 500;
+
+.inline li {
+    display: inline-block;
+    padding: 0em 0.5em 0em 0.5em
 }
-.nav-tabs {
-   border-bottom: none;
+
+.navbar li {
+    cursor: pointer;
+    border-style: none solid solid solid;
+    border-color: white;
+    border-width: 2px;
+    border-radius: 0px 0px 10px 10px;
 }
-.nav-tabs>li.active>a {
-      &:after {
-       position: absolute;
-       content: " ";
-       background: #73C92D;
-       width: 12px;
-       height: 12px;
-       border-radius: 3px 0 0 0;
-       -webkit-transform: rotate(45deg);
-       -ms-transform: rotate(45deg);
-       transform: rotate(45deg);
-       box-shadow: none;
-       bottom: -60%;
-       right: 50%;
-    }
-}
-.nav-tabs>li>a {
-   color: white;
-   border: 1px solid transparent;
-   border-right: 2px solid white;
-   border-radius: 0px;
-   padding: 3px 20px;
-   &:hover {
-      background-color: transparent;
-      border: 1px solid transparent;
-      border-right: 2px solid white;
-   }
-}
-.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus {
-   color: black;
-   cursor: pointer;
-   background-color: transparent;
-   border: 1px solid transparent;
-   border-right: 2px solid white;
+
+.navbar li.active{
+    border-style: none solid none solid;
 }
