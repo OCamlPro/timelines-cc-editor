@@ -241,10 +241,11 @@
 	  v-model="categoriesFormValue"
 	  >
 	  <option v-for="item in categories" :key="item.id" :value="item.catId">{{ item.catName }}</option>
-	  <option value="__other__category__">Create a new category</option>
+	  <option value="__other__category__">...️</option>
 	</select>
 	<input
 	  type="text"
+	  placeholder="Name this new category"
 	  v-model="otherCategoryFormValue"
 	  v-show="categoriesFormValue=='__other__category__'">
         <div class="form-element-bar"></div>
