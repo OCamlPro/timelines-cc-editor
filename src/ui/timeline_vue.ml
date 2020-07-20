@@ -160,12 +160,14 @@ class type data = object
 
   (* Values *)
 
+  (* Filters *)
   method minPonderationFilter : int Js.prop
   method maxPonderationFilter : int Js.prop
+  method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
+  method onlyConfidential : bool Js.t Js.prop
+
 
   method timelineName : Js.js_string Js.t Js.prop
-
-  method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
 
   
 
@@ -207,6 +209,15 @@ module PageContent = struct
 end
 
 module Vue = Vue_js.Make (PageContent)
+
+module FilterNavs = Navs.Make (
+  struct
+    let ids = [
+      "filter-categories";
+      "filter-ponderation";
+      "filter-other"
+   ]
+  end)
 
 let page_vue
     (timeline_id : string)
@@ -286,9 +297,11 @@ let page_vue
 
     val mutable maxPonderationFilter =
       match Args.get_max args with
-      | None -> 100
+      | None -> 10000
       | Some i -> i
     val mutable categories     = categories
+
+    val mutable onlyConfidential = Js._false
 
     val mutable timelineName = jss timeline_name
 
@@ -364,16 +377,23 @@ let updateVueFromEvent self e =
   let () = (* group *)
     match e.group with
     | None -> self##.categoriesFormValue := jss ""
-    | Some g ->
-      self##.categoriesFormValue := jss g in
+    | Some g -> Js_utils.log "Current category is %s" g; self##.categoriesFormValue := jss g in
 
-  let () = (* text *)
+  let tags_str = 
+    Format.pp_print_list
+      ~pp_sep:(fun fmt _ -> Format.fprintf fmt ",") 
+      (fun fmt -> Format.fprintf fmt "%s") 
+      Format.str_formatter
+       e.tags;    
+    Format.flush_str_formatter () in
+
+  let () = (* other fields *)
     self##.headlineFormValue := jss e.text.headline;
     self##.textFormValue := jss e.text.text;
     self##.ponderationFormValue := e.ponderation;
     self##.uniqueIdFormValue := jss e.unique_id;
-    self##.confidentialFormValue := Js.bool e.confidential
-  in
+    self##.confidentialFormValue := Js.bool e.confidential;
+    self##.tagsFormValue := jss tags_str in
   ()
 
 let showMenu (_self : 'a) : unit = 
@@ -650,6 +670,7 @@ let init
   Js_utils.log "Initializing vue@.";
   let vue = Vue.init ~data (*~show:true*) () in
   let () = Ui_utils.slow_hide (Js_utils.find_component "page_content-loading") in
+  let () = FilterNavs.init () in
   let () =
     match on_page with
     | No_timeline -> Js_utils.alert "No timeline has been selected"
