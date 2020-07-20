@@ -2503,7 +2503,7 @@ html {
     --panel-bg-color: transparent;
     --main-bg-color: white;
     --main-panel-title-font-family: Lato, sans-serif;
-    --page-size-text-color: #337ab7;
+    --page-size-text-color: #FFF;
     --main-text-color: white;
     --active-bg-color: #fafafa;
     --disable-text-color: #aaaaaa;
@@ -2685,7 +2685,7 @@ tr:hover.clickable {
 }
 
 .last-date{
-    color: #d4e0ef
+    color: #FFF
 }
 
 #page_content{
@@ -2714,7 +2714,7 @@ tr:hover.clickable {
 /* Tooltip text */
 .tooltip .tooltipcontent {
   visibility: hidden;
-  background-color: #75a7e3;
+  background-color: #1E6E87;
   color: white;
   padding: 10px;
   border-radius: 6px;
@@ -2794,7 +2794,7 @@ tr:hover.clickable {
 }
 
 #timeline-header{
-    background: #75a7e3;
+    background: #6EB2C8;
 }
 
 .url{
@@ -2860,7 +2860,7 @@ form-card {
 .form-btn::before,
 .form-btn-cancel::before,
 .form-btn-error::before {
-  background: #337ab7;
+  background: #FFF;
   z-index: -2;
 }
 
@@ -2972,7 +2972,7 @@ form-card {
 
 .form-checkbox-label:hover i,
 .form-radio-label:hover i {
-  color: #337ab7;
+  color: #FFF;
 }
 
 .form-checkbox-label span,
@@ -3033,7 +3033,7 @@ form-card {
   position: absolute;
   height: 0;
   width: 0.2rem;
-  background-color: #337ab7;
+  background-color: #FFF;
   display: block;
   transform-origin: left top;
   border-radius: 0.25rem;
@@ -3057,7 +3057,7 @@ form-card {
 }
 
 .form-checkbox-field:checked ~ .form-checkbox-button {
-  color: #337ab7;
+  color: #FFF;
 }
 
 .form-checkbox-field:checked ~ .form-checkbox-button::after,
@@ -3104,8 +3104,8 @@ form-card {
 
 .form-radio-button::after {
   transform: scale(0);
-  background-color: #337ab7;
-  border-color: #337ab7;
+  background-color: #FFF;
+  border-color: #FFF;
 }
 
 .form-radio-field:checked ~ .form-radio-button::after {
@@ -3113,7 +3113,7 @@ form-card {
 }
 
 .form-radio-field:checked ~ .form-radio-button::before {
-  color: #337ab7;
+  color: #FFF
 }
 
 .form-has-error .form-checkbox-button,
@@ -3213,7 +3213,7 @@ form-card {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #337ab7;
+  background: #FFF;
   height: 2px;
   display: block;
   transform: rotateY(90deg);
@@ -3275,7 +3275,7 @@ form-card {
 }
 
 .form-element-field:focus ~ .form-element-label {
-  color: #337ab7;
+  color: #FFF;
 }
 
 .form-element-field.-hasvalue,
