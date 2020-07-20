@@ -2750,11 +2750,10 @@ button:disabled,
 
 #formPanel{
     background: #5385c1;
-    color: #90a0ab;
+    color: #000;
     height: 100%;
     width: 50em;
     z-index: 10004;
-    padding:2em
 }
 
 
