@@ -216,6 +216,7 @@ let timeline_data :
         group_param;
         ponderation_param "min_level";
         ponderation_param "max_level";
+        confid_param;
         tags_param;
       ])
     Path.(api_root // "timeline_data" /: arg_token ())
@@ -355,7 +356,7 @@ let create_token : (string, unit, string) post_service1 =
     ~params:(auth_params @ [
         date_param "before";
         date_param "after";
-        group_list_param;
+        group_param;
         ponderation_param "min_level";
         ponderation_param "max_level";
         tags_param;

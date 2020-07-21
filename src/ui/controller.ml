@@ -187,9 +187,14 @@ let import_timeline tid is_public elt =
     )
     else false
 
-let addToken ~readonly ?pretty tid with_tokens =
-  let args = ["readonly", string_of_bool readonly] in
-  let args = (* TODO : put complete filter in arguments *)
+let addToken
+  ~readonly
+  ?pretty
+  tid
+  with_tokens =
+  let args =
+    ("readonly", string_of_bool readonly) :: Args.get_args () in
+  let args =
     match pretty with
     | None -> args
     | Some p -> ("pretty", p) :: args in

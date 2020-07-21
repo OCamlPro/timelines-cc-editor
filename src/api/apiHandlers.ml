@@ -361,8 +361,7 @@ let decode_token_params req =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
   let before =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
-  let groups =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "group_list" req.req_params in
+  let groups = StringMap.find_opt "group" req.req_params in
   let min_ponderation =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
   let max_ponderation =
@@ -382,7 +381,7 @@ let decode_token_params req =
   let max_level = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation in
   let tags =
     Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
-  let categories = Utils.opt (String.split_on_char ',') groups in
+  let categories = groups in
   let confidential =
     match confidential with
     | Some "false" -> false

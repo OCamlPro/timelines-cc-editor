@@ -39,7 +39,7 @@
 		    @click='setTokenAsReadOnly(filter.filter_id);
                             filter.readonly=!filter.readonly;'></span>
               <span class='fa fa-trash fa-2x'
-		    @click='removeFilter(filter.filter_id)'></span>
+		    @click='removeToken(filter.filter_id)'></span>
 	    </div>
 	  </li>
 	</ul>
@@ -94,7 +94,7 @@
 	</div>
 	<div id="filter-categories-content">
 	  <div v-for="category in categories">
-	    <input type="checkbox" v-model="category.checked" @change="filter()">
+	    <input type="checkbox" v-model="category.checked"> 
               {{category.catName}}
 	  </div>
 	</div>
@@ -121,8 +121,8 @@
 		}"> to <input type="number" v-model="maxPonderationFilter">
 	</div>
 	<div id="filter-other-content" style="display:none">
-	  <input type="checkbox" v-model="onlyConfidential" @change="filter()">
-	  Only non confidential events
+	  <input type="checkbox" v-model="alsoConfidential">
+	  Display confidential events
 	</div>
 	<div class="button" @click="filter()">{{filterButtonText}}</div>
       </div>

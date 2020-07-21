@@ -164,7 +164,7 @@ class type data = object
   method minPonderationFilter : int Js.prop
   method maxPonderationFilter : int Js.prop
   method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
-  method onlyConfidential : bool Js.t Js.prop
+  method alsoConfidential : bool Js.t Js.prop
 
 
   method timelineName : Js.js_string Js.t Js.prop
@@ -299,9 +299,11 @@ let page_vue
       match Args.get_max args with
       | None -> 10000
       | Some i -> i
+
     val mutable categories     = categories
 
-    val mutable onlyConfidential = Js._false
+    val mutable alsoConfidential =
+      Js.bool (Args.get_confidential args)
 
     val mutable timelineName = jss timeline_name
 
@@ -552,16 +554,23 @@ let removeFromForm title events self =
     let _l : _ Lwt.t = Controller.removeEvent ~id ~timeline_id in
     ()
 
-let export title events _ = Controller.export_timeline title events  
+let export title events _ = Controller.export_timeline title events
 
 let import self =
   let timeline_id = Js.to_string self##.currentTimeline in
   Controller.import_timeline timeline_id true (Js_utils.find_component "import-form")
 
 let addEditionToken self =
-  Controller.addToken ~readonly:false (Js.to_string self##.currentTimeline) (update_filters self)
+  Controller.addToken
+    ~readonly:false
+    (Js.to_string self##.currentTimeline)
+    (update_filters self)
+
 let addReadOnlyToken self =
-  Controller.addToken ~readonly:true (Js.to_string self##.currentTimeline) (update_filters self)
+  Controller.addToken
+    ~readonly:true
+    (Js.to_string self##.currentTimeline)
+    (update_filters self)
 
 let setTokenAsReadOnly self token =
   Controller.updateTokenFilter ~readonly:true (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
@@ -584,7 +593,10 @@ let editAlias _self filter =
         (fun () -> filter##.editing := Js.Optdef.empty)
 
 let removeToken self token =
-  Controller.removeToken (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
+  Controller.removeToken
+    (Js.to_string self##.currentTimeline)
+    (Js.to_string token)
+    (update_filters self)
 
 let copyLink self readonly filter_id =
   let timeline_name = Js.to_string self##.timelineName in 
@@ -612,7 +624,7 @@ let filter self =
       match Args.get_timeline (Args.get_args ()) with
       | None -> failwith "Error: no timeline!"
       | Some t ->
-        (snd (Ui_utils.timeline_id_from_arg t)), Args.set_timeline t [] in  
+        (snd (Ui_utils.timeline_id_from_arg t)), Args.set_timeline t [] in
     let args = (* Filtering categories *)
       let categories_js = Js.to_array self##.categories in
       Array.fold_left
@@ -629,12 +641,12 @@ let filter self =
       Args.(set_min min_ponderation @@ set_max max_ponderation args)
     in
     let args = (* Confidential *)
-      let confidential = Js.to_bool self##.onlyConfidential in
+      let confidential = Js.to_bool self##.alsoConfidential in
       Args.set_confidential confidential args in
     Ui_utils.(push (url "" args));
     ignore @@
     Request.timeline_data ~args tid
-      (fun (title, events) -> display_timeline self title events; Lwt.return ()) 
+      (fun (title, events) -> display_timeline self title events; Lwt.return ())
   with Failure s -> Js_utils.alert s
 
 let first_connexion self =

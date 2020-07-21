@@ -77,11 +77,24 @@ let get_min args =
   | None -> None
   | Some i -> try Some (int_of_string i) with _ -> None
 
-let set_min p (args : t) = set_unique "min_level" (string_of_int p) args
+let set_min p (args : t) =
+  if p = 0 then args else
+    set_unique "min_level" (string_of_int p) args
 
 let get_max args = 
   match List.assoc_opt "max_level" args with
   | None -> None
   | Some i -> try Some (int_of_string i) with _ -> None
 
-let set_max p (args : t) = set_unique "max_level" (string_of_int p) args
+let set_max p (args : t) =
+  if p >= 10000 then args else
+  set_unique "max_level" (string_of_int p) args
+
+(* Confidential *)
+let get_confidential args =
+  match List.assoc_opt "confidential" args with
+  | Some "false" | Some "f" -> false
+  | _ -> true
+
+let set_confidential b (args : t) =
+  set_unique "confidential" (string_of_bool b) args
