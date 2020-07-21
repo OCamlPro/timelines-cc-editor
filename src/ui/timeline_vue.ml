@@ -608,10 +608,11 @@ let display_timeline self title events =
 
 let filter self =
   try
-    let args =
+    let tid, args =
       match Args.get_timeline (Args.get_args ()) with
       | None -> failwith "Error: no timeline!"
-      | Some t -> Args.set_timeline t [] in  
+      | Some t ->
+        (snd (Ui_utils.timeline_id_from_arg t)), Args.set_timeline t [] in  
     let args = (* Filtering categories *)
       let categories_js = Js.to_array self##.categories in
       Array.fold_left
@@ -627,8 +628,13 @@ let filter self =
       let max_ponderation = self##.maxPonderationFilter in
       Args.(set_min min_ponderation @@ set_max max_ponderation args)
     in
+    let args = (* Confidential *)
+      let confidential = Js.to_bool self##.onlyConfidential in
+      Args.set_confidential confidential args in
     Ui_utils.(push (url "" args));
-    ignore @@ !Dispatcher.dispatch ~path:"edit" ~args
+    ignore @@
+    Request.timeline_data ~args tid
+      (fun (title, events) -> display_timeline self title events; Lwt.return ()) 
   with Failure s -> Js_utils.alert s
 
 let first_connexion self =
