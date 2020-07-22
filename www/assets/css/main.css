@@ -1620,10 +1620,8 @@ body, input, select, textarea {
 
     body, input, select, textarea {
 	font-size: 9pt;
-	color: #FFF;
 	background: #FFFFFF00
     }
-
 }
 
 @media screen and (max-width: 480px) {
@@ -2351,8 +2349,7 @@ button,
     -webkit-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     -ms-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    background-color:  #75a7e3;
-    border-radius: 0;
+    border-radius: 10pts;
     border: 0;
     color: #ffffff !important;
     cursor: pointer;
@@ -2371,7 +2368,7 @@ input[type="reset"]:hover,
 input[type="button"]:hover,
 button:hover,
 .button:hover {
-    background-color: #676767;
+    font-weight: 800;
 }
 
 input[type="submit"]:active,
@@ -2763,7 +2760,6 @@ button:disabled,
 
 #banner {
     padding: 12em 0 10em 0;
-    background-image: url('../../images/banner.jpg');
     background-size: cover;
     background-position: top;
     background-attachment: fixed;
@@ -2810,14 +2806,19 @@ button:disabled,
 
 }
 
-@media screen and (max-width: 736px) {
+@media screen and (max-width: 1736px) {
 
     #banner {
 	padding: 8em 1.5em 6em 1.5em;
-    }
+	background-image: url("../../images/banniere-timeline.png");
+	background-color: #116A85;
+	background-position: center;
+	text-align: left;
+	}
 
     #banner h1 {
 	font-size: 2.5em;
+	width: 70%;
     }
 
     #banner p {
