@@ -78,3 +78,4 @@ let s_read_link_text = ss_ "readLinkText"
 
 let s_add_edition_token_button = ss_ "addEditionTokenButton"
 let s_add_readonly_token_button = ss_ "addReadonlyTokenButton"
+let s_confidential_filter_form = ss_ "confidentialFilterForm"

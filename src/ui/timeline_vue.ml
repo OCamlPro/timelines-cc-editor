@@ -153,6 +153,8 @@ class type data = object
   method ponderationFormHelp   : Js.js_string Js.t Js.readonly_prop
   method confidentialFormHelp  : Js.js_string Js.t Js.readonly_prop
 
+  method confidentialFilterForm : Js.js_string Js.t Js.readonly_prop
+  
   method backButton            : Js.js_string Js.t Js.readonly_prop
   method removeButton          : Js.js_string Js.t Js.readonly_prop
   method formNameAdding        : Js.js_string Js.t Js.readonly_prop
@@ -288,6 +290,8 @@ let page_vue
     val ponderationFormHelp    = tjs_ s_ponderation_help
     val confidentialFormHelp   = tjs_ s_confidential_help
 
+    val confidentialFilterForm = tjs_ s_confidential_filter_form
+ 
     val backButton            = tjs_ s_back
     val removeButton          = tjs_ s_remove_event
     val addEditionTokenButton = tjs_ s_add_edition_token_button

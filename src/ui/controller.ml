@@ -27,20 +27,20 @@ let custom_error default err =
 let error = custom_error None
 
 let create_timeline name descr =
-  let timeline_id, headline =
+  let timeline_id, headline, name =
     match name with
     | "" ->
       Random.self_init ();
       let i1 = Random.bits () |> string_of_int in
       let i2 = Random.bits () |> string_of_int in
-      i1 ^ i2, Lang.t_ Text.s_default_title
-    | _ -> name, name
+      i1 ^ i2, Lang.t_ Text.s_default_title, None
+    | _ -> name, name, Some name
   in
   let title = Utils.to_title_event headline descr in
   let error e = Lwt.return @@ Error e in 
   Request.create_timeline ~error timeline_id title true (
     function id ->
-      let id = Ui_utils.timeline_arg_from_id ~name:headline id in
+      let id = Ui_utils.timeline_arg_from_id ?name id in
       let new_page = Format.sprintf "/edit?timeline=%s" id in
       Js_utils.log "Going to %s" new_page;
       finish @@ Ok (Ui_utils.goto_page new_page)

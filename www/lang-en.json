@@ -20,6 +20,7 @@
         ["categoryFormHelp", "Select a category for your event, or create one" ],
         ["categories", "Categories" ],
         ["confidential", "Confidential" ],
+        ["confidentialFilterForm", "Display confidential events" ],
 	["confidentialFormHelp", "Check this if this event should never be displayed in view mode." ],
         ["confirmRemoveEvent", "Do you really want to remove this event? Changing history cannot be undone. If you only want to change its _visibility_, other means like masking will be possible: specific category display or privacy level, " ],
 	["createTimelineButton", "Create your timeline"],
