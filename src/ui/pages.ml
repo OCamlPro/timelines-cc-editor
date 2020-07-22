@@ -1,7 +1,5 @@
 open Ui_common
 
-open Timeline_data
-
 type dispatcher = args:(string * string) list -> (unit, string) result Lwt.t
 
 let pages : (string, dispatcher) Hashtbl.t = Hashtbl.create 3
@@ -38,32 +36,26 @@ let timeline_page ~args =
     finish ()
   | Some tid ->
     Js_utils.log "Id: %s" tid;
-    let name, tid = Ui_utils.timeline_id_from_arg tid in
-    Js_utils.log "Name = %s" name;
+    let _name, tid = Ui_utils.timeline_id_from_arg tid in
     Request.get_tokens tid (fun tokens ->
       Request.timeline_data ~args tid (fun (title, events) ->
-        let on_page =
-          match title, events with
-          | None, [] -> Timeline_vue.No_timeline
-          | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
-        let categories =
-          List.fold_left
-            (fun acc (_, {Data_types.group; _}) ->
-               match group with
-               | None -> acc
-               | Some g -> Utils.StringSet.add g acc
-            )
-            Utils.StringSet.empty
-            events in
-        let categories =
-          let in_args = Args.get_categories args in            
-          Utils.StringSet.fold
-            (fun s acc -> (s, List.mem s in_args) :: acc)
-            categories
-            [] in
-        Timeline_vue.init ~args ~categories ~on_page ~tokens;
-        finish ()
-        )
+        Request.timeline_name tid (fun name ->
+          Request.categories tid (fun categories ->
+            let on_page =
+              match title, events with
+              | None, [] -> Timeline_vue.No_timeline
+              | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
+            let categories =
+              let in_args = Args.get_categories args in            
+              List.fold_left
+                (fun acc s -> (s, List.mem s in_args) :: acc)
+                []
+                categories in
+            Timeline_vue.init ~args ~categories ~on_page ~tokens;
+            finish ()
+                  )
+              )
+          )
       )
 
 let view_page ~args =

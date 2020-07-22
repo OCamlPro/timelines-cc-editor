@@ -426,6 +426,10 @@ let remove_token (_req, token) _ tid =
 let get_tokens (_req, tid) _ () =
   Reader.get_tokens tid >>= EzAPIServerUtils.return
 
+let timeline_name (_req, tid) _ () =
+  Lwt_io.printl "CALL timeline_name" >>= fun () ->
+  Reader.timeline_name tid >>= EzAPIServerUtils.return
+
 let is_auth req _ () =
   Lwt_io.printl "CALL is_auth" >>= fun () ->
   is_auth req ok

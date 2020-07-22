@@ -394,9 +394,16 @@ let get_tokens : (string, unit, DbData.filter list) post_service1 =
     ~output:(list Api_data.ApiData.filter_encoding)
     Path.(api_root // "get_tokens" /: arg_token ())
 
+let timeline_name : (string, string) service1 =
+  service
+    ~error_outputs
+    ~name:"timeline_name"
+    ~output:string
+    Path.(api_root // "timeline_name" /: arg_token ())
+
 let version : string service0 =
   service
     ~error_outputs
     ~name:"version"
-    ~output:Json_encoding.string
+    ~output:string
     Path.(api_root // "version")

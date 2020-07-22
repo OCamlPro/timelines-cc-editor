@@ -25,6 +25,7 @@
 	    <input type='text' v-model='filter.pretty' style='width:25em' v-show='filter.isEditing'>
 	    <span v-show='!filter.isEditing'>{{filter.pretty}}</span>
 	    <span v-show='filter.filter_id==currentTimeline'>(You)</span>
+	    
 	    <div style='float: right'>
               <span class='fa fa-link fa-2x'
 		    @click='copyLink(filter.readonly, filter.filter_id)'></span>
@@ -32,12 +33,10 @@
 		    @click='editAlias(filter);
                             filter.isEditing=!filter.isEditing'></span>
               <span v-show='filter.readonly' class='fa fa-eye fa-2x'
-		    @click='setTokenAsEdition(filter.filter_id);
-                            filter.readonly=!filter.readonly;'></span>
+		    @click='setTokenAsEdition(filter.filter_id);'></span>
               <span v-show='!filter.readonly'
 		    class='fa fa-black-tie fa-2x'
-		    @click='setTokenAsReadOnly(filter.filter_id);
-                            filter.readonly=!filter.readonly;'></span>
+		    @click='setTokenAsReadOnly(filter.filter_id);'></span>
               <span class='fa fa-trash fa-2x'
 		    @click='removeToken(filter.filter_id)'></span>
 	    </div>

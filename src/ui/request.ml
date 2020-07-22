@@ -242,6 +242,7 @@ let has_admin_rights timeline cont =
 
 let categories timeline cont =
   post
+    ~error:(fun _e -> return (Error "Failed to get categories"))
     ~args:(args_from_session [])
     ApiServices.categories [timeline]
     ()
@@ -259,7 +260,7 @@ let logout ~error cont =
       cont
 
 let create_timeline timeline_id title is_public cont =
-  post 
+  post
     ~args:(args_from_session [])
     ApiServices.create_timeline [timeline_id]
     (title, is_public)
@@ -343,4 +344,11 @@ let import_timeline
     ~args
     ApiServices.import_timeline [timeline]
     (title, events, is_public)
+    cont
+
+let timeline_name (tid : string) cont =
+  get
+    ~error:(fun _ -> cont "Timeline")
+    ~args:[]
+    ApiServices.timeline_name [tid]
     cont

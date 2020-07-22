@@ -341,7 +341,6 @@ let page_vue
     val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens 
   end
 
-
 type on_page =
   | No_timeline
   | Timeline of {
@@ -573,12 +572,12 @@ let addReadOnlyToken self =
     (update_filters self)
 
 let setTokenAsReadOnly self token =
-  Controller.updateTokenFilter ~readonly:true (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
+  Controller.updateTokenFilter ~readonly:true (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
 
 let setTokenAsEdition self token =
-  Controller.updateTokenFilter ~readonly:false (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
+  Controller.updateTokenFilter ~readonly:false (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
 
-let editAlias _self filter =
+let editAlias self filter =
   match Js.Optdef.to_option filter##.editing with
   | None -> (* Entering edition mode *)
     filter##.editing := Js.Optdef.return filter##.pretty
@@ -590,7 +589,9 @@ let editAlias _self filter =
         (Js.to_string filter##.pretty)
         (Js.to_string filter##.currentTimeline)
         (Js.to_string filter##.filter_id)
-        (fun () -> filter##.editing := Js.Optdef.empty)
+        (fun l ->
+           filter##.editing := Js.Optdef.empty;
+           update_filters self l)
 
 let removeToken self token =
   Controller.removeToken

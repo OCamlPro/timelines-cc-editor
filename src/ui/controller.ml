@@ -207,13 +207,27 @@ let addToken
       )
     )
 
-let updateTokenFilter ~readonly tid token update_vue =
+let updateTokenFilter ~readonly tid token with_tokens =
   let args = ["readonly", string_of_bool readonly] in
-  Request.update_token ~error args tid token (fun () -> let () = update_vue () in Lwt.return (Ok ())) 
+  Request.update_token ~error args tid token (
+    fun () ->
+      Request.get_tokens tid (
+        fun tokens -> 
+          with_tokens tokens; 
+          Lwt.return (Ok ())
+      )
+    )
 
-let updateTokenName pretty tid token update_vue =
+let updateTokenName pretty tid token with_tokens =
   let args = ["pretty", pretty] in
-  Request.update_token ~error args tid token (fun () -> let () = update_vue () in Lwt.return (Ok ())) 
+  Request.update_token ~error args tid token (
+    fun () ->
+      Request.get_tokens tid (
+        fun tokens -> 
+          with_tokens tokens; 
+          Lwt.return (Ok ())
+      )
+    )
 
 let removeToken tid token with_tokens =
   Request.remove_token ~error tid token 

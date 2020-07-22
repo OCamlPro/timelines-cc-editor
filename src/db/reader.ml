@@ -254,6 +254,7 @@ module Reader_generic (M : MONAD) = struct
         | [] -> return (Error "Timeline does not exist")
         | Some hd :: _ -> return (Ok hd)
         | None :: _ -> return (Ok "")) 
+
   let used_unique_id id =
     with_dbh >>> fun dbh ->
     [%pgsql dbh "SELECT unique_id_ FROM events_ WHERE unique_id_ = $id"] >>= (function
@@ -379,7 +380,6 @@ module Reader_generic (M : MONAD) = struct
           in return (Ok (!title, events))
         with TwoTitles -> return (Error "Two titles in database")
       ))
-
 
   let timeline_exists (tid : string) =
     with_dbh >>> fun dbh ->
