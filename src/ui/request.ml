@@ -206,6 +206,13 @@ let remove_event ~error ~id ~timeline_id cont =
     ApiServices.remove_event [timeline_id]
     cont
 
+let remove_timeline ~id cont =
+  post
+    ~error:(fun e -> return (Error e))
+    ~args:(args_from_session [])
+    ApiServices.remove_timeline [id]
+    cont
+
 let register_user email password cont =
   Js_utils.log "Request register_user@.";
   let hash = Ui_utils.hash password (* todo: change this *) in

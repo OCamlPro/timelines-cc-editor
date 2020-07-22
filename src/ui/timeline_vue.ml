@@ -162,6 +162,7 @@ class type data = object
 
   method addEventButtonText    : Js.js_string Js.t Js.readonly_prop
   method updateEventButtonText : Js.js_string Js.t Js.readonly_prop
+  method removeTimelineText : Js.js_string Js.t Js.readonly_prop
 
   method editionLinkText       : Js.js_string Js.t Js.readonly_prop
   method readLinkText          : Js.js_string Js.t Js.readonly_prop
@@ -301,6 +302,7 @@ let page_vue
     val formNameEditing       = tjs_ s_edit_event
     val addEventButtonText    = tjs_ s_add_new_event
     val updateEventButtonText = tjs_ s_edit_event
+    val removeTimelineText = tjs_ s_remove_timeline_text
     
     val editionLinkText = tjs_ s_edition_link_text
     val readLinkText    = tjs_ s_read_link_text
@@ -686,7 +688,12 @@ let displayTokenFilter _self filter =
     Js.Optdef.test filter##.tags ||
     not (Js.to_bool filter##.confidential_rights_) in
   res
-  
+
+let removeTimeline self =
+  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_timeline) then ignore @@
+    Controller.removeTimeline
+      (Js.to_string self##.currentTimeline)
+  else ()
 
 let first_connexion self =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
@@ -723,6 +730,7 @@ let init
   Vue.add_method1 "editAlias" editAlias;
   Vue.add_method2 "copyLink" copyLink;
   Vue.add_method1 "displayTokenFilter" displayTokenFilter;
+  Vue.add_method0 "removeTimeline" removeTimeline;
   
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";

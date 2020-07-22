@@ -237,6 +237,13 @@ let removeToken tid token with_tokens =
       )
     )
 
+let removeTimeline tid =
+  Request.remove_timeline tid
+    (fun _ ->
+       Ui_utils.goto_page "https://ez-timeline.ocamlpro.com/";
+       finish (Ok ())
+    )
+
 (*open Data_types
 
 let finish () = Lwt.return (Ok ())

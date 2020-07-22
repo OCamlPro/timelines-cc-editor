@@ -71,6 +71,7 @@ let s_alert_title_deletion = ss_ "alertTitleDeletion"
 let s_alert_timeline_creation = ss_ "alertTimelineCreation"
 
 let s_confirm_remove_event = ss_ "confirmRemoveEvent"
+let s_confirm_remove_timeline = ss_ "confirmRemoveTimeline"
 let s_new_category = ss_ "newCategory"
 
 let s_edition_link_text = ss_ "editionLinkText"
@@ -79,3 +80,5 @@ let s_read_link_text = ss_ "readLinkText"
 let s_add_edition_token_button = ss_ "addEditionTokenButton"
 let s_add_readonly_token_button = ss_ "addReadonlyTokenButton"
 let s_confidential_filter_form = ss_ "confidentialFilterForm"
+
+let s_remove_timeline_text = ss_ "removeTimelineText"

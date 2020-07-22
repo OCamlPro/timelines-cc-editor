@@ -87,8 +87,14 @@
 	</div>
       </div>
     </div>
-    <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
-      <!-- Todo -->
+    <div
+      class="timeline-menu-token tooltip fa fa-trash fa-2x"
+      @click='removeTimeline()'
+      style='color:red'
+      >
+      <div class="tooltipcontent">
+	{{removeTimelineText}}
+      </div>
     </div>
   </div>
   <div

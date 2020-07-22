@@ -45,3 +45,21 @@ let add_timeline token readonly =
       ""
       new_tls in
   Cookie.set "timelines" str
+
+let remove_timeline token =
+  let tls = get_timelines () in
+  let rec remove = function
+    | [] -> []
+    | (tk, ro) :: tl ->
+      if tk = token then
+        tl
+      else
+        (tk, ro) :: remove tl in
+  let new_tls = remove tls in
+  let str =
+    List.fold_left
+      (fun acc (tk, ro) -> acc ^ tk ^ "," ^ string_of_bool ro ^ ";")
+      ""
+      new_tls in
+  Cookie.set "timelines" str
+  
