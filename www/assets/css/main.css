@@ -2754,14 +2754,16 @@ button:disabled,
     height: 100%;
     z-index: 10004;
 }
-¢
 
 /* Banner */
 
 #banner {
-    padding: 12em 0 10em 0;
-    background-size: cover;
+    padding: 8em 1.5em 6em 1.5em;
+    background-image: url("../../images/banniere-timeline.png");
+    background-color: #116A85;
     background-position: top;
+    background-size: cover;
+    text-align: left;
     background-attachment: fixed;
     background-repeat: no-repeat;
     text-align: center;
