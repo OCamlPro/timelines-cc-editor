@@ -130,9 +130,9 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
 let timeline_data (req, tid) _ () =
   Lwt_io.printl "CALL timeline_data" >>= (fun () ->
   let start_date =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.req_params in
   let end_date =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
   let groups = StringMap.find_opt "group" req.req_params in
   let min_ponderation =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
@@ -358,9 +358,9 @@ let view (req, tid) _ () =
 
 let decode_token_params req =
   let after =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.req_params in
   let before =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
   let groups = StringMap.find_opt "group" req.req_params in
   let min_ponderation =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in

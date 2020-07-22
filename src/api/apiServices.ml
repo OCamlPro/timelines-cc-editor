@@ -145,6 +145,16 @@ let auth_params = {
   param_examples = []
 } :: []
 
+let filter_params = [ 
+  date_param "after";
+  date_param "before";
+  group_param;
+  ponderation_param "min_level";
+  ponderation_param "max_level";
+  confid_param;
+  tags_param
+]
+
 let param_number =
   Param.int ~name:"page_size" ~descr:"Number of replies" "n"
 let param_page =
@@ -210,15 +220,7 @@ let timeline_data :
     ~error_outputs
     ~name:"timeline_data"
     ~output:timeline_data_api_result_encoding
-    ~params:(auth_params @ [
-        date_param "start_date";
-        date_param "end_date";
-        group_param;
-        ponderation_param "min_level";
-        ponderation_param "max_level";
-        confid_param;
-        tags_param;
-      ])
+    ~params:(auth_params @ filter_params)
     Path.(api_root // "timeline_data" /: arg_token ())
 
 let remove_event : (string, unit) service1 =
@@ -353,14 +355,7 @@ let remove_timeline : (string, unit, unit) post_service1 =
 let create_token : (string, unit, string) post_service1 =
   post_service
     ~error_outputs
-    ~params:(auth_params @ [
-        date_param "before";
-        date_param "after";
-        group_param;
-        ponderation_param "min_level";
-        ponderation_param "max_level";
-        tags_param;
-        confid_param;
+    ~params:(auth_params @ filter_params @ [
         readonly_param;
         pretty_name_param
       ])
@@ -372,14 +367,7 @@ let create_token : (string, unit, string) post_service1 =
 let update_token : (string, string, unit) post_service1 =
   post_service
     ~error_outputs
-    ~params:(auth_params @ [
-        date_param "before";
-        date_param "after";
-        group_param;
-        ponderation_param "min_level";
-        ponderation_param "max_level";
-        tags_param;
-        confid_param;
+    ~params:(auth_params @ filter_params @ [
         readonly_param;
         pretty_name_param
       ])

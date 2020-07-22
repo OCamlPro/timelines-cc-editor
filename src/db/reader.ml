@@ -304,11 +304,19 @@ module Reader_generic (M : MONAD) = struct
 
     let groups =
       match f.categories with
-      | None -> groups
-      | Some c -> Utils.intersect_list groups c in
+      | None -> Format.eprintf "No category filter@."; groups
+      | Some c ->
+        Format.eprintf "Category filters registered: %a@."(Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt "//") (fun fmt -> Format.fprintf fmt "%s")) c;
+        match groups with
+        | [] -> c
+        | _ -> Utils.intersect_list groups c in
 
     let confidential = with_confidential && f.confidential_rights in
 
+    Format.eprintf "Timeline %s with groups = %a@."
+      tid
+      (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ",") (fun fmt -> Format.fprintf fmt "%s")) groups;
+    
     with_dbh >>> fun dbh ->
     let req =
       match groups, tags with
