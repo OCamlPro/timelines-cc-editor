@@ -1,7 +1,7 @@
 open EzAPI
 open Timeline_data
-open Api_data.ApiData
 open Json_encoding
+open Api_data.ApiData
 
 let tup1_int = EzEncoding.tup1_int
 

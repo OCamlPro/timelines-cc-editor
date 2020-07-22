@@ -27,6 +27,10 @@
 	    <span v-show='filter.filter_id==currentTimeline'>(You)</span>
 	    
 	    <div style='float: right'>
+	      <span class="tooltip" v-show="displayTokenFilter(filter)">
+		<img src="/images/filter.svg">
+		<span class="tooltipcontent">Filter content</span>
+	      </span>
               <span class='fa fa-link fa-2x'
 		    @click='copyLink(filter.readonly, filter.filter_id)'></span>
               <span class='fa fa-pencil fa-2x'
@@ -103,21 +107,13 @@
 	    v-model="minPonderationFilter"
 	    min=0
 	    :max="maxPonderationFilter"
-	    @change="
-	      if (minPonderationFilter > maxPonderationFilter) {
-                maxPonderationFilter = minPonderationFilter;
-              }"
 	    > From <input type="number" v-model="minPonderationFilter">
 	  <br/>
 	  <input
 	    type="range"
 	    v-model="maxPonderationFilter"
 	    :min="minPonderationFilter"
-	    max=10000
-	    @change="
-	      if (maxPonderationFilter < minPonderationFilter) {
-                minPonderationFilter = maxPonderationFilter;
-		}"> to <input type="number" v-model="maxPonderationFilter">
+	    max=10000> to <input type="number" v-model="maxPonderationFilter">
 	</div>
 	<div id="filter-other-content" style="display:none">
 	  <input type="checkbox" v-model="alsoConfidential">

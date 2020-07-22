@@ -73,3 +73,5 @@ let filter_encoding =
 let admin_token = obj1 (req "admin" string)
 
 let unit = obj1 (req "unit" unit)
+
+let string = obj1 (req "string" string)

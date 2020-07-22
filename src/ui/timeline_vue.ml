@@ -650,6 +650,19 @@ let filter self =
       (fun (title, events) -> display_timeline self title events; Lwt.return ())
   with Failure s -> Js_utils.alert s
 
+let displayTokenFilter _self filter =
+  let name = Js.to_string filter##.pretty in
+  let res =
+    Js.Optdef.test filter##.after ||
+    Js.Optdef.test filter##.before ||
+    Js.Optdef.test filter##.min_level_ ||
+    Js.Optdef.test filter##.max_level_ ||
+    Js.Optdef.test filter##.filterCategories ||
+    Js.Optdef.test filter##.tags ||
+    not (Js.to_bool filter##.confidential_rights_) in
+  Js_utils.log "displayTokenFilter %s: %b" name res; res
+  
+
 let first_connexion self =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
   showForm None [] self true
@@ -684,6 +697,7 @@ let init
   Vue.add_method1 "removeToken" removeToken;
   Vue.add_method1 "editAlias" editAlias;
   Vue.add_method2 "copyLink" copyLink;
+  Vue.add_method1 "displayTokenFilter" displayTokenFilter;
   
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";

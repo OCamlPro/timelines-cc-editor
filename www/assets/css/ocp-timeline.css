@@ -2712,7 +2712,7 @@ tr:hover.clickable {
 }
 
 /* Tooltip text */
-.tooltip .tooltipcontent {
+.tooltip>.tooltipcontent {
   visibility: hidden;
   background-color: #1E6E87;
   color: white;
@@ -2733,11 +2733,11 @@ tr:hover.clickable {
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltipcontent {
+.tooltip:hover>.tooltipcontent {
   visibility: visible;
 }
 
-.tooltip .tooltipcontent:hover {
+.tooltip>.tooltipcontent:hover {
     visibility: visible;
     cursor: auto
 }
