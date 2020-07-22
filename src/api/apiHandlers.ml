@@ -404,6 +404,15 @@ let create_token (req, tid) _ () =
     ?tags ~readonly ?pretty
     tid
 
+let update_token_pretty (req, token) _ tid =
+  let _,_,_,_,_,_,_,_, pretty = decode_token_params req in
+  EzAPIServerUtils.return @@ Writer.update_token_pretty ~pretty ~token tid
+
+let update_token_readonly (req, token) _ tid =
+  let _,_,_,_,_,_,_,readonly, _ = decode_token_params req in
+  EzAPIServerUtils.return @@
+  Writer.update_token_readonly ~readonly ~token tid
+
 let update_token (req, token) _ tid =
   Lwt_io.printl "CALL update_token" >>= (fun () ->
   let after, before, min_level, max_level, tags, categories, confidential, readonly, pretty =

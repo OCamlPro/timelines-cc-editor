@@ -364,6 +364,28 @@ let create_token : (string, unit, string) post_service1 =
     ~output:string
     Path.(api_root // "create_token" /: arg_token ())
 
+let update_token_pretty : (string, string, unit) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:(auth_params @ [
+        pretty_name_param
+      ])
+    ~name:"update_token_pretty"
+    ~input:admin_token (* The admin token *)
+    ~output:unit
+    Path.(api_root // "update_token_pretty" /: arg_token ())
+
+let update_token_readonly : (string, string, unit) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:(auth_params @ [
+        readonly_param;
+      ])
+    ~name:"update_token_readonly"
+    ~input:admin_token (* The admin token *)
+    ~output:unit
+    Path.(api_root // "update_token_readonly" /: arg_token ())
+
 let update_token : (string, string, unit) post_service1 =
   post_service
     ~error_outputs

@@ -26,6 +26,8 @@ let start () =
     |> EzAPIServerUtils.register S.remove_user H.remove_user
     |> EzAPIServerUtils.register S.remove_timeline H.remove_timeline
     |> EzAPIServerUtils.register S.create_token H.create_token
+    |> EzAPIServerUtils.register S.update_token_pretty H.update_token_pretty
+    |> EzAPIServerUtils.register S.update_token_readonly H.update_token_readonly
     |> EzAPIServerUtils.register S.update_token H.update_token
     |> EzAPIServerUtils.register S.remove_token H.remove_token
     |> EzAPIServerUtils.register S.get_tokens H.get_tokens

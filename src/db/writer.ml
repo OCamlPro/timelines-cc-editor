@@ -378,6 +378,30 @@ let create_token
   end else
     Error "[create_token] Cannot create token")
 
+let update_token_pretty 
+    ~pretty
+    ~token
+    (tid : string) =
+    Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
+      if admin_rights then begin
+        [%pgsql dbh
+            "UPDATE timeline_ids_ SET pretty_=$?pretty WHERE id_=$token"];
+        Ok ()
+      end else 
+          Error "[update_token] Cannot update token")
+
+let update_token_readonly
+    ~readonly
+    ~token
+    (tid : string) =
+    Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
+      if admin_rights then begin
+        [%pgsql dbh
+            "UPDATE timeline_ids_ SET readonly_=$readonly WHERE id_=$token"];
+        Ok ()
+      end else 
+        Error "[update_token] Cannot update token")
+
 let update_token
     ?(users=[])
     ?(confidential=false)

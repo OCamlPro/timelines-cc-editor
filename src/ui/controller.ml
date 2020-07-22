@@ -208,8 +208,7 @@ let addToken
     )
 
 let updateTokenFilter ~readonly tid token with_tokens =
-  let args = ["readonly", string_of_bool readonly] in
-  Request.update_token ~error args tid token (
+  Request.update_token_readonly ~error readonly tid token (
     fun () ->
       Request.get_tokens tid (
         fun tokens -> 
@@ -219,8 +218,7 @@ let updateTokenFilter ~readonly tid token with_tokens =
     )
 
 let updateTokenName pretty tid token with_tokens =
-  let args = ["pretty", pretty] in
-  Request.update_token ~error args tid token (
+  Request.update_token_pretty ~error pretty tid token (
     fun () ->
       Request.get_tokens tid (
         fun tokens -> 

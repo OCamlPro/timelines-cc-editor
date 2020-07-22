@@ -114,7 +114,13 @@ class type data = object
   method panelHeader         : Js.js_string Js.t Js.readonly_prop
   method minPonderationLabel : Js.js_string Js.t Js.readonly_prop
   method maxPonderationLabel : Js.js_string Js.t Js.readonly_prop
-  method filterButtonText : Js.js_string Js.t Js.readonly_prop
+  method filterButtonText    : Js.js_string Js.t Js.readonly_prop
+  method categoriesText      : Js.js_string Js.t Js.readonly_prop
+  method ponderationText     : Js.js_string Js.t Js.readonly_prop
+  method andText             : Js.js_string Js.t Js.readonly_prop
+  method betweenText         : Js.js_string Js.t Js.readonly_prop
+  method addEditionTokenButton : Js.js_string Js.t Js.readonly_prop
+  method addReadonlyTokenButton : Js.js_string Js.t Js.readonly_prop
 
   method ponderationHelp : Js.js_string Js.t Js.readonly_prop
   method addElementHelp  : Js.js_string Js.t Js.readonly_prop
@@ -239,7 +245,7 @@ let page_vue
          end)
       categories
   in object%js
-    val exportButton      = tjs_ s_share
+    val exportButton        = tjs_ s_share
 
     val categoryHeader      = tjs_ s_categories
     val otherFiltersHeader  = tjs_ s_extra_filters
@@ -247,7 +253,10 @@ let page_vue
     val minPonderationLabel = tjs_ s_min_ponderation
     val maxPonderationLabel = tjs_ s_max_ponderation
     val filterButtonText    = tjs_ s_filter
-
+    val categoriesText      = tjs_ s_categories
+    val ponderationText     = tjs_ s_ponderation
+    val andText             = tjs_ s_and
+    val betweenText         = tjs_ s_between
     val ponderationHelp     = tjs_ s_ponderation_help
     val editElementHelp     = tjs_ s_edit_element_help
     val addElementHelp      = tjs_ s_add_element_help
@@ -281,6 +290,8 @@ let page_vue
 
     val backButton            = tjs_ s_back
     val removeButton          = tjs_ s_remove_event
+    val addEditionTokenButton = tjs_ s_add_edition_token_button
+    val addReadonlyTokenButton = tjs_ s_add_readonly_token_button
 
     val formNameAdding        = tjs_ s_add_element_help
     val formNameEditing       = tjs_ s_edit_event
@@ -580,15 +591,20 @@ let setTokenAsEdition self token =
 let editAlias self filter =
   match Js.Optdef.to_option filter##.editing with
   | None -> (* Entering edition mode *)
+    Js_utils.log "New alias treatment: entering edition mode";
     filter##.editing := Js.Optdef.return filter##.pretty
-  | Some f -> (* Sending new pretty alias *)
+  | Some _f -> (* Sending new pretty alias *)
     Js_utils.log "New alias treatment";
-    if f = filter##.filter_id_ then () else
+    let pretty =
+      let p =  Js.to_string filter##.pretty in
+      if p = "" then None else Some p in
+    let tid = Js.to_string self##.currentTimeline in
+    let filter_id = Js.to_string filter##.filter_id_ in
       ignore @@
       Controller.updateTokenName
-        (Js.to_string filter##.pretty)
-        (Js.to_string filter##.currentTimeline)
-        (Js.to_string filter##.filter_id)
+        pretty
+        tid
+        filter_id
         (fun l ->
            filter##.editing := Js.Optdef.empty;
            update_filters self l)
@@ -651,7 +667,6 @@ let filter self =
   with Failure s -> Js_utils.alert s
 
 let displayTokenFilter _self filter =
-  let name = Js.to_string filter##.pretty in
   let res =
     Js.Optdef.test filter##.after ||
     Js.Optdef.test filter##.before ||
@@ -660,7 +675,7 @@ let displayTokenFilter _self filter =
     Js.Optdef.test filter##.filterCategories ||
     Js.Optdef.test filter##.tags ||
     not (Js.to_bool filter##.confidential_rights_) in
-  Js_utils.log "displayTokenFilter %s: %b" name res; res
+  res
   
 
 let first_connexion self =

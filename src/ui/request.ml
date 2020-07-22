@@ -301,11 +301,24 @@ let remove_timeline timeline cont =
     ()
     cont
 
-let update_token ~error args timeline token cont =
+let update_token_readonly ~error readonly timeline token cont =
   post
     ~error
-    ~args:(args_from_session args)
-    ApiServices.update_token [token]
+    ~args:(args_from_session ["readonly", string_of_bool readonly])
+    ApiServices.update_token_readonly [token]
+    timeline
+    cont
+
+let update_token_pretty ~error pretty timeline token cont =
+  let args =
+    let l = args_from_session [] in 
+    match pretty with
+    | None -> l
+    | Some p -> ("pretty", p) :: l in
+  post
+    ~error
+    ~args
+    ApiServices.update_token_readonly [token]
     timeline
     cont
 

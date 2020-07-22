@@ -32,16 +32,16 @@
 		<span class="tooltipcontent" style='width:30em'>
 		  <ul>
 		    <li>
-		      <span> Confidential: {{filter.confidential_rights}} </span>
+		      <span> {{confidentialFormTitle}}: {{filter.confidential_rights}} </span>
 		    </li>
 		    <li v-show="filter.filterCategories">
-		      Categories:
+		      {{categoriesText}}:
 		      <ul>
 			<li v-for="cat in filter.filterCategories">{{cat}}</li>
 		      </ul>
 		    </li>
 		    <li v-show="filter.min_level !== undefined || filter.max_level !== undefined">
-		      Ponderation: between {{filter.min_level}} and {{filter.max_level}}
+		      {{ponderationText}}: {{betweenText}} {{filter.min_level}} {{andText}} {{filter.max_level}}
 		    </li>
 		  </ul>
 		</span>
@@ -63,10 +63,10 @@
 	</ul>
 	<div>
 	  <div class='button' @click="addEditionToken()">
-            Add edition token
+            {{addEditionTokenButton}}
 	  </div>
 	  <div class='button' @click="addReadOnlyToken()">
-            Add readonly token
+            {{addReadonlyTokenButton}}
 	  </div>
 	</div>
       </div>
