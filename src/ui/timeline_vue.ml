@@ -597,7 +597,13 @@ let editAlias self filter =
     Js_utils.log "New alias treatment";
     let pretty =
       let p =  Js.to_string filter##.pretty in
-      if p = "" then None else Some p in
+      if p = "" then begin
+        Js_utils.log "Removing alias";
+        None
+      end else begin
+        Js_utils.log "New alias: %s" p;
+        Some p
+      end in
     let tid = Js.to_string self##.currentTimeline in
     let filter_id = Js.to_string filter##.filter_id_ in
       ignore @@

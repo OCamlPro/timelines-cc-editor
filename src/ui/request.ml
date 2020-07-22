@@ -318,7 +318,7 @@ let update_token_pretty ~error pretty timeline token cont =
   post
     ~error
     ~args
-    ApiServices.update_token_readonly [token]
+    ApiServices.update_token_pretty [token]
     timeline
     cont
 

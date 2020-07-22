@@ -405,7 +405,8 @@ let create_token (req, tid) _ () =
     tid
 
 let update_token_pretty (req, token) _ tid =
-  let _,_,_,_,_,_,_,_, pretty = decode_token_params req in
+  let pretty =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.req_params in
   EzAPIServerUtils.return @@ Writer.update_token_pretty ~pretty ~token tid
 
 let update_token_readonly (req, token) _ tid =
