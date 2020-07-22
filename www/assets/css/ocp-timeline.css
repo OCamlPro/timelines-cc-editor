@@ -114,7 +114,7 @@
     z-index:0;
 }
  .tl-timeline h1,.tl-timeline h2,.tl-timeline h3,.tl-timeline h4,.tl-timeline h5,.tl-timeline h6 {
-    color:#000
+    color:#FFF
 }
  .tl-timeline h1,.tl-timeline h2,.tl-timeline h3 {
     font-size:28px;
@@ -2509,7 +2509,7 @@ html {
     --disable-text-color: #aaaaaa;
     --tl-bg-color: transparent;
     position: relative;
-    height: 100%
+    height: 100%;
 }
 
 @font-face{
@@ -2751,7 +2751,8 @@ tr:hover.clickable {
 
 #timeline-header span.title{
     margin: auto;
-    font-size:30px
+    font-size:20px;
+    font-weight: 700;
 }
 
 #header span.fa{
@@ -2777,7 +2778,7 @@ tr:hover.clickable {
 }
 
 .timeline-menu-token img{
-    width: 2em
+    width: 2em !important
 }
 
 .timeline-menu-token.fa{
@@ -2794,7 +2795,7 @@ tr:hover.clickable {
 }
 
 #timeline-header{
-    background: #6EB2C8;
+    background: #1E6E87;
 }
 
 .url{
@@ -2956,7 +2957,7 @@ form-card {
   margin: 0 0 0.125rem 0;
   font-weight: 500;
   font-size: 1rem;
-  color: #333;
+  color: #F;
 }
 
 .form-checkbox-label,
@@ -2965,9 +2966,9 @@ form-card {
   cursor: pointer;
   padding-left: 1.5rem;
   text-align: left;
-  color: #333;
+  color: #FFF;
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0rem;
 }
 
 .form-checkbox-label:hover i,
@@ -3202,7 +3203,7 @@ form-card {
 .form-element-bar {
   position: relative;
   height: 1px;
-  background: #999;
+  background: #FFF;
   display: block;
 }
 
@@ -3246,11 +3247,11 @@ form-card {
   display: block;
   background: none;
   padding: 0.125rem 0.125rem 0.0625rem;
-  font-size: 1rem;
+  font-size: .8rem;
   border: 0 solid transparent;
   line-height: 1.5;
-  width: 100%;
-  color: #333;
+  width: 150%;
+  color: #FFFFFF90;
   box-shadow: none;
   opacity: 0.001;
   transition: opacity 0.28s ease;
@@ -3258,13 +3259,14 @@ form-card {
 }
 
 .form-element-field:-ms-input-placeholder {
-  color: #FFF;
+  color: #FFFFFF;
   transform: scale(0.9);
   transform-origin: left top;
 }
 
-.form-element-field::placeholder {
-  color: #FFF;
+.form-element-field::placeholder, .form-element-label::placeholder {
+  color: #FFFFFF50;
+  font-style: italic;
   transform: scale(0.9);
   transform-origin: left top;
 }
@@ -3333,7 +3335,7 @@ select.form-element-field {
 }
 
 .form-select-placeholder {
-  color: #FFF;
+  color: #FFFFFF60;
   display: none;
 }
 
@@ -3385,4 +3387,14 @@ select.form-element-field {
 
 .navbar li.active{
     border-style: none solid none solid;
+}
+
+input {
+
+    font: 400 13.3333px Arial;
+    padding: 1px 2px;
+    border-width: 0px;
+    color: #FFFFFF90;
+    border-color: #FFF;
+    border-image: initial;
 }

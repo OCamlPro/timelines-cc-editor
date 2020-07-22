@@ -29,14 +29,14 @@
               <span class='fa fa-link fa-2x'
 		    @click='copyLink(filter.readonly, filter.filter_id)'></span>
               <span class='fa fa-pencil fa-2x'
-		    @click='editAlias(filter); 
+		    @click='editAlias(filter);
                             filter.isEditing=!filter.isEditing'></span>
               <span v-show='filter.readonly' class='fa fa-eye fa-2x'
-		    @click='setTokenAsEdition(filter.filter_id); 
+		    @click='setTokenAsEdition(filter.filter_id);
                             filter.readonly=!filter.readonly;'></span>
               <span v-show='!filter.readonly'
 		    class='fa fa-black-tie fa-2x'
-		    @click='setTokenAsReadOnly(filter.filter_id); 
+		    @click='setTokenAsReadOnly(filter.filter_id);
                             filter.readonly=!filter.readonly;'></span>
               <span class='fa fa-trash fa-2x'
 		    @click='removeFilter(filter.filter_id)'></span>
@@ -77,10 +77,10 @@
     class="timeline-menu-token tooltip"
     v-show="events.length != 0">
     <img src="/images/filter.svg">
-    <div class="tooltipcontent"> 
+    <div class="tooltipcontent">
       <div class="panel-default filtering-form" style='width:30em'>
 	<div class="navbar">
-	  <ul class="inline"> 
+	  <ul class="inline">
 	    <li id="filter-categories" class="active" >
 	      <div>Categories</div>
 	    </li>
@@ -94,7 +94,7 @@
 	</div>
 	<div id="filter-categories-content">
 	  <div v-for="category in categories">
-	    <input type="checkbox" v-model="category.checked" @change="filter()"> 
+	    <input type="checkbox" v-model="category.checked" @change="filter()">
               {{category.catName}}
 	  </div>
 	</div>
@@ -162,8 +162,8 @@
 	<span v-else> {{formNameEditing}}</span>
 	<span @click=hideForm() class="close fa fa-close fa-2x" style="float: right"></span>
       </legend>
-      
-      <!-- TITLE -->    
+
+      <!-- TITLE -->
       <div class="form-element form-input">
 	<input
 	  id="title"
@@ -176,9 +176,9 @@
 	</div>
 	<label class="form-element-label" for="title">{{headlineFormTitle}}</label>
       </div>
-      
-      <div class="top-row">	
-	<!-- Start date -->         
+
+      <div class="top-row">
+	<!-- Start date -->
 	<div class="form-element form-input 4u">
 	  <input
 	    id="start-date"
@@ -190,8 +190,8 @@
 	  <div class="form-element-bar"></div>
 	  <label class="form-element-label" for="start-date">{{startDateFormTitle}}</label>
 	</div>
-	
-	<!-- End date -->         
+
+	<!-- End date -->
 	<div class="4u"><div class="form-element form-input">
 	    <input
 	      id="end-date"
@@ -205,8 +205,8 @@
 	  </div>
 	</div>
       </div>
-      
-      <!-- Media -->   
+
+      <!-- Media -->
       <div class="form-element form-input">
         <input
 	  id="media"
@@ -219,8 +219,8 @@
         <label class="form-element-label" for="media">{{mediaFormTitle}}</label>
         <small class="form-element-hint">{{mediaFormHelp}}{{mediaLink}}</small>
       </div>
-      
-      <!-- DESCRIPTION -->   
+
+      <!-- DESCRIPTION -->
       <div class="form-element form-textarea">
         <textarea
 	  id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
@@ -229,11 +229,11 @@
 	  v-model="textFormValue"></textarea>
         <div class="form-element-bar"></div>
         <label class="form-element-label" for="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm">{{textFormTitle}}</label>
-      </div>    
-      
+      </div>
+
 
       <!-- CATEGORIES -->
-      
+
       <div class="form-element form-select">
         <select
 	  id="category-select-form"
@@ -250,8 +250,8 @@
 	  v-show="categoriesFormValue=='__other__category__'">
         <div class="form-element-bar"></div>
         <label class="form-element-label" for="category-select-form">Select a category</label>
-      </div> 
-      <!-- TAGS -->   
+      </div>
+      <!-- TAGS -->
       <div class="form-element form-input">
         <input
 	  id="tags"
@@ -266,9 +266,9 @@
 	  {{tagsFormHelp}}
 	</label>
         <!-- <small class="form-element-hint">Separate with commas</small> -->
-      </div>   
-      
-      <!-- Weight -->         
+      </div>
+
+      <!-- Weight -->
       <div class="form-element form-input">
 	<input
 	  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
@@ -282,8 +282,8 @@
 	  {{ponderationFormTitle}}
 	</label>
       </div>
-      
-      <!-- CONFIDENTIAL -->   
+
+      <!-- CONFIDENTIAL -->
       <div class="form-checkbox form-checkbox-inline">
 	<label class="form-checkbox-label">
           <input
@@ -295,11 +295,11 @@
           <span>{{confidentialFormTitle}}</span>
         </label>
         <small class="form-element-hint">{{confidentialFormHelp}}</small>
-	
+
       </div>
-      
-      
-      <!-- URL -->    
+
+
+      <!-- URL -->
       <div class="form-element form-input">
 	<input
 	  id="unique-id"
@@ -310,13 +310,13 @@
 	<div class="form-element-bar">
 	</div>
 	<label class="form-element-label" for="unique-id">{{uniqueIdFormTitle}}</label>
-   <!--	<small class="form-element-hint">{{uniqueIdFormHelp}}</small> -->   
+   <!--	<small class="form-element-hint">{{uniqueIdFormHelp}}</small> -->
       </div>
-      
-      <!-- FIN DU FORMULAIRE -->   
 
-      
-    </fieldset>    
+      <!-- FIN DU FORMULAIRE -->
+
+
+    </fieldset>
     <div class="form-actions">
       <div
 	class="button special"

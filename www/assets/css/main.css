@@ -1619,7 +1619,9 @@ body, input, select, textarea {
 @media screen and (max-width: 736px) {
 
     body, input, select, textarea {
-	font-size: 12pt;
+	font-size: 9pt;
+	color: #FFF;
+	background: #FFFFFF00
     }
 
 }
@@ -2704,9 +2706,10 @@ button:disabled,
     font-weight: normal;
     text-transform: none !important;
     content: '\f00d';
-    width: 3em;
-    height: 3em;
-    line-height: 3em;
+    font-size: 2rem;
+    width: 1.5em;
+    height: 1.5em;
+    line-height: 1.5em;
     display: block;
     position: absolute;
     right: 0;
@@ -2719,12 +2722,12 @@ button:disabled,
 }
 
 #navPanel{
-    background: #75a7e3;
+    background: #1E6E87;
     color: white;
     height: 100%;
     width: 3em;
     z-index: 10003;
-    overflow: visible
+    overflow: visible;
 }
 
 #navPanel .section{
@@ -2749,13 +2752,12 @@ button:disabled,
 }
 
 #formPanel{
-    background: #5385c1;
-    color: #000;
+    background: #1E6E87;
+    color: #FFF;
     height: 100%;
-    width: 50em;
     z-index: 10004;
 }
-
+¢
 
 /* Banner */
 
@@ -2891,3 +2893,4 @@ button:disabled,
     }
 
 }
+
