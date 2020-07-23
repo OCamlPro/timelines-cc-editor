@@ -114,7 +114,13 @@ class type data = object
   method panelHeader         : Js.js_string Js.t Js.readonly_prop
   method minPonderationLabel : Js.js_string Js.t Js.readonly_prop
   method maxPonderationLabel : Js.js_string Js.t Js.readonly_prop
-  method filterButtonText : Js.js_string Js.t Js.readonly_prop
+  method filterButtonText    : Js.js_string Js.t Js.readonly_prop
+  method categoriesText      : Js.js_string Js.t Js.readonly_prop
+  method ponderationText     : Js.js_string Js.t Js.readonly_prop
+  method andText             : Js.js_string Js.t Js.readonly_prop
+  method betweenText         : Js.js_string Js.t Js.readonly_prop
+  method addEditionTokenButton : Js.js_string Js.t Js.readonly_prop
+  method addReadonlyTokenButton : Js.js_string Js.t Js.readonly_prop
 
   method ponderationHelp : Js.js_string Js.t Js.readonly_prop
   method addElementHelp  : Js.js_string Js.t Js.readonly_prop
@@ -147,6 +153,8 @@ class type data = object
   method ponderationFormHelp   : Js.js_string Js.t Js.readonly_prop
   method confidentialFormHelp  : Js.js_string Js.t Js.readonly_prop
 
+  method confidentialFilterForm : Js.js_string Js.t Js.readonly_prop
+  
   method backButton            : Js.js_string Js.t Js.readonly_prop
   method removeButton          : Js.js_string Js.t Js.readonly_prop
   method formNameAdding        : Js.js_string Js.t Js.readonly_prop
@@ -154,6 +162,7 @@ class type data = object
 
   method addEventButtonText    : Js.js_string Js.t Js.readonly_prop
   method updateEventButtonText : Js.js_string Js.t Js.readonly_prop
+  method removeTimelineText : Js.js_string Js.t Js.readonly_prop
 
   method editionLinkText       : Js.js_string Js.t Js.readonly_prop
   method readLinkText          : Js.js_string Js.t Js.readonly_prop
@@ -163,8 +172,9 @@ class type data = object
   (* Filters *)
   method minPonderationFilter : int Js.prop
   method maxPonderationFilter : int Js.prop
+  method maxBoundInPonderationFilter : int Js.readonly_prop
   method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
-  method onlyConfidential : bool Js.t Js.prop
+  method alsoConfidential : bool Js.t Js.prop
 
 
   method timelineName : Js.js_string Js.t Js.prop
@@ -224,6 +234,7 @@ let page_vue
     (timeline_name : string)
     (args : Args.t)
     (categories : (string * bool) list)
+    (title : (int * title) option)
     (events : (int * event) list)
     (tokens : DbData.filter list)
   : data Js.t =
@@ -237,9 +248,23 @@ let page_vue
            val catId = jss (Ui_utils.trim c)
            val mutable checked = Js.bool checked
          end)
-      categories
-  in object%js
-    val exportButton      = tjs_ s_share
+      categories in
+
+  let max = match Args.get_max args with
+    | None -> 
+      let title_pond = 
+        match title with 
+        | None -> 0
+        | Some (_, {ponderation; _}) -> ponderation in
+      List.fold_left
+        (fun max (_, {ponderation; _}) ->
+         Js_utils.log "PONDERATION: %i" ponderation;
+         if ponderation > max then ponderation else max)
+         title_pond
+         events
+    | Some i -> i in
+  object%js
+    val exportButton        = tjs_ s_share
 
     val categoryHeader      = tjs_ s_categories
     val otherFiltersHeader  = tjs_ s_extra_filters
@@ -247,7 +272,10 @@ let page_vue
     val minPonderationLabel = tjs_ s_min_ponderation
     val maxPonderationLabel = tjs_ s_max_ponderation
     val filterButtonText    = tjs_ s_filter
-
+    val categoriesText      = tjs_ s_categories
+    val ponderationText     = tjs_ s_ponderation
+    val andText             = tjs_ s_and
+    val betweenText         = tjs_ s_between
     val ponderationHelp     = tjs_ s_ponderation_help
     val editElementHelp     = tjs_ s_edit_element_help
     val addElementHelp      = tjs_ s_add_element_help
@@ -279,13 +307,18 @@ let page_vue
     val ponderationFormHelp    = tjs_ s_ponderation_help
     val confidentialFormHelp   = tjs_ s_confidential_help
 
+    val confidentialFilterForm = tjs_ s_confidential_filter_form
+ 
     val backButton            = tjs_ s_back
     val removeButton          = tjs_ s_remove_event
+    val addEditionTokenButton = tjs_ s_add_edition_token_button
+    val addReadonlyTokenButton = tjs_ s_add_readonly_token_button
 
     val formNameAdding        = tjs_ s_add_element_help
     val formNameEditing       = tjs_ s_edit_event
     val addEventButtonText    = tjs_ s_add_new_event
     val updateEventButtonText = tjs_ s_edit_event
+    val removeTimelineText = tjs_ s_remove_timeline_text
     
     val editionLinkText = tjs_ s_edition_link_text
     val readLinkText    = tjs_ s_read_link_text
@@ -295,13 +328,14 @@ let page_vue
       | None -> 0
       | Some i -> i
 
-    val mutable maxPonderationFilter =
-      match Args.get_max args with
-      | None -> 10000
-      | Some i -> i
+    val mutable maxPonderationFilter = max
+
+    val maxBoundInPonderationFilter = max
+
     val mutable categories     = categories
 
-    val mutable onlyConfidential = Js._false
+    val mutable alsoConfidential =
+      Js.bool (Args.get_confidential args)
 
     val mutable timelineName = jss timeline_name
 
@@ -338,7 +372,6 @@ let page_vue
 
     val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens 
   end
-
 
 type on_page =
   | No_timeline
@@ -552,39 +585,62 @@ let removeFromForm title events self =
     let _l : _ Lwt.t = Controller.removeEvent ~id ~timeline_id in
     ()
 
-let export title events _ = Controller.export_timeline title events  
+let export title events _ = Controller.export_timeline title events
 
 let import self =
   let timeline_id = Js.to_string self##.currentTimeline in
   Controller.import_timeline timeline_id true (Js_utils.find_component "import-form")
 
 let addEditionToken self =
-  Controller.addToken ~readonly:false (Js.to_string self##.currentTimeline) (update_filters self)
+  Controller.addToken
+    ~readonly:false
+    (Js.to_string self##.currentTimeline)
+    (update_filters self)
+
 let addReadOnlyToken self =
-  Controller.addToken ~readonly:true (Js.to_string self##.currentTimeline) (update_filters self)
+  Controller.addToken
+    ~readonly:true
+    (Js.to_string self##.currentTimeline)
+    (update_filters self)
 
 let setTokenAsReadOnly self token =
-  Controller.updateTokenFilter ~readonly:true (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
+  Controller.updateTokenFilter ~readonly:true (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
 
 let setTokenAsEdition self token =
-  Controller.updateTokenFilter ~readonly:false (Js.to_string self##.currentTimeline) (Js.to_string token) (fun () -> ())
+  Controller.updateTokenFilter ~readonly:false (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
 
-let editAlias _self filter =
+let editAlias self filter =
   match Js.Optdef.to_option filter##.editing with
   | None -> (* Entering edition mode *)
+    Js_utils.log "New alias treatment: entering edition mode";
     filter##.editing := Js.Optdef.return filter##.pretty
-  | Some f -> (* Sending new pretty alias *)
+  | Some _f -> (* Sending new pretty alias *)
     Js_utils.log "New alias treatment";
-    if f = filter##.filter_id_ then () else
+    let pretty =
+      let p =  Js.to_string filter##.pretty in
+      if p = "" then begin
+        Js_utils.log "Removing alias";
+        None
+      end else begin
+        Js_utils.log "New alias: %s" p;
+        Some p
+      end in
+    let tid = Js.to_string self##.currentTimeline in
+    let filter_id = Js.to_string filter##.filter_id_ in
       ignore @@
       Controller.updateTokenName
-        (Js.to_string filter##.pretty)
-        (Js.to_string filter##.currentTimeline)
-        (Js.to_string filter##.filter_id)
-        (fun () -> filter##.editing := Js.Optdef.empty)
+        pretty
+        tid
+        filter_id
+        (fun l ->
+           filter##.editing := Js.Optdef.empty;
+           update_filters self l)
 
 let removeToken self token =
-  Controller.removeToken (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
+  Controller.removeToken
+    (Js.to_string self##.currentTimeline)
+    (Js.to_string token)
+    (update_filters self)
 
 let copyLink self readonly filter_id =
   let timeline_name = Js.to_string self##.timelineName in 
@@ -608,10 +664,11 @@ let display_timeline self title events =
 
 let filter self =
   try
-    let args =
+    let tid, args =
       match Args.get_timeline (Args.get_args ()) with
       | None -> failwith "Error: no timeline!"
-      | Some t -> Args.set_timeline t [] in  
+      | Some t ->
+        (snd (Ui_utils.timeline_id_from_arg t)), Args.set_timeline t [] in
     let args = (* Filtering categories *)
       let categories_js = Js.to_array self##.categories in
       Array.fold_left
@@ -624,12 +681,37 @@ let filter self =
         categories_js in
     let args = (* Filtering by ponderation *)
       let min_ponderation = self##.minPonderationFilter in
+      let args = Args.set_min min_ponderation args in
       let max_ponderation = self##.maxPonderationFilter in
-      Args.(set_min min_ponderation @@ set_max max_ponderation args)
+      if max_ponderation >= self##.maxBoundInPonderationFilter 
+        then args else 
+      Args.set_max max_ponderation args
     in
+    let args = (* Confidential *)
+      let confidential = Js.to_bool self##.alsoConfidential in
+      Args.set_confidential confidential args in
     Ui_utils.(push (url "" args));
-    ignore @@ !Dispatcher.dispatch ~path:"edit" ~args
+    ignore @@
+    Request.timeline_data ~args tid
+      (fun (title, events) -> display_timeline self title events; Lwt.return ())
   with Failure s -> Js_utils.alert s
+
+let displayTokenFilter _self filter =
+  let res =
+    Js.Optdef.test filter##.after ||
+    Js.Optdef.test filter##.before ||
+    Js.Optdef.test filter##.min_level_ ||
+    Js.Optdef.test filter##.max_level_ ||
+    Js.Optdef.test filter##.filterCategories ||
+    Js.Optdef.test filter##.tags ||
+    not (Js.to_bool filter##.confidential_rights_) in
+  res
+
+let removeTimeline self =
+  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_timeline) then ignore @@
+    Controller.removeTimeline
+      (Js.to_string self##.currentTimeline)
+  else ()
 
 let first_connexion self =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
@@ -646,7 +728,7 @@ let init
     match on_page with
     | Timeline {name; id; events; title} -> name, id, events, title
     | No_timeline -> "", "", [], None in
-  let data = page_vue id name args categories events tokens in
+  let data = page_vue id name args categories title events tokens in
   Js_utils.log "Adding methods@.";
   Vue.add_method0 "showMenu" showMenu;
   Vue.add_method0 "hideMenu" hideMenu;
@@ -665,6 +747,8 @@ let init
   Vue.add_method1 "removeToken" removeToken;
   Vue.add_method1 "editAlias" editAlias;
   Vue.add_method2 "copyLink" copyLink;
+  Vue.add_method1 "displayTokenFilter" displayTokenFilter;
+  Vue.add_method0 "removeTimeline" removeTimeline;
   
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";

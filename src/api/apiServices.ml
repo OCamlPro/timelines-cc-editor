@@ -1,7 +1,7 @@
 open EzAPI
 open Timeline_data
-open Api_data.ApiData
 open Json_encoding
+open Api_data.ApiData
 
 let tup1_int = EzEncoding.tup1_int
 
@@ -145,6 +145,16 @@ let auth_params = {
   param_examples = []
 } :: []
 
+let filter_params = [ 
+  date_param "after";
+  date_param "before";
+  group_param;
+  ponderation_param "min_level";
+  ponderation_param "max_level";
+  confid_param;
+  tags_param
+]
+
 let param_number =
   Param.int ~name:"page_size" ~descr:"Number of replies" "n"
 let param_page =
@@ -210,14 +220,7 @@ let timeline_data :
     ~error_outputs
     ~name:"timeline_data"
     ~output:timeline_data_api_result_encoding
-    ~params:(auth_params @ [
-        date_param "start_date";
-        date_param "end_date";
-        group_param;
-        ponderation_param "min_level";
-        ponderation_param "max_level";
-        tags_param;
-      ])
+    ~params:(auth_params @ filter_params)
     Path.(api_root // "timeline_data" /: arg_token ())
 
 let remove_event : (string, unit) service1 =
@@ -352,14 +355,7 @@ let remove_timeline : (string, unit, unit) post_service1 =
 let create_token : (string, unit, string) post_service1 =
   post_service
     ~error_outputs
-    ~params:(auth_params @ [
-        date_param "before";
-        date_param "after";
-        group_list_param;
-        ponderation_param "min_level";
-        ponderation_param "max_level";
-        tags_param;
-        confid_param;
+    ~params:(auth_params @ filter_params @ [
         readonly_param;
         pretty_name_param
       ])
@@ -368,17 +364,32 @@ let create_token : (string, unit, string) post_service1 =
     ~output:string
     Path.(api_root // "create_token" /: arg_token ())
 
-let update_token : (string, string, unit) post_service1 =
+let update_token_pretty : (string, string, unit) post_service1 =
   post_service
     ~error_outputs
     ~params:(auth_params @ [
-        date_param "before";
-        date_param "after";
-        group_param;
-        ponderation_param "min_level";
-        ponderation_param "max_level";
-        tags_param;
-        confid_param;
+        pretty_name_param
+      ])
+    ~name:"update_token_pretty"
+    ~input:admin_token (* The admin token *)
+    ~output:unit
+    Path.(api_root // "update_token_pretty" /: arg_token ())
+
+let update_token_readonly : (string, string, unit) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:(auth_params @ [
+        readonly_param;
+      ])
+    ~name:"update_token_readonly"
+    ~input:admin_token (* The admin token *)
+    ~output:unit
+    Path.(api_root // "update_token_readonly" /: arg_token ())
+
+let update_token : (string, string, unit) post_service1 =
+  post_service
+    ~error_outputs
+    ~params:(auth_params @ filter_params @ [
         readonly_param;
         pretty_name_param
       ])
@@ -405,9 +416,16 @@ let get_tokens : (string, unit, DbData.filter list) post_service1 =
     ~output:(list Api_data.ApiData.filter_encoding)
     Path.(api_root // "get_tokens" /: arg_token ())
 
+let timeline_name : (string, string) service1 =
+  service
+    ~error_outputs
+    ~name:"timeline_name"
+    ~output:string
+    Path.(api_root // "timeline_name" /: arg_token ())
+
 let version : string service0 =
   service
     ~error_outputs
     ~name:"version"
-    ~output:Json_encoding.string
+    ~output:string
     Path.(api_root // "version")

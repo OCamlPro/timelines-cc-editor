@@ -111,7 +111,6 @@ let add_handlers_to_markers ~(whenOnSlide:string option -> unit) order rev_order
   List.iter (
     fun elt ->
       let id = Ocp_js.Js.to_string @@ (Manip.get_elt "id" elt)##.id in
-      Js_utils.log "Marker with id %s" id;
       match Utils.StringMap.find_opt id marker_order with
       | None ->
         Js_utils.log "Marker with id %s not found" id
@@ -250,26 +249,20 @@ let init_slide_from_url ~whenOnSlide title events = begin
   let _,order, rev_order =
     let slides = Manip.by_class "tl-slide" in (* In the page order *)
     List.fold_left (fun (cpt, acc_ord, acc_rev_ord) elt ->
-          Js_utils.log "Reaching slide";
-          let id = Ocp_js.Js.to_string @@ (Manip.get_elt "id" elt)##.id in
-          Js_utils.log "Slide id: %s" id;
-          let e = find_event id events in
-          match e with
-          | None ->
-            Js_utils.log "Cannot find corresponding slide !";
-            (cpt+1,
-             Utils.StringMap.add id (cpt, None) acc_ord,
-             Utils.IntMap.add cpt id acc_rev_ord)
-          | Some (_, e) -> (* db_id is the integer ID of the event *)
-            (cpt+1,
-             Utils.StringMap.add id (cpt, Some e) acc_ord,
-             Utils.IntMap.add cpt id acc_rev_ord)
+      let id = Ocp_js.Js.to_string @@ (Manip.get_elt "id" elt)##.id in
+      let e = find_event id events in
+      match e with
+      | None ->
+        Js_utils.log "Cannot find corresponding slide !";
+        (cpt+1,
+         Utils.StringMap.add id (cpt, None) acc_ord,
+         Utils.IntMap.add cpt id acc_rev_ord)
+      | Some (_, e) -> (* db_id is the integer ID of the event *)
+        (cpt+1,
+         Utils.StringMap.add id (cpt, Some e) acc_ord,
+         Utils.IntMap.add cpt id acc_rev_ord)
       ) (0, Utils.StringMap.empty, Utils.IntMap.empty) slides
   in
-  let () =
-    Utils.IntMap.iter
-      (fun i e -> Js_utils.log "%i --> %s" i e)
-      rev_order in
   let () = go_to_right_slide       ~whenOnSlide order rev_order in
   let () = add_handlers_to_markers ~whenOnSlide order rev_order in
   let () = add_handlers_to_arrows  ~whenOnSlide order rev_order in

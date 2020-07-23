@@ -106,7 +106,6 @@ let construct enc o = match enc with
 let cook ?(eprint = Format.eprintf) encs = 
   (function
     | Ok res -> begin
-        eprint "[Xhr_lwt.post] Code %i: %s@." 200 res;
         let yoj = Yojson.Safe.from_string res in
         let js = Json_repr.from_yojson yoj in
         let res =

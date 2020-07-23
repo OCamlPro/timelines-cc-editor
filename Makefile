@@ -30,7 +30,6 @@ clean:
 	rm -rf _build/*
 	rm -f csv-parser
 	rm -f csv-dbparser
-	rm -f db-version.txt
 
 mr-proper: clean
 	opam switch remove . -y

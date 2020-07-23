@@ -22,33 +22,51 @@
       <div class="tooltipcontent" style='width:40em'>
 	<ul>
 	  <li v-for="filter in filters">
-	    <input type='text' v-model='filter.pretty' style='width:25em' v-show='filter.isEditing'>
+	    <input type='text' v-model='filter.pretty' v-show='filter.isEditing'>
 	    <span v-show='!filter.isEditing'>{{filter.pretty}}</span>
 	    <span v-show='filter.filter_id==currentTimeline'>(You)</span>
-	    <div style='float: right'>
+	    
+	    <div style='float: right; display: inline-block'>
+	      <span class="tooltip" v-show="displayTokenFilter(filter)">
+		<img src="/images/filter.svg">
+		<span class="tooltipcontent" style='width:30em'>
+		  <ul>
+		    <li>
+		      <span> {{confidentialFormTitle}}: {{filter.confidential_rights}} </span>
+		    </li>
+		    <li v-show="filter.filterCategories">
+		      {{categoriesText}}:
+		      <ul>
+			<li v-for="cat in filter.filterCategories">{{cat}}</li>
+		      </ul>
+		    </li>
+		    <li v-show="filter.min_level !== undefined || filter.max_level !== undefined">
+		      {{ponderationText}}: {{betweenText}} {{filter.min_level}} {{andText}} {{filter.max_level}}
+		    </li>
+		  </ul>
+		</span>
+	      </span>
               <span class='fa fa-link fa-2x'
 		    @click='copyLink(filter.readonly, filter.filter_id)'></span>
               <span class='fa fa-pencil fa-2x'
 		    @click='editAlias(filter);
                             filter.isEditing=!filter.isEditing'></span>
               <span v-show='filter.readonly' class='fa fa-eye fa-2x'
-		    @click='setTokenAsEdition(filter.filter_id);
-                            filter.readonly=!filter.readonly;'></span>
+		    @click='setTokenAsEdition(filter.filter_id);'></span>
               <span v-show='!filter.readonly'
 		    class='fa fa-black-tie fa-2x'
-		    @click='setTokenAsReadOnly(filter.filter_id);
-                            filter.readonly=!filter.readonly;'></span>
+		    @click='setTokenAsReadOnly(filter.filter_id);'></span>
               <span class='fa fa-trash fa-2x'
-		    @click='removeFilter(filter.filter_id)'></span>
+		    @click='removeToken(filter.filter_id)'></span>
 	    </div>
 	  </li>
 	</ul>
 	<div>
 	  <div class='button' @click="addEditionToken()">
-            Add edition token
+            {{addEditionTokenButton}}
 	  </div>
 	  <div class='button' @click="addReadOnlyToken()">
-            Add readonly token
+            {{addReadonlyTokenButton}}
 	  </div>
 	</div>
       </div>
@@ -69,8 +87,14 @@
 	</div>
       </div>
     </div>
-    <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
-      <!-- Todo -->
+    <div
+      class="timeline-menu-token tooltip fa fa-trash fa-2x"
+      @click='removeTimeline()'
+      style='color:red'
+      >
+      <div class="tooltipcontent">
+	{{removeTimelineText}}
+      </div>
     </div>
   </div>
   <div
@@ -94,7 +118,7 @@
 	</div>
 	<div id="filter-categories-content">
 	  <div v-for="category in categories">
-	    <input type="checkbox" v-model="category.checked" @change="filter()">
+	    <input type="checkbox" v-model="category.checked"> 
               {{category.catName}}
 	  </div>
 	</div>
@@ -104,25 +128,17 @@
 	    v-model="minPonderationFilter"
 	    min=0
 	    :max="maxPonderationFilter"
-	    @change="
-	      if (minPonderationFilter > maxPonderationFilter) {
-                maxPonderationFilter = minPonderationFilter;
-              }"
 	    > From <input type="number" v-model="minPonderationFilter">
 	  <br/>
 	  <input
 	    type="range"
 	    v-model="maxPonderationFilter"
 	    :min="minPonderationFilter"
-	    max=10000
-	    @change="
-	      if (maxPonderationFilter < minPonderationFilter) {
-                minPonderationFilter = maxPonderationFilter;
-		}"> to <input type="number" v-model="maxPonderationFilter">
+	    :max="maxBoundInPonderationFilter"> to <input type="number" v-model="maxPonderationFilter">
 	</div>
 	<div id="filter-other-content" style="display:none">
-	  <input type="checkbox" v-model="onlyConfidential" @change="filter()">
-	  Only non confidential events
+	  <input type="checkbox" v-model="alsoConfidential">
+	  {{confidentialFilterForm}}
 	</div>
 	<div class="button" @click="filter()">{{filterButtonText}}</div>
       </div>
@@ -263,7 +279,7 @@
 	  required/>
         <div class="form-element-bar"></div>
         <label class="form-element-label" for="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm">
-	  {{tagsFormHelp}}
+	  {{tagsFormTitle}}
 	</label>
         <!-- <small class="form-element-hint">Separate with commas</small> -->
       </div>
@@ -274,7 +290,7 @@
 	  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
 	  class="form-element-field"
 	  :placeholder="ponderationFormHelp"
-	  v-model="ponderationFormValue"
+	  v-model.number="ponderationFormValue"
 	  type="number" required/>
 	<div class="form-element-bar">
 	</div>

@@ -27,20 +27,20 @@ let custom_error default err =
 let error = custom_error None
 
 let create_timeline name descr =
-  let timeline_id, headline =
+  let timeline_id, headline, name =
     match name with
     | "" ->
       Random.self_init ();
       let i1 = Random.bits () |> string_of_int in
       let i2 = Random.bits () |> string_of_int in
-      i1 ^ i2, Lang.t_ Text.s_default_title
-    | _ -> name, name
+      i1 ^ i2, Lang.t_ Text.s_default_title, None
+    | _ -> name, name, Some name
   in
   let title = Utils.to_title_event headline descr in
   let error e = Lwt.return @@ Error e in 
   Request.create_timeline ~error timeline_id title true (
     function id ->
-      let id = Ui_utils.timeline_arg_from_id ~name:headline id in
+      let id = Ui_utils.timeline_arg_from_id ?name id in
       let new_page = Format.sprintf "/edit?timeline=%s" id in
       Js_utils.log "Going to %s" new_page;
       finish @@ Ok (Ui_utils.goto_page new_page)
@@ -170,7 +170,7 @@ let export_timeline title events =
 let import_timeline tid is_public elt =
   Js_utils.log "Importing timeline";
   if Js_utils.confirm "You are about to replace your timeline by the current one. Are you sure?" then
-  Js_utils.Manip.upload_input ~btoa:false elt
+  Js_utils.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
     (fun file_content ->
        let title, events = Csv_utils.from_string file_content in
        let title =
@@ -187,9 +187,14 @@ let import_timeline tid is_public elt =
     )
     else false
 
-let addToken ~readonly ?pretty tid with_tokens =
-  let args = ["readonly", string_of_bool readonly] in
-  let args = (* TODO : put complete filter in arguments *)
+let addToken
+  ~readonly
+  ?pretty
+  tid
+  with_tokens =
+  let args =
+    ("readonly", string_of_bool readonly) :: Args.get_args () in
+  let args =
     match pretty with
     | None -> args
     | Some p -> ("pretty", p) :: args in
@@ -202,13 +207,25 @@ let addToken ~readonly ?pretty tid with_tokens =
       )
     )
 
-let updateTokenFilter ~readonly tid token update_vue =
-  let args = ["readonly", string_of_bool readonly] in
-  Request.update_token ~error args tid token (fun () -> let () = update_vue () in Lwt.return (Ok ())) 
+let updateTokenFilter ~readonly tid token with_tokens =
+  Request.update_token_readonly ~error readonly tid token (
+    fun () ->
+      Request.get_tokens tid (
+        fun tokens -> 
+          with_tokens tokens; 
+          Lwt.return (Ok ())
+      )
+    )
 
-let updateTokenName pretty tid token update_vue =
-  let args = ["pretty", pretty] in
-  Request.update_token ~error args tid token (fun () -> let () = update_vue () in Lwt.return (Ok ())) 
+let updateTokenName pretty tid token with_tokens =
+  Request.update_token_pretty ~error pretty tid token (
+    fun () ->
+      Request.get_tokens tid (
+        fun tokens -> 
+          with_tokens tokens; 
+          Lwt.return (Ok ())
+      )
+    )
 
 let removeToken tid token with_tokens =
   Request.remove_token ~error tid token 
@@ -218,6 +235,13 @@ let removeToken tid token with_tokens =
           with_tokens tokens; 
           Lwt.return (Ok ())
       )
+    )
+
+let removeTimeline tid =
+  Request.remove_timeline tid
+    (fun _ ->
+       Ui_utils.goto_page "https://ez-timeline.ocamlpro.com/";
+       finish (Ok ())
     )
 
 (*open Data_types

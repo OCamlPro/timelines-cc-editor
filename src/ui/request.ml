@@ -17,7 +17,17 @@ let api () =
     hu_arguments = [];
     hu_fragment = "" } in
   Https h
-  
+(*
+let api () =
+  let h = {
+    hu_host = "localhost";
+    hu_port = 13579;
+    hu_path = [];
+    hu_path_string = "";
+    hu_arguments = [];
+    hu_fragment = "" } in
+  Http h
+  *)
 (*
   match Js_of_ocaml.Url.Current.get () with
   | Some u -> u
@@ -115,7 +125,8 @@ let post ~args ~error (apifun : _ EzAPI.service) apiargs input cont =
   let () =
     Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) api_fun_name in
   let input_encoding = EzAPI.service_input apifun in 
-  let output_encodings = output_encodings_from_apifun apifun in    
+  let output_encodings = output_encodings_from_apifun apifun in
+  let () = Js_utils.log "Encodings OK, calling POST" in    
   Xhr_lwt.post
     ~eprint:Js_utils.log ~args ~base:url input_encoding output_encodings api_fun_name input >>=
   (fun res ->
@@ -180,7 +191,7 @@ let add_event ~error (tid : string) (event : Data_types.event) cont =
     cont
 
 let update_event ~error ~id ~old_event ~new_event ~timeline_id cont =
-  let args = args_from_session ["id", string_of_int id] in
+  let args = args_from_session [] in
   post
     ~args
     ~error
@@ -194,6 +205,13 @@ let remove_event ~error ~id ~timeline_id cont =
     ~error
     ~args
     ApiServices.remove_event [timeline_id]
+    cont
+
+let remove_timeline ~id cont =
+  post
+    ~error:(fun e -> return (Error e))
+    ~args:(args_from_session [])
+    ApiServices.remove_timeline [id]
     cont
 
 let register_user email password cont =
@@ -231,6 +249,7 @@ let has_admin_rights timeline cont =
 
 let categories timeline cont =
   post
+    ~error:(fun _e -> return (Error "Failed to get categories"))
     ~args:(args_from_session [])
     ApiServices.categories [timeline]
     ()
@@ -248,7 +267,7 @@ let logout ~error cont =
       cont
 
 let create_timeline timeline_id title is_public cont =
-  post 
+  post
     ~args:(args_from_session [])
     ApiServices.create_timeline [timeline_id]
     (title, is_public)
@@ -290,11 +309,24 @@ let remove_timeline timeline cont =
     ()
     cont
 
-let update_token ~error args timeline token cont =
+let update_token_readonly ~error readonly timeline token cont =
   post
     ~error
-    ~args:(args_from_session args)
-    ApiServices.update_token [token]
+    ~args:(args_from_session ["readonly", string_of_bool readonly])
+    ApiServices.update_token_readonly [token]
+    timeline
+    cont
+
+let update_token_pretty ~error pretty timeline token cont =
+  let args =
+    let l = args_from_session [] in 
+    match pretty with
+    | None -> l
+    | Some p -> ("pretty", p) :: l in
+  post
+    ~error
+    ~args
+    ApiServices.update_token_pretty [token]
     timeline
     cont
 
@@ -332,4 +364,11 @@ let import_timeline
     ~args
     ApiServices.import_timeline [timeline]
     (title, events, is_public)
+    cont
+
+let timeline_name (tid : string) cont =
+  get
+    ~error:(fun _ -> cont "Timeline")
+    ~args:[]
+    ApiServices.timeline_name [tid]
     cont

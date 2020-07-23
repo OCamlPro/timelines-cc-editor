@@ -130,9 +130,9 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
 let timeline_data (req, tid) _ () =
   Lwt_io.printl "CALL timeline_data" >>= (fun () ->
   let start_date =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.req_params in
   let end_date =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
   let groups = StringMap.find_opt "group" req.req_params in
   let min_ponderation =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
@@ -358,11 +358,10 @@ let view (req, tid) _ () =
 
 let decode_token_params req =
   let after =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.req_params in
   let before =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
-  let groups =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "group_list" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
+  let groups = StringMap.find_opt "group" req.req_params in
   let min_ponderation =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
   let max_ponderation =
@@ -382,7 +381,7 @@ let decode_token_params req =
   let max_level = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation in
   let tags =
     Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
-  let categories = Utils.opt (String.split_on_char ',') groups in
+  let categories = groups in
   let confidential =
     match confidential with
     | Some "false" -> false
@@ -405,6 +404,16 @@ let create_token (req, tid) _ () =
     ?tags ~readonly ?pretty
     tid
 
+let update_token_pretty (req, token) _ tid =
+  let pretty =
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.req_params in
+  EzAPIServerUtils.return @@ Writer.update_token_pretty ~pretty ~token tid
+
+let update_token_readonly (req, token) _ tid =
+  let _,_,_,_,_,_,_,readonly, _ = decode_token_params req in
+  EzAPIServerUtils.return @@
+  Writer.update_token_readonly ~readonly ~token tid
+
 let update_token (req, token) _ tid =
   Lwt_io.printl "CALL update_token" >>= (fun () ->
   let after, before, min_level, max_level, tags, categories, confidential, readonly, pretty =
@@ -426,6 +435,10 @@ let remove_token (_req, token) _ tid =
 
 let get_tokens (_req, tid) _ () =
   Reader.get_tokens tid >>= EzAPIServerUtils.return
+
+let timeline_name (_req, tid) _ () =
+  Lwt_io.printl "CALL timeline_name" >>= fun () ->
+  Reader.timeline_name tid >>= EzAPIServerUtils.return
 
 let is_auth req _ () =
   Lwt_io.printl "CALL is_auth" >>= fun () ->

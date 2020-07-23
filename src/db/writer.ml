@@ -378,6 +378,30 @@ let create_token
   end else
     Error "[create_token] Cannot create token")
 
+let update_token_pretty 
+    ~pretty
+    ~token
+    (tid : string) =
+    Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
+      if admin_rights then begin
+        [%pgsql dbh
+            "UPDATE timeline_ids_ SET pretty_=$?pretty WHERE id_=$token"];
+        Ok ()
+      end else 
+          Error "[update_token] Cannot update token")
+
+let update_token_readonly
+    ~readonly
+    ~token
+    (tid : string) =
+    Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
+      if admin_rights then begin
+        [%pgsql dbh
+            "UPDATE timeline_ids_ SET readonly_=$readonly WHERE id_=$token"];
+        Ok ()
+      end else 
+        Error "[update_token] Cannot update token")
+
 let update_token
     ?(users=[])
     ?(confidential=false)
@@ -391,29 +415,32 @@ let update_token
     ?pretty
     ~token
     (tid : string) =
-  Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
-    if admin_rights then begin
-    let users = List.map (fun s -> Some s) users in
-    let tags : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) tags in
-    let categories : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) categories in 
-    let pretty = 
-      match pretty with
-      | None -> begin
-        match Reader.filter_of_token token with 
-          | Error _ -> None (* assert false *)
-          | Ok f -> f.pretty
+  if token = tid then (* A token cannot change its own rights *)
+    Error "[update_token] Cannot self-update a token"
+  else
+    Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
+        if admin_rights then begin
+          let users = List.map (fun s -> Some s) users in
+          let tags : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) tags in
+          let categories : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) categories in 
+          let pretty = 
+            match pretty with
+            | None -> begin
+                match Reader.filter_of_token token with 
+                | Error _ -> None (* assert false *)
+                | Ok f -> f.pretty
+              end
+            | some -> some in
+          [%pgsql dbh
+              "UPDATE timeline_ids_ SET \
+               users_=$users, confidential_=$confidential, readonly_=$readonly, pretty_=$?pretty, \
+               after_=$?after, before_=$?before, min_level_=$?min_level, max_level_=$?max_level, \
+               categories_=$?categories, tags_=$?tags WHERE id_=$token"];
+          Ok ()
         end
-      | some -> some in
-        [%pgsql dbh
-            "UPDATE timeline_ids_ SET \
-             users_=$users, confidential_=$confidential, readonly_=$readonly, pretty_=$?pretty, \
-             after_=$?after, before_=$?before, min_level_=$?min_level, max_level_=$?max_level, \
-             categories_=$?categories, tags_=$?tags WHERE id_=$token"];
-        Ok ()
-      end
-    else
-      Error "[update_token] Cannot update token"
-    )
+        else
+          Error "[update_token] Cannot update token"
+      )
 
 let remove_token (tid : string) (token : string) =
   match Reader.filter_of_token tid , Reader.filter_of_token token with
