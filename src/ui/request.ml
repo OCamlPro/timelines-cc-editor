@@ -125,7 +125,8 @@ let post ~args ~error (apifun : _ EzAPI.service) apiargs input cont =
   let () =
     Js_utils.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) api_fun_name in
   let input_encoding = EzAPI.service_input apifun in 
-  let output_encodings = output_encodings_from_apifun apifun in    
+  let output_encodings = output_encodings_from_apifun apifun in
+  let () = Js_utils.log "Encodings OK, calling POST" in    
   Xhr_lwt.post
     ~eprint:Js_utils.log ~args ~base:url input_encoding output_encodings api_fun_name input >>=
   (fun res ->

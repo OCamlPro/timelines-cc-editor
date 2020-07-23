@@ -75,3 +75,10 @@ let admin_token = obj1 (req "admin" string)
 let unit = obj1 (req "unit" unit)
 
 let string = obj1 (req "string" string)
+
+let update_event_encoding =
+  obj4 
+    (req "event_id" int)
+    (req "old" Data_encoding.title_encoding)
+    (req "new" Data_encoding.title_encoding)
+    (req "timeline_id" string)
