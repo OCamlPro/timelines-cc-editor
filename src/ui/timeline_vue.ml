@@ -681,8 +681,11 @@ let filter self =
         categories_js in
     let args = (* Filtering by ponderation *)
       let min_ponderation = self##.minPonderationFilter in
+      let args = Args.set_min min_ponderation args in
       let max_ponderation = self##.maxPonderationFilter in
-      Args.(set_min min_ponderation @@ set_max max_ponderation args)
+      if max_ponderation >= self##.maxBoundInPonderationFilter 
+        then args else 
+      Args.set_max max_ponderation args
     in
     let args = (* Confidential *)
       let confidential = Js.to_bool self##.alsoConfidential in

@@ -87,7 +87,6 @@ let get_max args =
   | Some i -> try Some (int_of_string i) with _ -> None
 
 let set_max p (args : t) =
-  if p >= 10000 then args else
   set_unique "max_level" (string_of_int p) args
 
 (* Confidential *)
