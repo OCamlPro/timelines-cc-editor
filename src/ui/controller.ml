@@ -40,6 +40,12 @@ let create_timeline name descr =
   let error e = Lwt.return @@ Error e in 
   Request.create_timeline ~error timeline_id title true (
     function id ->
+      let () =
+        let name =
+          match name with
+          | None -> id
+          | Some n -> n in
+        Timeline_cookies.add_timeline name id false in
       let id = Ui_utils.timeline_arg_from_id ?name id in
       let new_page = Format.sprintf "/edit?timeline=%s" id in
       Js_utils.log "Going to %s" new_page;
@@ -240,7 +246,8 @@ let removeToken tid token with_tokens =
 let removeTimeline tid =
   Request.remove_timeline tid
     (fun _ ->
-       Ui_utils.goto_page "https://ez-timeline.ocamlpro.com/";
+       Timeline_cookies.remove_timeline tid;
+       Ui_utils.goto_page "/";
        finish (Ok ())
     )
 

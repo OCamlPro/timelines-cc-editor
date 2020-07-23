@@ -374,7 +374,7 @@ let page_vue
   end
 
 type on_page =
-  | No_timeline
+  | No_timeline of {name : string; id : string}
   | Timeline of {
       name: string;
       id: string;
@@ -727,7 +727,7 @@ let init
   let name, id, events, title =
     match on_page with
     | Timeline {name; id; events; title} -> name, id, events, title
-    | No_timeline -> "", "", [], None in
+    | No_timeline {name; id} -> name, id, [], None in
   let data = page_vue id name args categories title events tokens in
   Js_utils.log "Adding methods@.";
   Vue.add_method0 "showMenu" showMenu;
@@ -757,10 +757,12 @@ let init
   let () = FilterNavs.init () in
   let () =
     match on_page with
-    | No_timeline -> Js_utils.alert "No timeline has been selected"
-    | Timeline {title; events; id; _} ->
+    | No_timeline {name=_; id} ->
+      Js_utils.alert "No timeline has been selected";
+      Timeline_cookies.remove_timeline id
+    | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
-      let () = Timeline_cookies.add_timeline id false in
+      let () = Timeline_cookies.add_timeline name id false in
       Js_utils.log "Displaying timeline@.";
       match events with
       | [] -> first_connexion vue

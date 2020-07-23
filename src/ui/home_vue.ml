@@ -1,4 +1,3 @@
-open Lwt
 open Ui_common
 open Ui_utils
 open Text
@@ -7,7 +6,7 @@ open Lang
 module Js = Js_of_ocaml.Js
 
 class type urlData = object
-  method id : int Js.readonly_prop
+  method name : Js.js_string Js.t Js.readonly_prop
   method url : Js.js_string Js.t Js.readonly_prop
 end
 
@@ -43,26 +42,21 @@ end
 module Vue = Vue_js.Make (Input)
 
 let createTimeline (self : data Vue_js.vue) =
+  ignore @@
   Controller.create_timeline
     (Js_of_ocaml.Js.to_string self##.createNameValue)
-    (Js_of_ocaml.Js.to_string self##.createDescrValue) >>=
-  (fun _ -> Js_utils.log "Ok!"; Lwt.return (Ok ()))
-
-let url_component () =
-  let template = "<div>{{item.url}}</div>" in
-  let props = Vue_component.PrsArray ["item"] in
-  Vue_component.make "urls" ~template ~props
+    (Js_of_ocaml.Js.to_string self##.createDescrValue)
 
 let init () =
   let timelines =
     Js.array @@
     Array.of_list @@ 
-    List.mapi
-      (fun i (token, ro) ->
+    List.map
+      (fun tl ->
          let obj : urlData Js.t =
            object%js
-             val id = i
-             val url = jss @@ Timeline_cookies.url token ro
+             val name = jss tl.Timeline_cookies.name
+             val url = jss @@ Timeline_cookies.url tl 
            end in
          obj
       )
@@ -92,8 +86,6 @@ let init () =
   in
   Vue.add_method0 "createTimeline" createTimeline;
 
-  let urls_component = url_component () in
-  let () = Vue.add_component "urls" urls_component in
   let _obj = Vue.init ~data () in
   Ui_utils.slow_hide (Js_utils.find_component "page_content-loading");
   ()
