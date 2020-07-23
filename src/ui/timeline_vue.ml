@@ -172,6 +172,7 @@ class type data = object
   (* Filters *)
   method minPonderationFilter : int Js.prop
   method maxPonderationFilter : int Js.prop
+  method maxBoundInPonderationFilter : int Js.readonly_prop
   method categories : categoryFilter Js.t Js.js_array Js.t Js.prop
   method alsoConfidential : bool Js.t Js.prop
 
@@ -233,6 +234,7 @@ let page_vue
     (timeline_name : string)
     (args : Args.t)
     (categories : (string * bool) list)
+    (title : (int * title) option)
     (events : (int * event) list)
     (tokens : DbData.filter list)
   : data Js.t =
@@ -246,8 +248,22 @@ let page_vue
            val catId = jss (Ui_utils.trim c)
            val mutable checked = Js.bool checked
          end)
-      categories
-  in object%js
+      categories in
+
+  let max = match Args.get_max args with
+    | None -> 
+      let title_pond = 
+        match title with 
+        | None -> 0
+        | Some (_, {ponderation; _}) -> ponderation in
+      List.fold_left
+        (fun max (_, {ponderation; _}) ->
+         Js_utils.log "PONDERATION: %i" ponderation;
+         if ponderation > max then ponderation else max)
+         title_pond
+         events
+    | Some i -> i in
+  object%js
     val exportButton        = tjs_ s_share
 
     val categoryHeader      = tjs_ s_categories
@@ -312,10 +328,9 @@ let page_vue
       | None -> 0
       | Some i -> i
 
-    val mutable maxPonderationFilter =
-      match Args.get_max args with
-      | None -> 10000
-      | Some i -> i
+    val mutable maxPonderationFilter = max
+
+    val maxBoundInPonderationFilter = max
 
     val mutable categories     = categories
 
@@ -710,7 +725,7 @@ let init
     match on_page with
     | Timeline {name; id; events; title} -> name, id, events, title
     | No_timeline -> "", "", [], None in
-  let data = page_vue id name args categories events tokens in
+  let data = page_vue id name args categories title events tokens in
   Js_utils.log "Adding methods@.";
   Vue.add_method0 "showMenu" showMenu;
   Vue.add_method0 "hideMenu" hideMenu;

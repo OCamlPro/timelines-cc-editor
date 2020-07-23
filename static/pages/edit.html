@@ -134,7 +134,7 @@
 	    type="range"
 	    v-model="maxPonderationFilter"
 	    :min="minPonderationFilter"
-	    max=10000> to <input type="number" v-model="maxPonderationFilter">
+	    :max="maxBoundInPonderationFilter"> to <input type="number" v-model="maxPonderationFilter">
 	</div>
 	<div id="filter-other-content" style="display:none">
 	  <input type="checkbox" v-model="alsoConfidential">
