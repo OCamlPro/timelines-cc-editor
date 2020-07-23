@@ -68,6 +68,7 @@
 	["startDateFormHelp", "When does your event start?"],
 	["tags", "Tags"],
         ["tagsFormHelp", "Add relevant keywords separated with commas" ],
+        ["timelineListText", "List of your timelines" ],	
 	["to", "To"],
 	["uniqueId", "URL Identifier"],
 	["uniqueIdFormHelp", "Customize your event's URL (by default, the event's title is used)"]

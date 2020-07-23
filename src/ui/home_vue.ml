@@ -5,11 +5,6 @@ open Lang
 
 module Js = Js_of_ocaml.Js
 
-class type urlData = object
-  method name : Js.js_string Js.t Js.readonly_prop
-  method url : Js.js_string Js.t Js.readonly_prop
-end
-
 class type data = object
     method logo : Js.js_string Js.t Js.readonly_prop
     method navHome : Js.js_string Js.t Js.readonly_prop
@@ -30,7 +25,7 @@ class type data = object
     method shareTitle : Js.js_string Js.t Js.readonly_prop
     method shareDescr : Js.js_string Js.t Js.readonly_prop
 
-    method cookieTimelines : urlData Js.t Js.js_array Js.t Js.readonly_prop
+    method cookieTimelines : Timeline_cookies.urlData Js.t Js.js_array Js.t Js.readonly_prop
   end
 
 module Input = struct
@@ -48,19 +43,6 @@ let createTimeline (self : data Vue_js.vue) =
     (Js_of_ocaml.Js.to_string self##.createDescrValue)
 
 let init () =
-  let timelines =
-    Js.array @@
-    Array.of_list @@ 
-    List.map
-      (fun tl ->
-         let obj : urlData Js.t =
-           object%js
-             val name = jss tl.Timeline_cookies.name
-             val url = jss @@ Timeline_cookies.url tl 
-           end in
-         obj
-      )
-      (Timeline_cookies.get_timelines ()) in
   let data : data Js.t =
     object%js
       val logo = tjs_ s_ez_timeline
@@ -81,7 +63,7 @@ let init () =
       val mutable createNameValue = jss ""
       val mutable createDescrValue = jss ""
 
-      val cookieTimelines = timelines
+      val cookieTimelines = Timeline_cookies.js_data ()
     end
   in
   Vue.add_method0 "createTimeline" createTimeline;

@@ -167,6 +167,7 @@ class type data = object
   method editionLinkText       : Js.js_string Js.t Js.readonly_prop
   method readLinkText          : Js.js_string Js.t Js.readonly_prop
 
+  method timelineListText      : Js.js_string Js.t Js.readonly_prop
   (* Values *)
 
   (* Filters *)
@@ -210,6 +211,9 @@ class type data = object
 
   method filters : filter Js.t Js.js_array Js.t Js.prop
   (* Tokens *)
+      
+  method cookieTimelines : Timeline_cookies.urlData Js.t Js.js_array Js.t Js.readonly_prop
+  (* Timelines in cookies *)
 end
 
 module PageContent = struct
@@ -323,6 +327,8 @@ let page_vue
     val editionLinkText = tjs_ s_edition_link_text
     val readLinkText    = tjs_ s_read_link_text
 
+    val timelineListText = tjs_ s_timeline_list_text
+    
     val mutable minPonderationFilter =
       match Args.get_min args with
       | None -> 0
@@ -370,7 +376,9 @@ let page_vue
         )
         events
 
-    val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens 
+    val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
+
+    val cookieTimelines = Timeline_cookies.js_data ()
   end
 
 type on_page =

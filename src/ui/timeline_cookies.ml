@@ -1,4 +1,5 @@
 open Json_encoding
+open Ui_common
 
 type t = {
   id : string;
@@ -75,3 +76,26 @@ let url t =
       view
       t.name
       t.id
+
+(* Js data for vuejs *)
+
+class type urlData = object
+  method name : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
+  method url  : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
+  method readonly : bool Js_of_ocaml.Js.readonly_prop
+end
+
+let js_data () =
+  Js_of_ocaml.Js.array @@
+  Array.of_list @@ 
+  List.map
+    (fun tl ->
+       let obj : urlData Js_of_ocaml.Js.t =
+         object%js
+           val name = Ui_utils.jss tl.name
+           val url = Ui_utils.jss @@ url tl
+           val readonly = tl.readonly
+         end in
+       obj
+    )
+    (get_timelines ())
