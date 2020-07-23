@@ -170,7 +170,7 @@ let export_timeline title events =
 let import_timeline tid is_public elt =
   Js_utils.log "Importing timeline";
   if Js_utils.confirm "You are about to replace your timeline by the current one. Are you sure?" then
-  Js_utils.Manip.upload_input ~btoa:false elt
+  Js_utils.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
     (fun file_content ->
        let title, events = Csv_utils.from_string file_content in
        let title =
