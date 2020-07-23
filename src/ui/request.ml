@@ -191,7 +191,7 @@ let add_event ~error (tid : string) (event : Data_types.event) cont =
     cont
 
 let update_event ~error ~id ~old_event ~new_event ~timeline_id cont =
-  let args = args_from_session ["id", string_of_int id] in
+  let args = args_from_session [] in
   post
     ~args
     ~error
