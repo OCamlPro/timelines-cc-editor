@@ -187,6 +187,7 @@ class type data = object
   method mediaFormValue         : Js.js_string Js.t Js.prop
   method headlineFormValue      : Js.js_string Js.t Js.prop
   method uniqueIdFormValue      : Js.js_string Js.t Js.prop
+  method uniqueIdFormValueDefault : Js.js_string Js.t Js.prop
   method categoriesFormValue    : Js.js_string Js.t Js.prop
   method textFormValue          : Js.js_string Js.t Js.prop
   method tagsFormValue          : Js.js_string Js.t Js.prop
@@ -350,6 +351,7 @@ let page_vue
     val mutable mediaFormValue         = jss ""
     val mutable headlineFormValue      = jss ""
     val mutable uniqueIdFormValue      = jss ""
+    val mutable uniqueIdFormValueDefault = jss ""
     val mutable categoriesFormValue    = jss ""
     val mutable textFormValue          = jss ""
     val mutable tagsFormValue          = jss ""
@@ -721,6 +723,25 @@ let removeTimeline self =
       (Js.to_string self##.currentTimeline)
   else ()
 
+let switchToMainInput _ =
+  Js_utils.(hide (find_component "unique-id-default-form"));
+  Js_utils.(show (find_component "unique-id-form"))
+
+let switchToDefaultInput self =
+  if Js.to_string self##.uniqueIdFormValue = "" then begin
+    self##.uniqueIdFormValue := self##.uniqueIdFormValueDefault;
+    Js_utils.(show (find_component "unique-id-default-form"));
+    Js_utils.(hide (find_component "unique-id-form"));
+  end
+
+let updateDefaultId self =
+  let title = Js.to_string self##.headlineFormValue in
+  let uid = Js.string @@ Utils.short_title title in
+  self##.uniqueIdFormValueDefault := uid;
+  if Js.to_string self##.uniqueIdFormValue = "" then begin
+    self##.uniqueIdFormValue := uid
+  end
+
 let first_connexion self =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
   showForm None [] self true
@@ -757,6 +778,9 @@ let init
   Vue.add_method2 "copyLink" copyLink;
   Vue.add_method1 "displayTokenFilter" displayTokenFilter;
   Vue.add_method0 "removeTimeline" removeTimeline;
+  Vue.add_method0 "switchToMainInput" switchToMainInput;
+  Vue.add_method0 "switchToDefaultInput" switchToDefaultInput;
+  Vue.add_method0 "updateDefaultId" updateDefaultId;
   
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";

@@ -198,6 +198,7 @@
 	  :placeholder="headlineFormHelp"
 	  type="input"
 	  v-model="headlineFormValue"
+	  @change="updateDefaultId()"
 	  required/>
 	<div class="form-element-bar">
 	</div>
@@ -329,11 +330,21 @@
       <!-- URL -->
       <div class="form-element form-input">
 	<input
-	  id="unique-id"
+	  id="unique-id-default-form"
+	  class="form-element-field"
+	  :placeholder="uniqueIdFormHelp"
+	  v-model="uniqueIdFormValueDefault"
+	  type="input"
+	  @click="switchToMainInput()"
+	  />
+	<input
+	  id="unique-id-form"
 	  class="form-element-field"
 	  :placeholder="uniqueIdFormHelp"
 	  v-model="uniqueIdFormValue"
-	  type="input" required/>
+	  type="input"
+	  @change="switchToDefaultInput()"
+	  required/>
 	<div class="form-element-bar">
 	</div>
 	<label class="form-element-label" for="unique-id">{{uniqueIdFormTitle}}</label>
