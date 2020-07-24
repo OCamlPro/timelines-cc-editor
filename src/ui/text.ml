@@ -82,3 +82,5 @@ let s_add_readonly_token_button = ss_ "addReadonlyTokenButton"
 let s_confidential_filter_form = ss_ "confidentialFilterForm"
 
 let s_remove_timeline_text = ss_ "removeTimelineText"
+
+let s_timeline_list_text = ss_ "timelineListText"

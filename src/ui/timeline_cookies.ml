@@ -1,65 +1,101 @@
-(* Format: timeline,bool;timeline,bool;... where bool is set for readonly *)
+open Json_encoding
+open Ui_common
+
+type t = {
+  id : string;
+  readonly : bool;
+  name : string;
+}
+
+let t_encoding = 
+  conv
+    (fun {id; readonly; name} -> (id, readonly, name))
+    (fun (id, readonly, name) -> {id; readonly; name})
+    (obj3
+      (req "url" string)
+      (req "readonly" bool)
+      (req "name" string))
+
+let encoding = list t_encoding
+
+let reset () =
+  Cookie.set "timelines" "{}"
 
 let get_timelines () =
-  let tls = List.assoc_opt "timelines" (Cookie.all ()) in
-  match tls with
-  | None -> []
-  | Some str ->
-    let pairs = String.split_on_char ';' str in
-    List.fold_left
-      (fun acc pair ->
-         let l = String.split_on_char ',' pair in
-         match List.rev l with
-         | [] -> assert false
-         | [token] -> if token = "" then acc else (token, true) :: acc
-         | maybool :: rest -> begin
-             try
-               let readonly = bool_of_string maybool in
-               ((String.concat "," (List.rev rest)), readonly) :: acc
-             with _ ->
-               (pair, true) :: acc
-           end
-      )
-      []
-      pairs
+  try
+    List.iter
+      (fun (k, _) -> Js_utils.log "Key %s" k) (Cookie.all ());
+    let tls = List.assoc_opt "timelines" (Cookie.all ()) in
+    match tls with
+    | None -> []
+    | Some str ->
+      let json = Yojson.Safe.from_string str in
+      let json = Json_repr.from_yojson json in
+      destruct encoding json
+  with _ ->
+    let () = reset () in
+    []
 
-let url token readonly =
-  Format.asprintf
-    "https://ez-timeline.ocamlpro.com/%s?timeline=%s"
-    (if readonly then "view" else "edit")
-    token
-
-let add_timeline token readonly =
+let add_timeline name id readonly =
   let tls = get_timelines () in
+  let new_tl = {name; id; readonly} in
   let rec replace_or_add = function
-    | [] -> [token, readonly]
-    | (tk, ro) :: tl ->
-      if tk = token then
-        (token, readonly) :: tl
+    | [] -> [{id; readonly; name}]
+    | old_timeline :: tl ->
+      if old_timeline = new_tl then
+        old_timeline :: tl
       else
-        (tk, ro) :: replace_or_add tl in
+        old_timeline :: replace_or_add tl in
   let new_tls = replace_or_add tls in
-  let str =
-    List.fold_left
-      (fun acc (tk, ro) -> acc ^ tk ^ "," ^ string_of_bool ro ^ ";")
-      ""
-      new_tls in
+  let str = 
+    Yojson.Safe.to_string @@ 
+    Json_repr.to_yojson @@
+    construct encoding new_tls in
   Cookie.set "timelines" str
 
-let remove_timeline token =
+let remove_timeline id =
   let tls = get_timelines () in
   let rec remove = function
     | [] -> []
-    | (tk, ro) :: tl ->
-      if tk = token then
-        tl
+    | ({id=old; _} as old_timeline) :: tl ->
+      if old = id then
+        remove tl
       else
-        (tk, ro) :: remove tl in
+        old_timeline :: remove tl in
   let new_tls = remove tls in
-  let str =
-    List.fold_left
-      (fun acc (tk, ro) -> acc ^ tk ^ "," ^ string_of_bool ro ^ ";")
-      ""
-      new_tls in
+  let str = 
+    Yojson.Safe.to_string @@ 
+    Json_repr.to_yojson @@
+    construct encoding new_tls in
   Cookie.set "timelines" str
-  
+
+let url t =
+  let view = 
+    if t.readonly then "view" else "edit" in
+    Format.sprintf "%s?timeline=%s-%s"
+      view
+      t.name
+      t.id
+
+(* Js data for vuejs *)
+
+class type urlData = object
+  method name : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
+  method url  : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
+  method readonly : bool Js_of_ocaml.Js.readonly_prop
+end
+
+let js_data () =
+  Js_of_ocaml.Js.array @@
+  Array.of_list @@ 
+  List.map
+    (fun tl ->
+       let obj : urlData Js_of_ocaml.Js.t =
+         object%js
+           val name = Ui_utils.jss tl.name
+           val url = Ui_utils.jss @@ url tl
+           val readonly = tl.readonly
+         end in
+       obj
+    )
+    (get_timelines ())

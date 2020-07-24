@@ -32,7 +32,7 @@ let timeline_page ~args =
   match Args.get_timeline args with
   | None ->
     Js_utils.log "No id found";
-    Timeline_vue.(init ~args ~on_page:No_timeline ~categories:[] ~tokens:[]);
+    Timeline_vue.(init ~args ~on_page:(No_timeline {name = ""; id = ""}) ~categories:[] ~tokens:[]);
     finish ()
   | Some tid ->
     Js_utils.log "Id: %s" tid;
@@ -43,7 +43,7 @@ let timeline_page ~args =
           Request.categories tid (fun categories ->
             let on_page =
               match title, events with
-              | None, [] -> Timeline_vue.No_timeline
+              | None, [] -> Timeline_vue.No_timeline {name; id=tid}
               | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
             let categories =
               let in_args = Args.get_categories args in            
@@ -60,11 +60,11 @@ let timeline_page ~args =
 
 let view_page ~args =
   match Args.get_timeline args with
-  | None -> View_vue.init None None []; finish ()
+  | None -> View_vue.init None "" None []; finish ()
   | Some tid ->
-    let _name, tid' = Ui_utils.timeline_id_from_arg tid in
+    let name, tid' = Ui_utils.timeline_id_from_arg tid in
     Request.timeline_data ~args tid' (fun (title, events) ->
-      View_vue.init (Some tid) title events;
+      View_vue.init (Some tid) name title events;
       finish ()
     )
 

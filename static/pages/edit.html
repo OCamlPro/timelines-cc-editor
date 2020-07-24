@@ -12,8 +12,19 @@
   <div class="tooltip fa fa-times fa-2x" id="close" @click="hideMenu()">
   </div>
   <div class="section" style="height:435px">
-    <div class="timeline-menu-token tooltip fa fa-times fa-2x" style="visibility:hidden">
-      <!-- Todo -->
+    <div class="timeline-menu-token tooltip fa fa-close fa-2x" style="display:none">
+      <!--TODO-->
+    </div>
+    <div class="timeline-menu-token tooltip fa fa-file fa-2x">
+      <div class="tooltipcontent" v-show="cookieTimelines.length != 0">
+	{{timelineListText}}
+	<ul>
+	  <li v-for="item in cookieTimelines">
+	    <a :href="item.url"> {{item.name}} </a>
+	    <span v-show='item.readonly' class='fa fa-eye fa-2x'></span>
+	  </li>
+	</ul>
+      </div>
     </div>
     <div
       class="timeline-menu-token tooltip"
@@ -187,6 +198,7 @@
 	  :placeholder="headlineFormHelp"
 	  type="input"
 	  v-model="headlineFormValue"
+	  @keyup="updateDefaultId()"
 	  required/>
 	<div class="form-element-bar">
 	</div>
@@ -318,11 +330,21 @@
       <!-- URL -->
       <div class="form-element form-input">
 	<input
-	  id="unique-id"
+	  id="unique-id-default-form"
+	  class="form-element-field"
+	  :placeholder="uniqueIdFormHelp"
+	  v-model="uniqueIdFormValueDefault"
+	  type="input"
+	  @click="switchToMainInput()"
+	  />
+	<input
+	  id="unique-id-form"
 	  class="form-element-field"
 	  :placeholder="uniqueIdFormHelp"
 	  v-model="uniqueIdFormValue"
-	  type="input" required/>
+	  type="input"
+	  @change="switchToDefaultInput()"
+	  required/>
 	<div class="form-element-bar">
 	</div>
 	<label class="form-element-label" for="unique-id">{{uniqueIdFormTitle}}</label>

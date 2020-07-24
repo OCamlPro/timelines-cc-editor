@@ -167,6 +167,7 @@ class type data = object
   method editionLinkText       : Js.js_string Js.t Js.readonly_prop
   method readLinkText          : Js.js_string Js.t Js.readonly_prop
 
+  method timelineListText      : Js.js_string Js.t Js.readonly_prop
   (* Values *)
 
   (* Filters *)
@@ -186,6 +187,7 @@ class type data = object
   method mediaFormValue         : Js.js_string Js.t Js.prop
   method headlineFormValue      : Js.js_string Js.t Js.prop
   method uniqueIdFormValue      : Js.js_string Js.t Js.prop
+  method uniqueIdFormValueDefault : Js.js_string Js.t Js.prop
   method categoriesFormValue    : Js.js_string Js.t Js.prop
   method textFormValue          : Js.js_string Js.t Js.prop
   method tagsFormValue          : Js.js_string Js.t Js.prop
@@ -210,6 +212,9 @@ class type data = object
 
   method filters : filter Js.t Js.js_array Js.t Js.prop
   (* Tokens *)
+      
+  method cookieTimelines : Timeline_cookies.urlData Js.t Js.js_array Js.t Js.readonly_prop
+  (* Timelines in cookies *)
 end
 
 module PageContent = struct
@@ -323,6 +328,8 @@ let page_vue
     val editionLinkText = tjs_ s_edition_link_text
     val readLinkText    = tjs_ s_read_link_text
 
+    val timelineListText = tjs_ s_timeline_list_text
+    
     val mutable minPonderationFilter =
       match Args.get_min args with
       | None -> 0
@@ -344,6 +351,7 @@ let page_vue
     val mutable mediaFormValue         = jss ""
     val mutable headlineFormValue      = jss ""
     val mutable uniqueIdFormValue      = jss ""
+    val mutable uniqueIdFormValueDefault = jss ""
     val mutable categoriesFormValue    = jss ""
     val mutable textFormValue          = jss ""
     val mutable tagsFormValue          = jss ""
@@ -370,11 +378,13 @@ let page_vue
         )
         events
 
-    val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens 
+    val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
+
+    val cookieTimelines = Timeline_cookies.js_data ()
   end
 
 type on_page =
-  | No_timeline
+  | No_timeline of {name : string; id : string}
   | Timeline of {
       name: string;
       id: string;
@@ -713,6 +723,25 @@ let removeTimeline self =
       (Js.to_string self##.currentTimeline)
   else ()
 
+let switchToMainInput _ =
+  Js_utils.(hide (find_component "unique-id-default-form"));
+  Js_utils.(show (find_component "unique-id-form"))
+
+let switchToDefaultInput self =
+  if Js.to_string self##.uniqueIdFormValue = "" then begin
+    self##.uniqueIdFormValue := self##.uniqueIdFormValueDefault;
+    Js_utils.(show (find_component "unique-id-default-form"));
+    Js_utils.(hide (find_component "unique-id-form"));
+  end
+
+let updateDefaultId self =
+  let title = Js.to_string self##.headlineFormValue in
+  let uid = Js.string @@ Utils.short_title title in
+  self##.uniqueIdFormValueDefault := uid;
+  if Js.to_string self##.uniqueIdFormValue = "" then begin
+    self##.uniqueIdFormValue := uid
+  end
+
 let first_connexion self =
   Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
   showForm None [] self true
@@ -727,7 +756,7 @@ let init
   let name, id, events, title =
     match on_page with
     | Timeline {name; id; events; title} -> name, id, events, title
-    | No_timeline -> "", "", [], None in
+    | No_timeline {name; id} -> name, id, [], None in
   let data = page_vue id name args categories title events tokens in
   Js_utils.log "Adding methods@.";
   Vue.add_method0 "showMenu" showMenu;
@@ -749,6 +778,9 @@ let init
   Vue.add_method2 "copyLink" copyLink;
   Vue.add_method1 "displayTokenFilter" displayTokenFilter;
   Vue.add_method0 "removeTimeline" removeTimeline;
+  Vue.add_method0 "switchToMainInput" switchToMainInput;
+  Vue.add_method0 "switchToDefaultInput" switchToDefaultInput;
+  Vue.add_method0 "updateDefaultId" updateDefaultId;
   
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
@@ -757,10 +789,12 @@ let init
   let () = FilterNavs.init () in
   let () =
     match on_page with
-    | No_timeline -> Js_utils.alert "No timeline has been selected"
-    | Timeline {title; events; id; _} ->
+    | No_timeline {name=_; id} ->
+      Js_utils.alert "No timeline has been selected";
+      Timeline_cookies.remove_timeline id
+    | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
-      let () = Timeline_cookies.add_timeline id false in
+      let () = Timeline_cookies.add_timeline name id false in
       Js_utils.log "Displaying timeline@.";
       match events with
       | [] -> first_connexion vue

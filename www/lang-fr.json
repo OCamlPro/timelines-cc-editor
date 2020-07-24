@@ -69,6 +69,7 @@
 	["startDateFormHelp", "Date de début"],
 	["tags", "Tags (separés par des virgules ',')"],
         ["tagsFormHelp", "Qualifiez votre événement avec des mots-clés" ],
+        ["timelineListText", "List of your timelines" ],
 	["to", "Date de fin"],
 	["uniqueId", "Identifiant de fin d'URL (par défaut, le titre)"],
 	["uniqueIdFormHelp", "Personnalisez si vous le souhaitez l'identifiant unique utilisé pour l'URL pointant sur votre évènement. Par défaut, c'est le titre qui est utilisé."]
