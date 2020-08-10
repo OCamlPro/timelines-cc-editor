@@ -423,6 +423,17 @@ let timeline_name : (string, string) service1 =
     ~output:string
     Path.(api_root // "timeline_name" /: arg_token ())
 
+let update_timeline_name : (string, unit) post_service0 =
+  post_service
+    ~error_outputs
+    ~params:(auth_params @ [
+        pretty_name_param
+      ])
+    ~name:"update_timeline_name"
+    ~input:any_token
+    ~output:unit
+    Path.(api_root // "update_timeline_name")
+
 let version : string service0 =
   service
     ~error_outputs

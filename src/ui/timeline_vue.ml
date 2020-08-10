@@ -179,7 +179,9 @@ class type data = object
 
 
   method timelineName : Js.js_string Js.t Js.prop
+  method newTimelineName : Js.js_string Js.t Js.prop
 
+  method openedMenu : bool Js.t Js.prop
   
 
   method startDateFormValue     : Js.js_string Js.t Js.prop
@@ -345,6 +347,8 @@ let page_vue
       Js.bool (Args.get_confidential args)
 
     val mutable timelineName = jss timeline_name
+    val mutable newTimelineName = jss timeline_name
+    val mutable openedMenu = Js.bool false 
 
     val mutable startDateFormValue     = jss ""
     val mutable endDateFormValue       = jss ""
@@ -439,8 +443,9 @@ let updateVueFromEvent self e =
     self##.tagsFormValue := jss tags_str in
   ()
 
-let showMenu (_self : 'a) : unit = 
-  Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible"
+let showMenu (self : 'a) : unit = 
+  Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible";
+  self##.openedMenu := Js._true
 
 let showForm title events (self : 'a) (adding : bool) : unit =
   showMenu self;
@@ -476,9 +481,27 @@ let hideForm self =
   Js_utils.Manip.removeClass (Js_utils.find_component "formPanel") "visible";
   self##.addingNewEvent := (Js.bool false)
 
+let updateTimelineTitle (self : 'a) : unit =
+  if self##.timelineName <> self##.newTimelineName then
+    let tid = Js.to_string self##.currentTimeline in
+    let new_name = Js.to_string self##.newTimelineName in
+    ignore @@
+    Controller.updateTimelineName
+      tid
+      new_name
+      (fun success ->
+         if success then begin
+           self##.timelineName := self##.newTimelineName;
+           Ui_utils.(replace
+                       (url "" (Args.set_timeline (new_name ^ "-" ^ tid) (Args.get_args ()))))
+         end
+      )
+
 let hideMenu (self : 'a) : unit =
   hideForm self;
-  Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible"
+  Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible";
+  self##.openedMenu := Js._false;
+  updateTimelineTitle self
 
 let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in

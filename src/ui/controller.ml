@@ -251,6 +251,9 @@ let removeTimeline tid =
        finish (Ok ())
     )
 
+let updateTimelineName tid new_name cont =
+  Request.update_timeline_name new_name tid (fun failed -> cont failed; Lwt.return (Ok ()))
+
 (*open Data_types
 
 let finish () = Lwt.return (Ok ())

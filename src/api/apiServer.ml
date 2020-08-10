@@ -32,6 +32,7 @@ let start () =
     |> EzAPIServerUtils.register S.remove_token H.remove_token
     |> EzAPIServerUtils.register S.get_tokens H.get_tokens
     |> EzAPIServerUtils.register S.timeline_name H.timeline_name
+    |> EzAPIServerUtils.register S.update_timeline_name H.update_timeline_name
     |> EzAPIServerUtils.register S.version H.version
   in
   let servers = [ Config.api_port, EzAPIServerUtils.API dir ] in

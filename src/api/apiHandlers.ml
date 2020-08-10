@@ -448,6 +448,12 @@ let has_admin_rights (req, tid) _ () =
   Lwt_io.printl "CALL has_admin_rights" >>= fun () ->
   has_admin_rights (req, tid) ok
 
+let update_timeline_name req _ tid =
+  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.req_params with
+  | None -> EzAPIServerUtils.return (Error "No name given")
+  | Some new_name ->
+    EzAPIServerUtils.return @@ Writer.update_timeline_name new_name tid
+
 let version _ _ () =
   Lwt_io.printl "CALL version" >>= fun () ->
   ok "0.1"
