@@ -771,7 +771,12 @@ let updateDefaultId self =
   end
 
 let first_connexion self =
-  Js_utils.alert @@ Lang.t_ Text.s_alert_timeline_creation;
+  let msg =
+    Format.sprintf "%s\n\n%s\n\n%s"
+      (Lang.t_ Text.s_alert_timeline_creation1)
+      (Js.to_string Ocp_js.Dom_html.window##.location##.href)
+      (Lang.t_ Text.s_alert_timeline_creation2) in
+  Js_utils.alert msg;
   showForm None [] self true
 
 let init
