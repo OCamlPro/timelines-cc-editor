@@ -97,6 +97,10 @@ let push url =
     let url' = Js.string url in
     Dom_html.window##.history##pushState Js.null url' (Js.some url')
 
+let replace url =
+    let url' = Js.string url in
+    Dom_html.window##.history##replaceState Js.null url' (Js.some url')
+
 let download filename filecontent =
   Js_utils.log "Test:\n%s" filecontent;
   let filecontent = "data:text/csv;charset=utf-8," ^ Url.urlencode filecontent in

@@ -656,7 +656,12 @@ let copyLink self readonly filter_id =
   let timeline_name = Js.to_string self##.timelineName in 
   let readonly = if Js.to_bool readonly then "view" else "edit" in
   let filter_id = Js.to_string filter_id in
-  let link = Format.asprintf "https://ez-timeline.ocamlpro.com/%s?timeline=%s-%s" readonly timeline_name filter_id in
+  let link = Format.asprintf "%s%s/%s?timeline=%s-%s"
+      (Ui_utils.get_url_prefix ())
+      (Ui_utils.get_host ())
+      readonly
+      timeline_name
+      filter_id in
   Js_utils.Clipboard.set_copy ();
   Js_utils.Clipboard.copy link;
   Js_utils.alert "Link copied to clipboard"

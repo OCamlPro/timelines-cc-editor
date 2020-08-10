@@ -123,12 +123,12 @@ let add_handlers_to_markers ~(whenOnSlide:string option -> unit) order rev_order
               if diff < 0 then begin (* Go Prev *)
                 slide_event Prev ((-1) * diff);
                 let url = url orig_id in
-                Ui_utils.push url;
+                Ui_utils.replace url;
               end
               else if diff > 0 then begin
                 slide_event Next diff;
                 let url = url orig_id in
-                Ui_utils.push url;
+                Ui_utils.replace url;
               end
               else ()
             in
@@ -180,7 +180,7 @@ let add_handlers_to_arrows
       Ocp_js.Js._false
     | Some path ->
       let url = url path in
-      Ui_utils.push url;
+      Ui_utils.replace url;
       whenOnSlide (Some path);
       Ocp_js.Js._true
   in
@@ -193,7 +193,7 @@ let add_handlers_to_arrows
       Ocp_js.Js._false
     | Some path ->
       let url = url path in
-      Ui_utils.push url;
+      Ui_utils.replace url;
       whenOnSlide (Some path);
       Ocp_js.Js._true
   in
