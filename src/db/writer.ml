@@ -453,3 +453,13 @@ let remove_token (tid : string) (token : string) =
     end else
       Error "[remove_token] Cannot remove token"
   | (Error _) as e, _ | _, ((Error _) as e) -> e
+
+let update_timeline_name
+    new_name
+    tid =
+      match Reader.filter_of_token tid with
+      | Ok {kind = Edit; _} ->
+        [%pgsql dbh
+            "UPDATE timeline_ids_ SET main_title_=$new_name WHERE alias_=$tid"];
+        Ok ()
+      | _ -> Error "[update_token] Cannot update timeline name"  

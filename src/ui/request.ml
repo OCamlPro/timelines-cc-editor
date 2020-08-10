@@ -372,3 +372,12 @@ let timeline_name (tid : string) cont =
     ~args:[]
     ApiServices.timeline_name [tid]
     cont
+
+let update_timeline_name (new_name : string) (tid : string) cont =
+  let args = args_from_session ["pretty", new_name] in
+  post
+    ~error:(fun _ -> Js_utils.alert "Failed while updating timeline"; cont false)
+    ~args
+    ApiServices.update_timeline_name []
+    tid
+    (fun () -> cont true)
