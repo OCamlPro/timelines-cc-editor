@@ -22,7 +22,7 @@ end
 
 class type filter = object
   method id : int Js.readonly_prop
-  method filter_id_ : Js.js_string Js.t Js.readonly_prop
+  method filterId : Js.js_string Js.t Js.readonly_prop
   method pretty : Js.js_string Js.t Js.prop
   method readonly : bool Js.t Js.prop
   method after : Js.js_string Js.t Js.optdef Js.prop
@@ -86,7 +86,7 @@ let filter_to_jsfilter =
   let obj =
     object%js
       val id = !i
-      val filter_id_ = jss timeline
+      val filterId = jss timeline
       val mutable pretty = jss pretty
       val mutable readonly = Js.bool readonly
       val mutable after = after
@@ -669,7 +669,7 @@ let editAlias self filter =
         Some p
       end in
     let tid = Js.to_string self##.currentTimeline in
-    let filter_id = Js.to_string filter##.filter_id_ in
+    let filter_id = Js.to_string filter##.filterId in
       ignore @@
       Controller.updateTokenName
         pretty
@@ -755,10 +755,17 @@ let displayTokenFilter _self filter =
     not (Js.to_bool filter##.confidential_rights_) in
   res
 
-let removeTimeline self =
-  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_timeline) then ignore @@
-    Controller.removeTimeline
-      (Js.to_string self##.currentTimeline)
+let removeTimeline self tid =
+  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_timeline) then
+    let tids = Js.to_string tid in
+    ignore @@
+    Controller.removeTimeline tids
+      (fun () ->
+         Timeline_cookies.remove_timeline tids;
+         if tid = self##.currentTimeline then
+           Ui_utils.goto_page "/"
+         else Js_utils.reload ()
+      )
   else ()
 
 let switchToMainInput self =
@@ -821,7 +828,7 @@ let init
   Vue.add_method1 "editAlias" editAlias;
   Vue.add_method2 "copyLink" copyLink;
   Vue.add_method1 "displayTokenFilter" displayTokenFilter;
-  Vue.add_method0 "removeTimeline" removeTimeline;
+  Vue.add_method1 "removeTimeline" removeTimeline;
   Vue.add_method0 "switchToMainInput" switchToMainInput;
   Vue.add_method0 "switchToDefaultInput" switchToDefaultInput;
   Vue.add_method0 "updateDefaultId" updateDefaultId;

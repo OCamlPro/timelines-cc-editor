@@ -21,17 +21,13 @@
       <div class="tooltipcontent">{{timelineListText}}
         <ul>
           <li class="croptoken" v-for="item in cookieTimelines">
-
             <div style='float: left; display: inline-block'>
 	      <a class="TooltipImgLink" :href="item.url">
-		<span v-show='filter.filter_id==currentTimeline'>(Here)</span>
+		<span v-show='item.filterId==currentTimeline'>(Here)</span>
 		{{item.name}}
 	      </a>
 	      <img
-		@click='editAlias(filter); filter.isEditing=!filter.isEditing'
-		src="/images/edit.svg">
-	      <img
-		@click='removeTimeline(filter.filter_id)'
+		@click='removeTimeline(item.id)'
 		src="/images/trash.svg">
 	    </div>
 
@@ -44,7 +40,7 @@
     
     <div
       class="timeline-menu-token tooltip"
-      @click='removeTimeline()'>
+      @click='removeTimeline(currentTimeline)'>
       <img src="/images/trash.svg">
       <p class="tooltipname">Delete</p>
       <div class="tooltipcontent">
@@ -65,7 +61,7 @@
 
 	      <span v-show='!filter.isEditing'> {{filter.pretty}} </span>
 
-	      <span v-show='filter.filter_id==currentTimeline'> (You) </span>
+	      <span v-show='filter.filterId==currentTimeline'> (You) </span>
 
 	      <div style='float: left; display: inline-block'>
 		<span class="tooltip" v-show="displayTokenFilter(filter)">
@@ -88,17 +84,17 @@
                     </ul>
                   </span>
 		</span>
-		<img @click='copyLink(filter.readonly, filter.filter_id)' src="/images/link.svg">
+		<img @click='copyLink(filter.readonly, filter.filterId)' src="/images/link.svg">
 		<img
 		  v-show='filter.readonly'
-		  @click='setTokenAsEdition(filter.filter_id);'
+		  @click='setTokenAsEdition(filter.filterId);'
 		  src="/images/view.svg">
 		<img
 		  v-show='!filter.readonly'
-		  @click='setTokenAsReadOnly(filter.filter_id);'
+		  @click='setTokenAsReadOnly(filter.filterId);'
 		  src="/images/hand-write.svg">
 		<img
-		  @click='removeToken(filter.filter_id)'
+		  @click='removeToken(filter.filterId)'
 		  src="/images/trash.svg">
               </div>
 

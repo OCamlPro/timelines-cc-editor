@@ -245,13 +245,9 @@ let removeToken tid token with_tokens =
       )
     )
 
-let removeTimeline tid =
+let removeTimeline tid cont =
   Request.remove_timeline tid
-    (fun _ ->
-       Timeline_cookies.remove_timeline tid;
-       Ui_utils.goto_page "/";
-       finish (Ok ())
-    )
+    (fun () -> cont (); finish (Ok ()))
 
 let updateTimelineName tid new_name cont =
   Request.update_timeline_name new_name tid (fun failed -> cont failed; Lwt.return (Ok ()))

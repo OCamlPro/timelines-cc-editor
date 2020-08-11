@@ -99,6 +99,7 @@ class type urlData = object
   method name : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
   method url  : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
   method readonly : bool Js_of_ocaml.Js.readonly_prop
+  method id : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
 end
 
 let js_data () =
@@ -111,6 +112,7 @@ let js_data () =
            val name = Ui_utils.jss tl.name
            val url = Ui_utils.jss @@ url tl
            val readonly = tl.readonly
+           val id = Ui_utils.jss tl.id
          end in
        obj
     )
