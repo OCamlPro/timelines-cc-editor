@@ -72,7 +72,7 @@ let remove_timeline id =
 let url t =
   let view = 
     if t.readonly then "view" else "edit" in
-    Format.sprintf "%s?timeline=%s-%s"
+    Format.sprintf "/%s?timeline=%s-%s"
       view
       t.name
       t.id
