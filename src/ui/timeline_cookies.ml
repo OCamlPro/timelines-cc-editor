@@ -19,7 +19,7 @@ let t_encoding =
 let encoding = list t_encoding
 
 let reset () =
-  Cookie.set "timelines" "{}"
+  Cookie.set ~path:"/" "timelines" "{}"
 
 let get_timelines () =
   try
