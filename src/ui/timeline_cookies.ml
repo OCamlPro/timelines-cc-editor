@@ -19,7 +19,7 @@ let t_encoding =
 let encoding = list t_encoding
 
 let reset () =
-  Cookie.set "timelines" "{}"
+  Cookie.set ~path:"/" "timelines" "{}"
 
 let get_timelines () =
   try
@@ -53,6 +53,22 @@ let add_timeline name id readonly =
     construct encoding new_tls in
   Cookie.set "timelines" str
 
+let rename_timeline new_name id =
+  let tls = get_timelines () in
+  let rec loop = function
+    | [] -> []
+    | ({id=old; _} as old_timeline) :: tl ->
+      if old = id then
+        {old_timeline with name = new_name} :: tl
+      else
+        old_timeline :: loop tl in
+  let new_tls = loop tls in
+  let str = 
+    Yojson.Safe.to_string @@ 
+    Json_repr.to_yojson @@
+    construct encoding new_tls in
+  Cookie.set "timelines" str
+
 let remove_timeline id =
   let tls = get_timelines () in
   let rec remove = function
@@ -72,7 +88,7 @@ let remove_timeline id =
 let url t =
   let view = 
     if t.readonly then "view" else "edit" in
-    Format.sprintf "%s?timeline=%s-%s"
+    Format.sprintf "/%s?timeline=%s-%s"
       view
       t.name
       t.id
@@ -83,6 +99,7 @@ class type urlData = object
   method name : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
   method url  : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
   method readonly : bool Js_of_ocaml.Js.readonly_prop
+  method id : Js_of_ocaml.Js.js_string Js_of_ocaml.Js.t Js_of_ocaml.Js.readonly_prop
 end
 
 let js_data () =
@@ -95,6 +112,7 @@ let js_data () =
            val name = Ui_utils.jss tl.name
            val url = Ui_utils.jss @@ url tl
            val readonly = tl.readonly
+           val id = Ui_utils.jss tl.id
          end in
        obj
     )
