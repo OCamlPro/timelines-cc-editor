@@ -493,7 +493,8 @@ let updateTimelineTitle (self : 'a) : unit =
            self##.timelineName := self##.newTimelineName;
            Ui_utils.(
              replace
-               (url "" (Args.set_timeline (new_name ^ "-" ^ tid) (Args.get_args ()))))
+               (url "" (Args.set_timeline (new_name ^ "-" ^ tid) (Args.get_args ()))));
+           Timeline_cookies.rename_timeline new_name tid
          end
       )
 

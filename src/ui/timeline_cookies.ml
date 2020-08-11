@@ -53,6 +53,22 @@ let add_timeline name id readonly =
     construct encoding new_tls in
   Cookie.set "timelines" str
 
+let rename_timeline new_name id =
+  let tls = get_timelines () in
+  let rec loop = function
+    | [] -> []
+    | ({id=old; _} as old_timeline) :: tl ->
+      if old = id then
+        {old_timeline with name = new_name} :: tl
+      else
+        old_timeline :: loop tl in
+  let new_tls = loop tls in
+  let str = 
+    Yojson.Safe.to_string @@ 
+    Json_repr.to_yojson @@
+    construct encoding new_tls in
+  Cookie.set "timelines" str
+
 let remove_timeline id =
   let tls = get_timelines () in
   let rec remove = function
