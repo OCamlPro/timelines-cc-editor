@@ -2431,7 +2431,7 @@
     margin-right:10px
 }
 .tl-timeline{
-    width:100%;
+    /* width:100%; */
     height:100%;
     font-size:16px;
     line-height:normal;
@@ -2690,7 +2690,8 @@ tr:hover.clickable {
 
 #page_content{
     display: block;
-    z-index: 0
+    z-index: 0;
+    top: 0px
 }
 
 #page_content-loading{
@@ -2743,6 +2744,8 @@ tr:hover.clickable {
 }
 
 #timeline-header{
+    top: 0px !important;
+    margin: 0px;
     height: 52px !important;
     text-align: center;
     width: 100%;
@@ -3259,7 +3262,7 @@ form-card {
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
-  color: #FFF;
+  color: #FFFFFF70;
   transform: translateY(-50%);
   transform-origin: left center;
   transition: transform 0.28s ease, color 0.28s linear, opacity 0.28s linear;
@@ -3276,11 +3279,32 @@ form-card {
   border: 0 solid transparent;
   line-height: 1.5;
   width: 100%;
-  color: #FFFFFF90;
+  color: #FFFFFF;
   box-shadow: none;
   opacity: 0.001;
   transition: opacity 0.28s ease;
   will-change: opacity;
+}
+
+.form-element-title {
+  outline: none;
+  font: inherit !important;
+  height: 52px;
+  text-align: center;
+  margin: auto;
+  border: 0 solid transparent;
+  font-size: 30px !important;
+  font-weight: 700 !important;
+  display: block;
+  background: none;
+  padding: 0px;
+  /* margin: 0px; */
+  font-size: 1.8rem;
+  border-bottom: 0px dashed #ffffff;
+  line-height: 1.5;
+  width: 500px;
+  color: #FFFFFF70;
+  box-shadow: none;
 }
 
 .form-element-field:-ms-input-placeholder {
@@ -3425,8 +3449,8 @@ input {
     border-color: #1e6e87;
     border-image: initial;
     border-radius: 4px;
-    /* margin-bottom: 4px; */
-    /* margin: 20px; */
+    margin-bottom: 4px;
+    margin: 20px;
     }
 
 ::-webkit-input-placeholder {

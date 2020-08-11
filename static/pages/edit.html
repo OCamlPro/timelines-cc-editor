@@ -1,7 +1,7 @@
 <!-- Header -->
 <header id="timeline-header">
   <span class="title" v-show="!openedMenu">{{timelineName}}</span>
-  <input type="text" v-show="openedMenu" v-model="newTimelineName">
+  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName">
   <span style="position: relative; float: right">
     <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
   </span>
