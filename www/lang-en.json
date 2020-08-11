@@ -1,6 +1,7 @@
 {
     "lang": "en",
     "translations": [
+	["addEditionTokenButton", "New token" ],
         ["addElementHelp", "Add an event" ],
         ["addEditionTokenButton", "Create a new edition link" ],
         ["addNewEvent", "Save event" ],
@@ -68,13 +69,11 @@
 	["shareTitle", "Forgot which timeline you were editing?"],
 	["startDateFormHelp", "When does your event start?"],
 	["tags", "Tags"],
-        ["tagsFormHelp", "Add keywords separated with commas" ],
-        ["timelineListText", "List of your timelines" ],	
+	["tagsFormHelp", "Add keywords separated with commas" ],
+	["timelineListText", "Your timelines" ],
+	["timelineShareText", "Your tokens" ],
 	["to", "To"],
 	["uniqueId", "URL Identifier"],
-	["uniqueIdFormHelp", "Customize your event's URL (by default, the event's title is used)"],
-  ["addEditionTokenButton", "New token" ],
-  ["timelineListText", "Your timelines" ],
-  ["timelineShareText", "Your tokens" ]
+	["uniqueIdFormHelp", "Customize your event's URL (by default, the event's title is used)"]
     ]
 }

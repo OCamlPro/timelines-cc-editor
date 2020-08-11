@@ -181,12 +181,8 @@ class type data = object
   method timelineName : Js.js_string Js.t Js.prop
   method newTimelineName : Js.js_string Js.t Js.prop
 
-<<<<<<< HEAD
   method openedMenu : bool Js.t Js.prop
-  
-=======
 
->>>>>>> Maxime's modifications
 
   method startDateFormValue     : Js.js_string Js.t Js.prop
   method endDateFormValue       : Js.js_string Js.t Js.prop
