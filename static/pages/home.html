@@ -19,6 +19,24 @@
 <section id="banner">
   <h1>{{title}}</h1>
   <p>{{subtitle}}</p>
+  	<form id="create-form">
+	  <input
+	    class="HomePlaceholder"
+	    :placeholder="createNamePlaceholder"
+	    :title="createNameHelp"
+	    v-model="createNameValue"
+	    >
+	  <div></div>
+	  <div
+	    class="button home"
+	    @click="createTimeline()">{{createButtonMessage}}</div>
+    </form>
+        <ul>
+          <li class="homecroptoken" v-for="item in cookieTimelines">
+            <div style='float: right; display: inline-block'><a class="TooltipImgLink" :href="item.url">{{item.name}}</a>
+            <img class="imghometooltip" src="/images/trash.svg"></div>
+          </li>
+        </ul>
 </section>
 
 <section id="one" class="wrapper">
@@ -29,22 +47,6 @@
 	  <h3>{{createTimelineTitle}}</h3>
 	</header>
 	<p>{{createDescr}}</p>
-	<form id="create-form">
-	  <input
-	    :placeholder="createNamePlaceholder"
-	    :title="createNameHelp"
-	    v-model="createNameValue"
-	    ><br/>
-	  <input
-	    type="text"
-	    :placeholder="createDescrPlaceholder"
-	    :title="createDescrHelp"
-	    v-model="createDescrValue">
-	  <div></div>
-	  <div
-	    class="button special"
-	    @click="createTimeline()">{{createButtonMessage}} {{createNameValue}}</div>
-	</form>
       </article>
       <article>
 	<header>

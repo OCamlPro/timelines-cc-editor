@@ -35,46 +35,46 @@ class type filter = object
 
   method isEditing : bool Js.t Js.prop
   method editing : Js.js_string Js.t Js.optdef Js.prop
-  
+
 end
 
 let filter_to_jsfilter =
-  let i = ref 0 in fun DbData.{timeline; kind; pretty; after; 
-          before; min_level; max_level; 
+  let i = ref 0 in fun DbData.{timeline; kind; pretty; after;
+          before; min_level; max_level;
           categories; tags; confidential_rights} : filter Js.t ->
-  let readonly = 
+  let readonly =
     match kind with
-    | View -> true 
+    | View -> true
     | Edit -> false in
 
   let pretty =
      match pretty with
      | None -> timeline
      | Some p -> p in
- 
-  let after = 
+
+  let after =
      match after with
      | None -> Js.Optdef.empty
-     | Some d -> 
+     | Some d ->
        Js.Optdef.return @@ jss @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") d in
- 
-  let before = 
+
+  let before =
      match before with
      | None -> Js.Optdef.empty
-     | Some d -> 
+     | Some d ->
        Js.Optdef.return @@ jss @@ Format.asprintf "%a" (CalendarLib.Printer.Date.fprint "%D") d in
- 
-  let min_level = 
+
+  let min_level =
     match min_level with
     | None -> Js.Optdef.empty
     | Some m -> Js.Optdef.return @@ jss @@ Int32.to_string m in
 
-  let max_level = 
+  let max_level =
     match max_level with
     | None -> Js.Optdef.empty
     | Some m -> Js.Optdef.return @@ jss @@ Int32.to_string m in
 
-  let categories = 
+  let categories =
     match categories with
     | None -> Js.Optdef.empty
     | Some l -> Js.Optdef.return @@ Ui_utils.list_to_jsarray @@ List.map jss l in
@@ -94,7 +94,7 @@ let filter_to_jsfilter =
       val mutable min_level_ = min_level
       val mutable max_level_ = max_level
       val mutable filterCategories = categories
-      val mutable tags = tags 
+      val mutable tags = tags
       val mutable confidential_rights_ = Js.bool confidential_rights
 
       val mutable isEditing = Js.bool false
@@ -102,7 +102,7 @@ let filter_to_jsfilter =
     end
   in i := !i + 1;
   obj
-  
+
 
 class type data = object
 
@@ -182,7 +182,7 @@ class type data = object
   method newTimelineName : Js.js_string Js.t Js.prop
 
   method openedMenu : bool Js.t Js.prop
-  
+
 
   method startDateFormValue     : Js.js_string Js.t Js.prop
   method endDateFormValue       : Js.js_string Js.t Js.prop
@@ -246,7 +246,7 @@ let page_vue
     (tokens : DbData.filter list)
   : data Js.t =
   let categories : categoryFilter Js.t Js.js_array Js.t =
-    Ui_utils.list_to_jsarray @@ 
+    Ui_utils.list_to_jsarray @@
     List.mapi
       (fun i (c, checked) ->
          object%js
@@ -286,9 +286,9 @@ let page_vue
     val ponderationHelp     = tjs_ s_ponderation_help
     val editElementHelp     = tjs_ s_edit_element_help
     val addElementHelp      = tjs_ s_add_element_help
-    val filterHelp          = tjs_ s_filter_help 
-    val exportHelp          = tjs_ s_export_help 
-    val importHelp          = tjs_ s_import_help 
+    val filterHelp          = tjs_ s_filter_help
+    val exportHelp          = tjs_ s_export_help
+    val importHelp          = tjs_ s_import_help
 
     val startDateFormTitle    = tjs_ s_from
     val endDateFormTitle      = tjs_ s_to
@@ -383,7 +383,6 @@ let page_vue
         events
 
     val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
-
     val cookieTimelines = Timeline_cookies.js_data ()
   end
 
@@ -396,7 +395,7 @@ type on_page =
       events: (int * event) list
     }
 
-let update_filters self tokens = 
+let update_filters self tokens =
   self##.filters := Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
 
 (* Methods of the view *)
@@ -426,12 +425,12 @@ let updateVueFromEvent self e =
     | None -> self##.categoriesFormValue := jss ""
     | Some g -> Js_utils.log "Current category is %s" g; self##.categoriesFormValue := jss g in
 
-  let tags_str = 
+  let tags_str =
     Format.pp_print_list
-      ~pp_sep:(fun fmt _ -> Format.fprintf fmt ",") 
-      (fun fmt -> Format.fprintf fmt "%s") 
+      ~pp_sep:(fun fmt _ -> Format.fprintf fmt ",")
+      (fun fmt -> Format.fprintf fmt "%s")
       Format.str_formatter
-       e.tags;    
+       e.tags;
     Format.flush_str_formatter () in
 
   let () = (* other fields *)
@@ -548,7 +547,7 @@ let addEvent title events self adding : unit =
             match title with
             | Some (_, {unique_id; _}) when unique_id = u_id -> title
             | _ ->
-              let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in 
+              let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
               Js_utils.alert err;
               None
           end
@@ -585,7 +584,7 @@ let removeEvent title events self e =
           Js_utils.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
-          let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in 
+          let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
           Js_utils.alert err;
           None
       end
@@ -607,7 +606,7 @@ let removeFromForm title events self =
           Js_utils.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
-          let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in 
+          let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
           Js_utils.alert err;
           None
       end
@@ -676,7 +675,7 @@ let removeToken self token =
     (update_filters self)
 
 let copyLink self readonly filter_id =
-  let timeline_name = Js.to_string self##.timelineName in 
+  let timeline_name = Js.to_string self##.timelineName in
   let readonly = if Js.to_bool readonly then "view" else "edit" in
   let filter_id = Js.to_string filter_id in
   let link = Format.asprintf "%s%s/%s?timeline=%s-%s"
@@ -780,9 +779,9 @@ let first_connexion self =
   showForm None [] self true
 
 let init
-    ~(args: Args.t) 
+    ~(args: Args.t)
     ~(on_page: on_page)
-    ~(categories : (string * bool) list) 
+    ~(categories : (string * bool) list)
     ~(tokens : DbData.filter list) =
   Js_utils.log "Creating vue@.";
   Js_utils.log "Tokens: %i@." (List.length tokens);
@@ -814,7 +813,7 @@ let init
   Vue.add_method0 "switchToMainInput" switchToMainInput;
   Vue.add_method0 "switchToDefaultInput" switchToDefaultInput;
   Vue.add_method0 "updateDefaultId" updateDefaultId;
-  
+
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
   let vue = Vue.init ~data (*~show:true*) () in
@@ -831,5 +830,5 @@ let init
       Js_utils.log "Displaying timeline@.";
       match events with
       | [] -> first_connexion vue
-      | _ -> display_timeline vue title events 
+      | _ -> display_timeline vue title events
   in ()
