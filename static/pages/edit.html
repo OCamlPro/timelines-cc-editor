@@ -41,6 +41,17 @@
 
     </div>
 
+    
+    <div
+      class="timeline-menu-token tooltip"
+      @click='removeTimeline()'>
+      <img src="/images/trash.svg">
+      <p class="tooltipname">Delete</p>
+      <div class="tooltipcontent">
+	{{removeTimelineText}}
+      </div>
+    </div> 
+    
     <!-- 2 -->
     <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
       <img src="/images/share.svg">
@@ -194,17 +205,9 @@
       <img src="/images/edit.svg"><p class="tooltipname">Edit</p>
     </div>
   </div>
+  
 </div>
 
-<div
-  class="timeline-menu-token tooltip"
-  @click='removeTimeline()'
-  v-show="cookieTimelines.length != 0">
-  <img src="/images/trash.svg">
-  <div class="tooltipcontent">
-    {{removeTimelineText}}
-  </div>
-</div> 
 
 <!-- PANEL AJOUT EVENT Taken from https://codepen.io/jonnitto/project/editor/XRPjxx -->
 <div class="panel" id="formPanel">
