@@ -64,6 +64,7 @@ let add_event
     ~confidential
     ~tags
     ~timeline
+    cont
   =
   try
     let start_date =
@@ -100,7 +101,8 @@ let add_event
     } in
     Request.add_event
       ~error timeline
-      event (fun _ -> Js_utils.reload (); Lwt.return (Ok ()))
+      event
+      (fun s -> cont s; Lwt.return (Ok ()))
   with
     IncorrectInput s -> 
     Js_utils.alert (Format.sprintf "Error: %s" s);

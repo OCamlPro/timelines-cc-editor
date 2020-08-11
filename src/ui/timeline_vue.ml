@@ -491,8 +491,9 @@ let updateTimelineTitle (self : 'a) : unit =
       (fun success ->
          if success then begin
            self##.timelineName := self##.newTimelineName;
-           Ui_utils.(replace
-                       (url "" (Args.set_timeline (new_name ^ "-" ^ tid) (Args.get_args ()))))
+           Ui_utils.(
+             replace
+               (url "" (Args.set_timeline (new_name ^ "-" ^ tid) (Args.get_args ()))))
          end
       )
 
@@ -537,6 +538,15 @@ let addEvent title events self adding : unit =
           ~confidential
           ~tags
           ~timeline
+          (fun s ->
+             Ui_utils.goto_page (
+               Format.sprintf "/edit?timeline=%s-%s#%s"
+                 (Js.to_string self##.timelineName)
+                 timeline
+                 s
+             );
+             Js_utils.reload ()
+          )
       in ()
     end
     else
@@ -750,9 +760,10 @@ let removeTimeline self =
       (Js.to_string self##.currentTimeline)
   else ()
 
-let switchToMainInput _ =
+let switchToMainInput self =
   Js_utils.(hide (find_component "unique-id-default-form"));
-  Js_utils.(show (find_component "unique-id-form"))
+  Js_utils.(show (find_component "unique-id-form"));
+  self##.uniqueIdFormValue := self##.uniqueIdFormValueDefault  
 
 let switchToDefaultInput self =
   if Js.to_string self##.uniqueIdFormValue = "" then begin
@@ -764,10 +775,10 @@ let switchToDefaultInput self =
 let updateDefaultId self =
   let title = Js.to_string self##.headlineFormValue in
   let uid = Js.string @@ Utils.short_title title in
-  self##.uniqueIdFormValueDefault := uid;
-  if Js.to_string self##.uniqueIdFormValue = "" then begin
+  if self##.uniqueIdFormValue = self##.uniqueIdFormValueDefault then begin
     self##.uniqueIdFormValue := uid
-  end
+  end;
+  self##.uniqueIdFormValueDefault := uid
 
 let first_connexion self =
   let msg =
