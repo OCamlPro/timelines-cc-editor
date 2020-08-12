@@ -1598,11 +1598,11 @@ body, input, select, textarea {
 
 a {
     color: #5385c1;
-    text-decoration: underline
+    text-decoration: none;
 }
 
 a:hover {
-    text-decoration: none;
+    text-decoration: underline dotted;
 }
 
 strong, b {
@@ -2717,9 +2717,9 @@ button:disabled,
 
 
 #navPanel #close{
-    height: 1.5em;
+    height: 1.3em;
     padding-left: 0.4em;
-    padding-top: 0.2em
+    padding-top: 0.2em;
 }
 
 #navPanel .button{

@@ -557,7 +557,7 @@ lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern 
     user-select:none
 }
 .tl-menubar{
-    background-color:#1588ab;    
+    background-color:#1588ab;
     position:absolute;
     z-index:11;
     text-align:center;
@@ -566,7 +566,7 @@ lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern 
     border-top-left-radius:10px;
     top:100%;
     right:50%;
-    right:0
+    right: 0px;
 }
 @keyframes invertToBlack{
     from{
@@ -1357,7 +1357,14 @@ lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern 
     -o-transition-timing-function:cubic-bezier(.77,0,.175,1);
     transition-timing-function:cubic-bezier(.77,0,.175,1)
 }
-.tl-timegroup .tl-timegroup-message{background-color: white;color:var(--major-regular) !important;padding: 10px;width: 100px;text-align: right;}
+.tl-timegroup .tl-timegroup-message{
+    background-color: white;
+    color:var(--major-regular) !important;
+    padding: 10px;
+    width: 100px;
+    text-align: right;
+    }
+
 .tl-timegroup.tl-timegroup-alternate{
     background-color:#fafafa
 }
@@ -2726,21 +2733,20 @@ tr:hover.clickable {
 .tooltip>.tooltipcontent {
   visibility: hidden;
   background-color: #1E6E87;
-  color: white;
+  color: #ffffff;
   padding: 10px;
+  width: 230px;
+  left: -250px;
   border-radius: 6px;
   box-shadow: 0 0 1.5em 0 rgba(0, 0, 0, 0.2);
 
   /* Position the tooltip text */
   position: absolute;
   z-index: 10004;
-
   overflow: visible;
-
   top: -5px;
-  right: 100%;
-  font-size: 20px; 
-  font-family: "Courier New", monospace;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
@@ -2814,7 +2820,7 @@ tr:hover.clickable {
 }
 
 .tooltipcontent img{
-    width: 1.5em;
+    width: 1.5em !important;
 }
 
 
@@ -3482,14 +3488,20 @@ input.HomePlaceholder {
 }
 
 .croptoken {
-  width: 160px;
-  height: 70px;
+  /* width: 160px; */
+  /* height: 50px; */
   padding: 0 0 0 10px;
   margin: 0 0 20px 0px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-left: 2px solid #fff;
+  border-left: 1px solid #fff;
+}
+
+li.croptoken {
+
+    color: #fff;
+    font-weight: 100
 }
 
 .homecroptoken {
