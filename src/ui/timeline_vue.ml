@@ -398,6 +398,9 @@ type on_page =
 let update_filters self tokens =
   self##.filters := Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
 
+let update_page_title title = 
+  Ocp_js.Dom_html.document##.title := Js.string (title ^ " - Timelines.cc")
+      
 (* Methods of the view *)
 
 let updateVueFromEvent self e =
@@ -494,7 +497,8 @@ let updateTimelineTitle (self : 'a) : unit =
            Ui_utils.(
              replace
                (url "" (Args.set_timeline (new_name ^ "-" ^ tid) (Args.get_args ()))));
-           Timeline_cookies.rename_timeline new_name tid
+           Timeline_cookies.rename_timeline new_name tid;
+           update_page_title new_name
          end
       )
 
@@ -846,6 +850,8 @@ let init
     | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
       let () = Timeline_cookies.add_timeline name id false in
+      Js_utils.log "Update page title";
+      update_page_title name;
       Js_utils.log "Displaying timeline@.";
       match events with
       | [] -> first_connexion vue
