@@ -2666,7 +2666,7 @@ button:disabled,
     color: #d4e0ef;
     cursor: pointer;
     display: block;
-    height: 4em;
+    /* height: 4em; */
     padding-right: 1.25em;
     position: absolute;
     right: 0;
@@ -2684,7 +2684,7 @@ button:disabled,
     font-style: normal;
     font-weight: normal;
     text-transform: none !important;
-    content: '\f00d';
+    /* content: '\f00d'; */
     font-size: 2rem;
     width: 1.5em;
     height: 1.5em;

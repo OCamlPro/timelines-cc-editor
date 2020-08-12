@@ -565,7 +565,6 @@ lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern 
     border-bottom-left-radius:10px;
     border-top-left-radius:10px;
     top:100%;
-    right:50%;
     right: 0px;
 }
 @keyframes invertToBlack{
@@ -3488,7 +3487,7 @@ input.HomePlaceholder {
 }
 
 .croptoken {
-  /* width: 160px; */
+  width: 160px;
   /* height: 50px; */
   padding: 0 0 0 10px;
   margin: 0 0 20px 0px;
