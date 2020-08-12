@@ -25,6 +25,14 @@ class type data = object
     method shareTitle : Js.js_string Js.t Js.readonly_prop
     method shareDescr : Js.js_string Js.t Js.readonly_prop
 
+    method securityTitle : Js.js_string Js.t Js.readonly_prop
+    method securityDescr : Js.js_string Js.t Js.readonly_prop
+
+    method disableCookiesButtonText : Js.js_string Js.t Js.readonly_prop
+    method enableCookiesButtonText : Js.js_string Js.t Js.readonly_prop
+
+    method cookiesEnabled : bool Js.t Js.prop
+
     method cookieTimelines : Timeline_cookies.urlData Js.t Js.js_array Js.t Js.readonly_prop
   end
 
@@ -42,7 +50,18 @@ let createTimeline (self : data Vue_js.vue) =
     (Js_of_ocaml.Js.to_string self##.createNameValue)
     (Js_of_ocaml.Js.to_string self##.createDescrValue)
 
+let enableCookies self =
+  Timeline_cookies.enable ();
+  self##.cookiesEnabled := Js._true
+    
+let disableCookies self =
+  if Js_utils.confirm (Lang.t_ s_confirm_disable_cookies) then begin
+    Timeline_cookies.disable ();
+    self##.cookiesEnabled := Js._false
+  end
+
 let init () =
+  let cookieTimelines, enabled = Timeline_cookies.js_data () in  
   let data : data Js.t =
     object%js
       val logo = tjs_ s_ez_timeline
@@ -60,13 +79,22 @@ let init () =
       val shareTitle = tjs_ s_share_title
       val shareDescr = tjs_ s_share_descr
 
+      val securityTitle = tjs_ s_security_title
+      val securityDescr = tjs_ s_security_descr
+
+      val enableCookiesButtonText = tjs_ s_enable_cookies_button_text
+      val disableCookiesButtonText = tjs_ s_disable_cookies_button_text
+
       val mutable createNameValue = jss ""
       val mutable createDescrValue = jss ""
 
-      val cookieTimelines = Timeline_cookies.js_data ()
+      val mutable cookiesEnabled = Js.bool enabled
+      val cookieTimelines = cookieTimelines
     end
   in
   Vue.add_method0 "createTimeline" createTimeline;
+  Vue.add_method0 "enableCookies" enableCookies;
+  Vue.add_method0 "disableCookies" disableCookies;
 
   let _obj = Vue.init ~data () in
   Ui_utils.slow_hide (Js_utils.find_component "page_content-loading");

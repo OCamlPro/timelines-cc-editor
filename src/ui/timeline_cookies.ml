@@ -1,13 +1,19 @@
 open Json_encoding
 open Ui_common
 
-type t = {
+type timeline = {
   id : string;
   readonly : bool;
   name : string;
 }
 
-let t_encoding = 
+type t = 
+  | DisabledCookies
+  | EnabledCookies of timeline list
+
+(* Todo: lazyfication *)
+
+let timeline_encoding = 
   conv
     (fun {id; readonly; name} -> (id, readonly, name))
     (fun (id, readonly, name) -> {id; readonly; name})
@@ -16,7 +22,19 @@ let t_encoding =
       (req "readonly" bool)
       (req "name" string))
 
-let encoding = list t_encoding
+let disabled_encoding = obj1 (req "disabled" unit)
+
+let encoding = 
+  union [
+    case
+      (list timeline_encoding)
+      (function | DisabledCookies -> None | EnabledCookies l -> Some l)
+      (fun l -> EnabledCookies l);
+    case 
+      disabled_encoding
+      (function | DisabledCookies -> Some () | _ -> None) 
+      (fun () -> DisabledCookies)
+  ]
 
 let reset () =
   Cookie.set ~path:"/" "timelines" "{}"
@@ -27,50 +45,55 @@ let get_timelines () =
       (fun (k, _) -> Js_utils.log "Key %s" k) (Cookie.all ());
     let tls = List.assoc_opt "timelines" (Cookie.all ()) in
     match tls with
-    | None -> []
+    | None -> [], true
     | Some str ->
       let json = Yojson.Safe.from_string str in
       let json = Json_repr.from_yojson json in
-      destruct encoding json
+      match destruct encoding json with
+      | EnabledCookies l -> l, true
+      | DisabledCookies -> [], false
   with _ ->
     let () = reset () in
-    []
+    [], true
 
 let add_timeline name id readonly =
-  let tls = get_timelines () in
-  let new_tl = {name; id; readonly} in
-  let rec replace_or_add = function
-    | [] -> [{id; readonly; name}]
-    | old_timeline :: tl ->
-      if old_timeline = new_tl then
-        old_timeline :: tl
-      else
-        old_timeline :: replace_or_add tl in
-  let new_tls = replace_or_add tls in
-  let str = 
-    Yojson.Safe.to_string @@ 
-    Json_repr.to_yojson @@
-    construct encoding new_tls in
-  Cookie.set "timelines" str
+  let tls, enabled = get_timelines () in
+  if enabled then 
+    let new_tl = {name; id; readonly} in
+    let rec replace_or_add = function
+      | [] -> [{id; readonly; name}]
+      | old_timeline :: tl ->
+        if old_timeline = new_tl then
+          old_timeline :: tl
+        else
+          old_timeline :: replace_or_add tl in
+    let new_tls = replace_or_add tls in
+    let str = 
+      Yojson.Safe.to_string @@ 
+      Json_repr.to_yojson @@
+      construct encoding (EnabledCookies new_tls) in
+    Cookie.set "timelines" str
 
 let rename_timeline new_name id =
-  let tls = get_timelines () in
-  let rec loop = function
-    | [] -> []
-    | ({id=old; _} as old_timeline) :: tl ->
-      if old = id then
-        {old_timeline with name = new_name} :: tl
-      else
-        old_timeline :: loop tl in
-  let new_tls = loop tls in
-  let str = 
-    Yojson.Safe.to_string @@ 
-    Json_repr.to_yojson @@
-    construct encoding new_tls in
-  Cookie.set "timelines" str
+  let tls, enabled = get_timelines () in
+  if enabled then 
+    let rec loop = function
+      | [] -> []
+      | ({id=old; _} as old_timeline) :: tl ->
+        if old = id then
+          {old_timeline with name = new_name} :: tl
+        else
+          old_timeline :: loop tl in
+    let new_tls = loop tls in
+    let str = 
+      Yojson.Safe.to_string @@ 
+      Json_repr.to_yojson @@
+      construct encoding (EnabledCookies new_tls) in
+    Cookie.set "timelines" str
 
 let remove_timeline id =
-  let tls = get_timelines () in
+  let tls, enabled = get_timelines () in
+  if enabled then 
   let rec remove = function
     | [] -> []
     | ({id=old; _} as old_timeline) :: tl ->
@@ -82,8 +105,25 @@ let remove_timeline id =
   let str = 
     Yojson.Safe.to_string @@ 
     Json_repr.to_yojson @@
-    construct encoding new_tls in
+    construct encoding (EnabledCookies new_tls) in
   Cookie.set "timelines" str
+
+let enable () =
+  let str = 
+    Yojson.Safe.to_string @@ 
+    Json_repr.to_yojson @@
+    construct encoding (EnabledCookies []) in
+  Cookie.set "timelines" str 
+
+let disable () =
+  let str = 
+    Yojson.Safe.to_string @@ 
+    Json_repr.to_yojson @@
+    construct encoding (DisabledCookies) in
+  Cookie.set "timelines" str
+
+let is_enabled () =
+  snd @@ get_timelines ()
 
 let url t =
   let view = 
@@ -103,7 +143,8 @@ class type urlData = object
 end
 
 let js_data () =
-  Js_of_ocaml.Js.array @@
+  let tls, enabled = get_timelines () in
+  (Js_of_ocaml.Js.array @@
   Array.of_list @@ 
   List.map
     (fun tl ->
@@ -116,4 +157,4 @@ let js_data () =
          end in
        obj
     )
-    (get_timelines ())
+    tls), enabled
