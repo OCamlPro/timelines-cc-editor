@@ -41,7 +41,7 @@
 
 <section id="one" class="wrapper">
   <div class="inner">
-    <div class="flex flex-2">
+    <div class="flex flex-3">
       <article id="create-timeline">
 	<header>
 	  <h3>{{createTimelineTitle}}</h3>
@@ -53,12 +53,18 @@
 	  <h3 >{{shareTitle}}</h3>
 	</header>
 	<p>{{shareDescr}}</p>
-	<ul>
-	  <li
-            v-for="item in cookieTimelines">
-	    <a :href="item.url"> {{item.name}} </a>
-	  </li>
-	</ul>
+      </article>
+      <article>
+	<header>
+	  <h3 >{{securityTitle}}</h3>
+	</header>
+	<p>{{securityDescr}}</p>
+	<div class="button home" v-if="cookiesEnabled" @click="disableCookies()">
+	  {{disableCookiesButtonText}}
+	</div>
+	<div class="button home" v-else @click="enableCookies()">
+	  {{enableCookiesButtonText}}
+	</div>
       </article>
     </div>
   </div>

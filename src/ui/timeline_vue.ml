@@ -383,7 +383,7 @@ let page_vue
         events
 
     val mutable filters = Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
-    val cookieTimelines = Timeline_cookies.js_data ()
+    val cookieTimelines = fst @@ Timeline_cookies.js_data ()
   end
 
 type on_page =

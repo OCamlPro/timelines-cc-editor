@@ -1,6 +1,7 @@
 {
     "lang": "fr",
     "translations": [
+        ["activateCookiesButtonText", "Sauvegarder mes frises sur mon navigateur"],
         ["addElementHelp", "Cliquez pour ajouter un nouvel événement à la frise" ],
         ["addEditionTokenButton", "Créer un nouveau lien d'édition" ],
         ["addNewEvent", "Ajouter un nouvel événement" ],
@@ -23,6 +24,7 @@
         ["confidential", "Confidentiel" ],
         ["confidentialFilterForm", "Faire apparaitre les évènements confidentiels" ],
         ["confidentialFormHelp", "Cochez si cet évènement ne doit jamais être affiché dans votre frise lorsqu'elle est partagée en mode Vue seule." ],
+        ["confirmDisableCookies", "Ceci va supprimer les liens vers les frises de votre navigateur : vérifiez bie nque vous avez sauvegardé quelque part vos frises." ],
         ["confirmRemoveEvent", "Souhaitez-vous vraiment supprimer cet évènement ? L'Histoire ne peut être changée... mais d'autres moyens existent pour masquer des événements: confidentialité, filtres par catégorie, filtre par niveau d'importance, etc." ],
         ["confirmRemoveTimeline", "Souhaitez-vous vraiment supprimer votre frise ? Cette action est irréversible." ],
 	["createTimelineButton", "Commencer l'édition de la timeline"],
@@ -33,6 +35,7 @@
         ["defaultTimelineTitle", "Ceci est le titre de votre frise. Vous pouvez le modifier et rajouter du contenu en cliquant sur le crayon dans le panneau d'édition." ],
         ["description", "Description" ],
         ["descriptionFormHelp", "Saisissez le texte décrivant l'évènement" ],
+        ["disactivateCookiesButtonText", "Ne pas sauvegarder mes frises sur mon navigateur"],
         ["editElementHelp", "Cliquez pour éditer l'évènement affiché" ],
         ["editEvent", "Edition de l'évènement"],
 	["editionLinkText", "Partagez ce lien pour donner les droits de modifier la frise"],
@@ -63,6 +66,8 @@
 	["readLinkText", "Partagez ce lien pour présenter votre frise sans donner les droits d'édition"],
         ["removeEvent", "Supprimer l'évènement"],
         ["removeTimelineText", "Supprimer la frise"],
+	["securityDescr","Notre principale préoccupation est la sécurité de vos données. Vous n'avez pas besoin de renseigner vos données personnelles pour commencer à travailler. Nous ne sauvegardons que ce qui est important pour vous : les frises que vous souhaitez partager. Votre navigateur sauvegarde automatiquement les frises que vous avez visité. Si cette fonctionnalité vous dérange, vous pouvez la désactiver en cliquant ici. Si vous le faites, vérifiez que vous avez sauvegardé les frises que vous avez créé, ou elles seront perdues !"],
+	["securityTitle","Securité"],
         ["share", "Obtenir un lien de partage public" ],
 	["shareDescr", "Nous avons essayé de nous souvenir sur quelles frises vous êtes allé dernièrement. Est-ce l'une ce celles ci-dessous ?"],
 	["shareHelp", "Entrez l'url ou le nom de votre frise"],
