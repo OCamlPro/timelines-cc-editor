@@ -1,4 +1,4 @@
-/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern University a project of the Northwestern University Knight Lab, originally created by Zach Wise https://github.com/NUKnightLab/TimelineJS3 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern University a project of the Northwestern University Knight Lab, originally created by Zach Wise https://github.com/NUKnightLab/TimelineJS3 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 @import url(font-awesome.min.css);
@@ -557,10 +557,10 @@
     user-select:none
 }
 .tl-menubar{
+    background-color:#1588ab;    
     position:absolute;
     z-index:11;
     text-align:center;
-    background-color: var(--major-regular);
     over flow:hidden;
     border-bottom-left-radius:10px;
     border-top-left-radius:10px;
@@ -934,14 +934,14 @@
 }
 .tl-timemarker .tl-timemarker-line-right{
     display:none;
-    right:0
+    right:0;
 }
 .tl-timemarker .tl-timemarker-line-left{
     width:1px;
-    left:0
+    left:0;
 }
 .tl-timemarker .tl-timemarker-line-left,.tl-timemarker .tl-timemarker-line-right{
-    margin-top:7px;
+    margin-top: 3px;
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
     box-sizing:border-box;
@@ -961,11 +961,13 @@
     display:block;
     content:" ";
     position:absolute;
-    left:-4px;
+    left:-2px;
+    height:4px;
+    width:4px;
     bottom:0;
-    height:6px;
-    width:6px;
-    background-color: #fff;
+    height:4px;
+    width: 4px;
+    background-color: #1e6e87;
     z-index:8;
     -webkit-border-radius:50%;
     -moz-border-radius:50%;
@@ -996,6 +998,7 @@
 }
 .tl-timemarker .tl-timemarker-content-container:hover{
     z-index:9
+
 }
 .tl-timemarker .tl-timemarker-content-container .tl-timemarker-content{
     position:relative;
@@ -1138,12 +1141,16 @@
 }
 .tl-timemarker.tl-timemarker-active .tl-timemarker-line-left,.tl-timemarker.tl-timemarker-active .tl-timemarker-line-right{
     border-color:#1588ab;
+    background-color:#1588ab;
     border-width:2px;
     z-index:8;
-    box-shadow:0 1px 3px rgba(145,145,145,.5)
+    box-shadow:0 1px 3px rgba(145,145,145,.5);
 }
 .tl-timemarker.tl-timemarker-active .tl-timemarker-line-left:after,.tl-timemarker.tl-timemarker-active .tl-timemarker-line-right:after{
-    background-color:#1588ab
+    background-color:#1588ab;
+    width: 5px;
+    height: 5px;
+    left: -4px
 }
 .tl-timemarker.tl-timemarker-active .tl-timemarker-content-container{
     background-color:#1588ab;
@@ -1350,14 +1357,7 @@
     -o-transition-timing-function:cubic-bezier(.77,0,.175,1);
     transition-timing-function:cubic-bezier(.77,0,.175,1)
 }
-.tl-timegroup .tl-timegroup-message{
-
-    background-color: white;
-    color:var(--major-regular) !important;
-    padding: 10px;
-    width: 100px;
-    text-align: right;
-}
+.tl-timegroup .tl-timegroup-message{background-color: white;color:var(--major-regular) !important;padding: 10px;width: 100px;text-align: right;}
 .tl-timegroup.tl-timegroup-alternate{
     background-color:#fafafa
 }
@@ -1559,13 +1559,15 @@
     padding-right:100px;
     position:relative;
     max-width:100%;
-    user-select:text
+    /* user-select:text */
 }
 .tl-slide .tl-slide-content-container .tl-slide-content .tl-media{
     position:relative;
     width:100%;
     min-width:50%;
     float:left;
+    padding-right : 0px !important;
+    padding-left : 0px !important;
     margin-top:auto;
     margin-bottom:auto
 }
@@ -1576,8 +1578,9 @@
     padding:0 20px;
     display:table-cell;
     vertical-align:middle;
-    text-align:left
+    /* text-align:left */
 }
+
 .tl-slide-media-only .tl-slide-content-container .tl-slide-content{
     text-align:center
 }
@@ -1607,7 +1610,8 @@
     width:80%;
     display:block;
     margin-left:auto;
-    margin-right:auto
+    margin-right:auto;
+    text-align: center
 }
 .tl-slide.tl-full-image-background,.tl-slide.tl-full-color-background{
     color:#fff!important;
@@ -1933,7 +1937,7 @@
 }
 .tl-storyslider{
     width:100%;
-    height:100%;
+    /* height: 65% !important; */
     overflow:hidden;
     -webkit-user-select:none;
     -moz-user-select:none;
@@ -1942,7 +1946,7 @@
     user-select:none;
     position:relative;
     box-sizing:content-box;
-    z-index:8
+    z-index:8;
 }
 .tl-storyslider img,.tl-storyslider embed,.tl-storyslider object,.tl-storyslider video,.tl-storyslider iframe{
     max-width:100%;
@@ -1965,12 +1969,12 @@
     position:absolute
 }
 .tl-storyslider .tl-slider-container-mask{
-    text-align:center;
+    text-align: center;
     width:100%;
     height:100%;
     position:relative;
     z-index:5;
-    background-color: var(--major-regular)
+    background-color: var(--major-regular);
 }
 .tl-storyslider .tl-slider-container-mask .tl-slider-container{
     position:absolute;
@@ -1978,7 +1982,7 @@
     left:0;
     width:100%;
     height:100%;
-    text-align:center
+    /* text-align:center */
 }
 .tl-storyslider .tl-slider-container-mask .tl-slider-container .tl-slider-item-container{
     width:100%;
@@ -2001,7 +2005,7 @@
 }
 .tl-media .tl-media-content-container .tl-media-content{
     position:relative;
-    *zoom:1
+    zoom: 1;
 }
 .tl-media .tl-media-content-container .tl-media-content:before,.tl-media .tl-media-content-container .tl-media-content:after{
     display:table;
@@ -2109,7 +2113,7 @@
     vertical-align:middle;
     text-align:left;
     text-shadow:none;
-    color:#1e6e87
+    color:#1e6e87;
 }
 .tl-text p{
     color:#1e6e87
@@ -2543,6 +2547,10 @@ h2.tl-headline-fadeout {
     background-color: #1688AB
 }
 
+.tl-slide .tl-slide-text-only {
+    text-align: center !important;
+}
+
 .tl-text {
     color: white;
 }
@@ -2685,7 +2693,9 @@ tr:hover.clickable {
 }
 
 .last-date{
-    color: #FFF
+    color: #FFFFFF60;
+    font-size: 12px;
+    margin-top: 10px
 }
 
 #page_content{
@@ -3307,6 +3317,10 @@ form-card {
   box-shadow: none;
 }
 
+.form-element-title:hover {
+  text-decoration: underline dotted #ffffff70;
+}
+
 .form-element-field:-ms-input-placeholder {
   color: #FFFFFF;
   transform: scale(0.9);
@@ -3450,7 +3464,7 @@ input {
     border-image: initial;
     border-radius: 4px;
     margin-bottom: 4px;
-    margin: 20px;
+    /* margin: 20px; */
     }
 
 ::-webkit-input-placeholder {
