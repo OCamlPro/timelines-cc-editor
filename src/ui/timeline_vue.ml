@@ -846,6 +846,8 @@ let init
     | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
       let () = Timeline_cookies.add_timeline name id false in
+      Js_utils.log "Update page title";
+      Ocp_js.Dom_html.document##.title := Js.string (name ^ " - Timelines.cc");
       Js_utils.log "Displaying timeline@.";
       match events with
       | [] -> first_connexion vue
