@@ -2515,10 +2515,6 @@ h2.tl-headline{
     color: white;
 }
 
-h2.tl-headline-fadeout {
-    color: white !important
-}
-
 .tl-slidenav-next .tl-slidenav-icon, .tl-slidenav-previous .tl-slidenav-icon {
     font-family: tl-icons;
 }
