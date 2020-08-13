@@ -3283,6 +3283,88 @@ form-card {
   will-change: transform, color, opacity;
 }
 
+.form-element-ADD-text {
+  outline: none;
+  font: inherit !important;
+  height: 52px;
+  margin: auto;
+  border: 0 solid transparent;
+  font-size: 15px !important;
+  display: block;
+  background: none;
+  padding: 0px;
+  /* margin: 0px; */
+  font-size: 1.8rem;
+  border-bottom: 0px dashed #ffffff;
+  line-height: 1.5;
+  width: 500px;
+  color: #FFFFFF70;
+  box-shadow: none;
+}
+
+input#start-date {
+    width: 30%;
+    float: left;
+    margin-right: 20px;
+}
+
+input[type="date" i]::-webkit-calendar-picker-indicator {
+    background-image: url("/images/date.svg");;
+    background-origin: content-box;
+    background-size: contain;
+    height: 1.2em;
+    margin-inline-start: 24px;
+    opacity: 1;
+    padding-bottom: 2px;
+    padding-inline-start: 3px;
+    padding-inline-end: 3px;
+    padding-top: 2px;
+    width: 1.2em;
+    background-repeat: no-repeat;
+    outline: none;
+}
+
+input#end-date {
+    width: 40%;
+    float: left;
+    margin-left: 20px;
+}
+
+div#picker {
+    color: #FFFFFF70 !important;
+    margin-left: 0px;
+
+      fill: red; }
+
+.form-element-ADD-text:hover {
+  text-decoration: underline dotted #ffffff70;
+}
+
+.form-element-ADD-title {
+  outline: none;
+  font: inherit !important;
+  height: 52px;
+  margin: auto;
+  border: 0 solid transparent;
+  font-size: 32px !important;
+  font-family: fontin-reg !important;
+  font-weight: 700 !important;
+  display: block;
+  background: none;
+  padding: 0px;
+  /* margin: 0px; */
+  font-size: 1.8rem;
+  border-bottom: 0px dashed #ffffff;
+  line-height: 1.5;
+  width: 500px;
+  color: #FFFFFF70;
+  box-shadow: none;
+}
+
+.form-element-ADD-title:hover {
+  text-decoration: underline dotted #ffffff70;
+}
+
 .form-element-field {
   outline: none;
   height: 1.5rem;

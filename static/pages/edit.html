@@ -172,7 +172,7 @@
     <div
       class="timeline-menu-token tooltip"
       v-show="events.length != 0 && false"> <!-- Filter : for a near future ->
-      <!-- <img src="/images/filter.svg"><p class="tooltipname">Filter</p> -->
+						 <!-- <img src="/images/filter.svg"><p class="tooltipname">Filter</p> -->
       <div class="tooltipcontent">
 	<div class="panel-default filtering-form" style='width:30em'>
 	  <div class="navbar">
@@ -244,95 +244,42 @@
 	<span v-if="addingNewEvent">{{formNameAdding}}</span>
 	<span v-else> {{formNameEditing}}</span>
 	<span @click=hideForm() class="token fa fa-close fa-2x" style="float: right"></span>
-    <span @click=addEvent(addingNewEvent) class="token fa fa-save fa-lg" style="right: 40px"></span>
-    <span @click=removeFromForm() class="token fa fa-trash fa-lg" style="right: 80px"></span>
+	<span @click=addEvent(addingNewEvent) class="token fa fa-save fa-lg" style="right: 40px"></span>
+	<span @click=removeFromForm() class="token fa fa-trash fa-lg" style="right: 80px"></span>
       </legend>
 
       <!-- TITLE -->
       <div class="form-element form-input">
+	<input id="title" class="form-element-ADD-title" :placeholder="headlineFormHelp" type="input" v-model="headlineFormValue" @keyup="updateDefaultId()" required/>
+	<textarea
+	  id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
+	  class="form-element-ADD-text"
+	  :placeholder="textFormHelp"
+	  v-model="textFormValue">
+	</textarea>
 	<input
-	  id="title"
-	  class="form-element-field"
-	  :placeholder="headlineFormHelp"
-	  type="input"
-	  v-model="headlineFormValue"
-	  @keyup="updateDefaultId()"
-	  required/>
-	<div class="form-element-bar">
-	</div>
-	<label class="form-element-label" for="title">{{headlineFormTitle}}</label>
-      </div>
-
-      <div class="top-row">
-	<!-- Start date -->
-	<div class="form-element form-input 4u">
-	  <input
-	    id="start-date"
-	    class="form-element-field -hasvalue"
-	    :placeholder="new Date()"
-	    :type="startDateText ? 'text' : 'date'"
-	    v-model="startDateFormValue"
-	    @dblclick="startDateText = !startDateText"
-	    @focusout="startDateText = false"
-	    required/>
-	  <div class="form-element-bar"></div>
-	  <label class="form-element-label" for="start-date">{{startDateFormTitle}}</label>
-	</div>
-
-	<!-- End date -->
-	<div class="4u"><div class="form-element form-input">
-	    <input
-	      id="end-date"
-	      class="form-element-field -hasvalue"
-	      placeholder=" "
-	      :type="endDateText ? 'text' : 'date'"
-	      v-model="endDateFormValue"
-	      @dblclick="startDateText = !startDateText"
-	      @focusout="startDateText = false"
-	      />
-	    <div class="form-element-bar"></div>
-	    <label class="form-element-label" for="end-date">{{endDateFormTitle}}</label>
-	  </div>
-	</div>
-      </div>
-
-      <!-- Media -->
-      <div class="form-element form-input">
-        <input
+	  id="start-date"
+	  class="form-element-ADD-text -hasvalue"
+	  :placeholder="new Date()"
+	  type="date"
+	  v-model="startDateFormValue" required/>
+	<input
+	  id="end-date"
+	  class="form-element-ADD-text -hasvalue"
+	  placeholder=" "
+	  type="date"
+	  v-model="endDateFormValue" />
+	<input
 	  id="media"
-	  class="form-element-field"
+	  class="form-element-ADD-text"
 	  placeholder=" "
 	  type="link"
-	  v-model="mediaFormValue"
-	  required/>
-        <div class="form-element-bar"></div>
-        <label class="form-element-label" for="media">{{mediaFormTitle}}</label>
-        <small class="form-element-hint">{{mediaFormHelp}}</small>
-      </div>
-
-      <!-- DESCRIPTION -->
-      <div class="form-element form-textarea">
-        <textarea
-	  id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
-	  class="form-element-field"
-	  :placeholder="textFormHelp"
-	  v-model="textFormValue"></textarea>
-        <div class="form-element-bar"></div>
-        <label class="form-element-label" for="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm">{{textFormTitle}}</label>
-      </div>
-
-
-      <!-- CATEGORIES -->
-
-      <div class="form-element form-select">
-        <select
+	  v-model="mediaFormValue" required/>
+	<select
 	  id="category-select-form"
-	  class="form-element-field -hasvalue"
-	  v-model="categoriesFormValue"
-	  >
+	  class="form-element-ADD-text"
+	  v-model="categoriesFormValue">
 	  <option v-for="item in categories" :key="item.id" :value="item.catName">
-	    <span>{{ item.catName }}</span>
-	  </option>
 	  <option value="__other__category__">...️</option>
 	</select>
 	<input
@@ -340,83 +287,82 @@
 	  placeholder="Name this new category"
 	  v-model="otherCategoryFormValue"
 	  v-show="categoriesFormValue=='__other__category__'">
-        <div class="form-element-bar"></div>
-        <label class="form-element-label" for="category-select-form">Select a category</label>
+	<div class="form-element-bar"></div>
+	<label class="form-element-label" for="category-select-form">Select a category</label>
       </div>
-      <!-- TAGS (FEATURE NON PRETE)
-      <div class="form-element form-input">
-        <input
-	  id="tags"
-	  class="form-element-field"
-	  placeholder=" "
-	  type="link"
-	  v-model="tagsFormValue"
-	  :placeholder="tagsFormHelp"
-	  required/>
-        <div class="form-element-bar"></div>
-        <label class="form-element-label" for="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm">
-	  {{tagsFormTitle}}
-	</label>
-      </div> -->
-
-      <!-- Weight (FEATURE NON PRETE)
-      <div class="form-element form-input">
-	<input
-	  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
-	  class="form-element-field"
-	  :placeholder="ponderationFormHelp"
-	  v-model.number="ponderationFormValue"
-	  type="number" required/>
-	<div class="form-element-bar">
-	</div>
-	<label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
-	  {{ponderationFormTitle}}
-	</label>
-      </div>  -->
-
-      <!-- CONFIDENTIAL (FEATURE NON PRETE)
-      <div class="form-checkbox form-checkbox-inline">
-	<label class="form-checkbox-label">
-	  <input
-	    class="form-checkbox-field"
-	    type="checkbox"
-	    v-model="confidentialFormValue"
-	    />
-	  <i class="form-checkbox-button"></i>
-	  <span>{{confidentialFormTitle}}</span>
-	</label>
-	<small class="form-element-hint">{{confidentialFormHelp}}</small>
-
-      </div>  -->
-
-
-      <!-- URL (FEATURE NON PRETE)
-      <div class="form-element form-input">
-	<input
-	  id="unique-id-default-form"
-	  class="form-element-field"
-	  :placeholder="uniqueIdFormHelp"
-	  v-model="uniqueIdFormValueDefault"
-	  type="input"
-	  @click="switchToMainInput()"
-	  />
-	<input
-	  id="unique-id-form"
-	  class="form-element-field"
-	  :placeholder="uniqueIdFormHelp"
-	  v-model="uniqueIdFormValue"
-	  type="input"
-	  @change="switchToDefaultInput()"
-	  style="display:none"
-	  required/>
-	<div class="form-element-bar">
-	</div>
-	<label class="form-element-label" for="unique-id">{{uniqueIdFormTitle}}</label>
-
-      </div> -->
-
-      <!-- FIN DU FORMULAIRE -->
-
     </fieldset>
+    <!-- TAGS (FEATURE NON PRETE)
+	 <div class="form-element form-input">
+           <input
+	     id="tags"
+	     class="form-element-field"
+	     placeholder=" "
+	     type="link"
+	     v-model="tagsFormValue"
+	     :placeholder="tagsFormHelp"
+	     required/>
+           <div class="form-element-bar"></div>
+           <label class="form-element-label" for="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm">
+	     {{tagsFormTitle}}
+	   </label>
+	 </div> -->
+
+	 <!-- Weight (FEATURE NON PRETE)
+	      <div class="form-element form-input">
+		<input
+		  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
+		  class="form-element-field"
+		  :placeholder="ponderationFormHelp"
+		  v-model.number="ponderationFormValue"
+		  type="number" required/>
+		<div class="form-element-bar">
+		</div>
+		<label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
+		  {{ponderationFormTitle}}
+		</label>
+	      </div>  -->
+
+	      <!-- CONFIDENTIAL (FEATURE NON PRETE)
+		   <div class="form-checkbox form-checkbox-inline">
+		     <label class="form-checkbox-label">
+		       <input
+			 class="form-checkbox-field"
+			 type="checkbox"
+			 v-model="confidentialFormValue"
+			 />
+		       <i class="form-checkbox-button"></i>
+		       <span>{{confidentialFormTitle}}</span>
+		     </label>
+		     <small class="form-element-hint">{{confidentialFormHelp}}</small>
+
+		   </div>  -->
+
+
+		   <!-- URL (FEATURE NON PRETE)
+			<div class="form-element form-input">
+			  <input
+			    id="unique-id-default-form"
+			    class="form-element-field"
+			    :placeholder="uniqueIdFormHelp"
+			    v-model="uniqueIdFormValueDefault"
+			    type="input"
+			    @click="switchToMainInput()"
+			    />
+			  <input
+			    id="unique-id-form"
+			    class="form-element-field"
+			    :placeholder="uniqueIdFormHelp"
+			    v-model="uniqueIdFormValue"
+			    type="input"
+			    @change="switchToDefaultInput()"
+			    style="display:none"
+			    required/>
+			  <div class="form-element-bar">
+			  </div>
+			  <label class="form-element-label" for="unique-id">{{uniqueIdFormTitle}}</label>
+
+			</div> -->
+
+			<!-- FIN DU FORMULAIRE -->
   </form>
 </div>
