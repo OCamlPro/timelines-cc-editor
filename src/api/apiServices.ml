@@ -434,6 +434,7 @@ let update_timeline_name : (string, unit) post_service0 =
     ~output:unit
     Path.(api_root // "update_timeline_name")
 
+(* Miscelaneous *)
 let version : string service0 =
   service
     ~error_outputs

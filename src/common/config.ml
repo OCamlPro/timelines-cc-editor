@@ -10,7 +10,7 @@ end
 
 module API = struct
   let api_port = ref 13579
-  let api_host = ref "ez-timeline.ocamlpro.com"
+  let api_host = ref "timelines.cc"
   let api_root = ref (Some "api")
 
   let encoding =
@@ -38,22 +38,27 @@ module API = struct
 end
 
 module Sendgrid = struct
-  let key = ref ""
-  let from = ref ""
+  let key : string ref = ref ""
+  let from : string ref = ref ""
 
+  let from_alias : string option ref = ref None
+  
   let encoding =
-    obj2
+    obj3
       (req "key" string)
-      (req "from" string) 
+      (req "from" string)
+      (opt "from_alias" string)  
   
   let init file =
     try
+      Format.printf "Reading sendgrid config file %s@." file;
       let ic = open_in file in
       let json = Ezjsonm.from_channel ic in
       close_in ic;
-      let key', from' = destruct encoding json in
+      let key', from', from_alias' = destruct encoding json in
       key := key';
-      from := from'
+      from := from';
+      from_alias := from_alias'
     with
     | exn ->
       Printf.eprintf "Fatal error while reading %S:\n  %s\n%!"
