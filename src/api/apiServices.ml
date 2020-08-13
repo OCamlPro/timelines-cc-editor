@@ -57,6 +57,24 @@ let group_param = {
   param_examples = ["OCaml"; "Software"]
 }
 
+let email_param = {
+  param_value = "email";
+  param_name  = Some "email";
+  param_descr = Some "Email";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["your@provider.mail"]
+}
+
+let lang_param = {
+  param_value = "lang";
+  param_name  = Some "lang";
+  param_descr = Some "Language";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["fr"; "en"]
+}
+
 let group_list_param = {
   param_value = "group_list";
   param_name  = Some "group_list";
@@ -292,7 +310,7 @@ let export_database : (string, unit) service1 =
 let create_timeline : (string, (Data_types.title * bool), string) post_service1 =
   post_service
     ~error_outputs
-    ~params:auth_params
+    ~params:(email_param :: lang_param :: auth_params)
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
     ~output:string

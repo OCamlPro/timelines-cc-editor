@@ -39,6 +39,8 @@
         ["editElementHelp", "Cliquez pour éditer l'évènement affiché" ],
         ["editEvent", "Edition de l'évènement"],
 	["editionLinkText", "Partagez ce lien pour donner les droits de modifier la frise"],
+	["emailHelp", "Nous enverons le lien vers votre frise à cette adresse"],
+	["emailPlaceholder", "Votre adresse email (facultatif)"],
 	["endDateFormHelp", "Date de fin"],
         ["events", "Evénements" ],
         ["extraFilters", "Filtres supplémentaires" ],

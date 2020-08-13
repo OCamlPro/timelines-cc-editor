@@ -39,6 +39,8 @@
         ["editElementHelp", "Edit the event currently displayed" ],
         ["editEvent", "Edit event" ],
 	["editionLinkTest", "Share this link to give edition rights"],
+	["emailHelp", "We will send the link of your timeline to your email address"],
+	["emailPlaceholder", "Your email (facultative)"],
         ["enableCookiesButtonText", "Save timelines on my browser"],
 	["endDateFormHelp", "When does your event ends?"],
         ["events", "Events" ],

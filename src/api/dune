@@ -5,8 +5,13 @@
 
 (library
  (name api_data)
- (modules apiData sendgrid_encoding sendgrid_xhr emails)
- (libraries timeline_data data_encoding dbData ez-api.common ez-api.curl-lwt config))
+ (modules apiData)
+ (libraries timeline_data data_encoding dbData ez-api.common config))
+
+(library
+ (name email)
+ (modules sendgrid_encoding sendgrid_xhr emails)
+ (libraries timeline_data data_encoding ez-api.common ez-api.curl-lwt config))
 
 (library
  (name api_services)
@@ -16,4 +21,4 @@
 (library
  (name api_lib)
  (modules apiHandlers apiServer)
- (libraries config ez-api.server api_data database_reader_lib database_writer_lib timeline_data data_encoding api_services))
+ (libraries config email ez-api.server api_data database_reader_lib database_writer_lib timeline_data data_encoding api_services))

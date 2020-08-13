@@ -266,9 +266,16 @@ let logout ~error cont =
       (email, auth_data)
       cont
 
-let create_timeline timeline_id title is_public cont =
+let create_timeline ?email timeline_id title is_public cont =
+  let args =
+    match email with
+    | None -> []
+    | Some email ->
+      match Jslang.get () with
+      | None -> ["email", email]
+      | Some l -> ["email", email; "lang", l] in
   post
-    ~args:(args_from_session [])
+    ~args:(args_from_session args)
     ApiServices.create_timeline [timeline_id]
     (title, is_public)
     cont

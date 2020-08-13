@@ -9,7 +9,7 @@ module StringMap = StringCompat.StringMap
 
 module Reader = Reader.Reader_generic (Database_interface.Monad_lwt)
 
-module Emails = Api_data.Emails
+module Emails = Email.Emails
 
 let (>>=) = Lwt.(>>=)
 
@@ -259,7 +259,7 @@ let send_link ?lang email tname tid =
     | Some "fr" -> Some Emails.Fr
     | _ -> None in
   let mail = Emails.creation_email ?lang email tname tid in
-  Api_data.Sendgrid_xhr.send_base
+  Email.Sendgrid_xhr.send_base
     ~api_key:(!Config.Sendgrid.key)
     mail
 
