@@ -15,4 +15,6 @@
 
 (library
  (name config)
- (modules config))
+ (modules config)
+ (libraries ocplib-json-typed ezjsonm)
+)

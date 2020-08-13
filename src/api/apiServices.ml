@@ -14,8 +14,8 @@ type nonrec ('a, 'b) service1 = ('a, 'b, string, basic_security) service1
 type nonrec ('a, 'b) post_service0 = ('a, 'b, string, basic_security) post_service0
 type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, basic_security) post_service1
 
-let api_root = 
-  match Config.api_root with
+let api_root =
+  match !Config.API.api_root with
   | None -> Path.root
   | Some p -> Path.(root // p) 
 
