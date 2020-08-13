@@ -1,9 +1,9 @@
 (library
  (name ui_common)
- (modules ui_utils request lang text args navs sendgrid_encoding sendgrid_xhr)
+ (modules ui_utils request lang text args navs)
  (preprocess
   (pps js_of_ocaml-ppx))
- (libraries js_of_ocaml-tyxml xhr_lwt data_encoding api_data ezjs-utils.xhr ezjs-utils.loc ezjs-utils.lang config api_services ez-api.curl-lwt))
+ (libraries js_of_ocaml-tyxml xhr_lwt data_encoding api_data ezjs-utils.xhr ezjs-utils.loc ezjs-utils.lang config api_services))
 
 (executable
  (name ocptimeline_js)
