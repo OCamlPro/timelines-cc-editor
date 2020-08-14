@@ -73,6 +73,7 @@ let s_alert_timeline_creation2 = ss_ "alertTimelineCreation2"
 
 let s_confirm_remove_event = ss_ "confirmRemoveEvent"
 let s_confirm_remove_timeline = ss_ "confirmRemoveTimeline"
+let s_confirm_remove_token = ss_ "confirmRemoveToken"
 let s_new_category = ss_ "newCategory"
 
 let s_edition_link_text = ss_ "editionLinkText"

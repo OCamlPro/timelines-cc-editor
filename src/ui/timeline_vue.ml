@@ -422,7 +422,7 @@ let updateVueFromEvent self e =
 
   let () = (* group *)
     match e.group with
-    | None -> self##.categoriesFormValue := jss ""
+    | None -> Js_utils.log "Event has no category"; self##.categoriesFormValue := jss ""
     | Some g -> Js_utils.log "Current category is %s" g; self##.categoriesFormValue := jss g in
 
   let tags_str =
@@ -472,6 +472,7 @@ let showForm title events (self : 'a) (adding : bool) : unit =
       | _ ->
         let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) events in
         Utils.event_to_metaevent e in
+    Js_utils.log "Edition of event %a" Utils.pp_title current_event;
     updateVueFromEvent self current_event
   end;
   ()
@@ -681,10 +682,12 @@ let editAlias self filter =
            update_filters self l)
 
 let removeToken self token =
-  Controller.removeToken
-    (Js.to_string self##.currentTimeline)
-    (Js.to_string token)
-    (update_filters self)
+  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_token) then 
+    ignore @@
+    Controller.removeToken
+      (Js.to_string self##.currentTimeline)
+      (Js.to_string token)
+      (update_filters self)
 
 let copyLink self readonly filter_id =
   let timeline_name = Js.to_string self##.timelineName in

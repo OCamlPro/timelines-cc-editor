@@ -27,6 +27,7 @@
         ["confirmDisableCookies", "This will remove timelines on your browser: make sure you saved your timelines." ],
         ["confirmRemoveEvent", "Do you really want to remove this event? Changing history cannot be undone. If you only want to change its _visibility_, other means like masking will be possible: specific category display or privacy level, " ],
         ["confirmRemoveTimeline", "Do you really want to remove your timeline? This cannot be undone." ],
+        ["confirmRemoveToken", "Do you really want to remove this token? Everyone you shared this link to will lose access to your timeline!" ],
 	["createTimelineButton", "Create your timeline"],
 	["createTimelineDescr", " Create timelines centralizing all your events and tailor them according to your needs (communication, legal, etc.) and audiences (external, internal, confidential, etc.). Show events according to their weight, their category and their tags, and manage access and editing rights of each one thanks to a token system."],
 	["createTimelineTitle", "Create your own timeline in one click!"],
