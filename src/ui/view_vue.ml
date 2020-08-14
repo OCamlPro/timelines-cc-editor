@@ -1,4 +1,5 @@
 let init token name title events =
+  Ui_common.Ui_utils.update_page_title name;
   let () =
     match token with
     | None -> ()
