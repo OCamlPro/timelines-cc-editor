@@ -397,9 +397,6 @@ type on_page =
 
 let update_filters self tokens =
   self##.filters := Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
-
-let update_page_title title = 
-  Ocp_js.Dom_html.document##.title := Js.string (title ^ " - Timelines.cc")
       
 (* Methods of the view *)
 
