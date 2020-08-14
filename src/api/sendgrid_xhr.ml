@@ -6,7 +6,7 @@ let sendgrid_url = "https://api.sendgrid.com/v3"
 
 let post_base ?meth ~api_key encoding data url =
   let content = EzEncoding.construct encoding data in
-  EzRequest_lwt.ANY.post ?meth
+  EzCohttp_lwt.post ?meth
       ~content
       ~headers:["Authorization", "Bearer " ^ api_key]
       (EzAPI.TYPES.URL (sendgrid_url ^ url))
@@ -54,6 +54,6 @@ let delete_contacts ~api_key ?(all=false) ids =
   let query =
     if all then "/marketing/contacts?delete_all_contacts=true"
     else "/marketing/contacts?ids=" ^ String.concat "," ids in
-  EzRequest_lwt.ANY.get ~meth:Resto1.DELETE
+  EzCohttp_lwt.get ~meth:Resto1.DELETE
       ~headers:["Authorization", "Bearer " ^ api_key]
       (EzAPI.TYPES.URL (sendgrid_url ^ query))

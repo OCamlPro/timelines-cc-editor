@@ -271,11 +271,18 @@ let create_timeline (req, name) _ (title, public) =
       | Error _ as e -> EzAPIServerUtils.return e
       | (Ok tid) as ok ->
         match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "email" req.req_params with
-        | None -> EzAPIServerUtils.return ok
+        | None -> 
+          Lwt_io.printl "No email provided, returning" >>= fun () ->
+          EzAPIServerUtils.return ok
         | Some email ->
+          Lwt_io.printl ("Sending to " ^ email) >>= fun () ->
           let lang = Utils.fopt Utils.hd_opt @@ StringMap.find_opt "lang" req.req_params in
           send_link ?lang email name tid >>=
-          fun _ -> EzAPIServerUtils.return ok 
+          function
+          | Error (id, msg) ->
+            Lwt_io.printl (Format.asprintf "Error %i: %a" id Utils.pp_str_opt msg) >>= 
+            fun () -> EzAPIServerUtils.return ok
+          | Ok _ -> EzAPIServerUtils.return ok 
     )
 
 let import_timeline (req, name) _ (title, events, public) =

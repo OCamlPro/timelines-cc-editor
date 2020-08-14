@@ -4,7 +4,7 @@ open Timeline_data
 
 module ApiServices = Api_services.ApiServices
 
-let api () =
+(*let api () =
   let h = {
     hu_host = !Config.API.api_host;
     hu_port = begin
@@ -16,8 +16,8 @@ let api () =
     hu_path_string = "";
     hu_arguments = [];
     hu_fragment = "" } in
-  Https h
-(*
+  Https h*)
+
 let api () =
   let h = {
     hu_host = "localhost";
@@ -27,7 +27,6 @@ let api () =
     hu_arguments = [];
     hu_fragment = "" } in
   Http h
-  *)
 (*
   match Js_of_ocaml.Url.Current.get () with
   | Some u -> u

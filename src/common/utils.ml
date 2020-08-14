@@ -293,3 +293,5 @@ let max_date d1 d2 =
   if CalendarLib.Date.compare d1 d2 > 0 then d1 else d2
 
 let is_empty_list = function [] -> true | _ -> false
+
+let pp_str_opt = pp_opt (fun fmt -> Format.fprintf fmt "%s")

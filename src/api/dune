@@ -11,7 +11,7 @@
 (library
  (name email)
  (modules sendgrid_encoding sendgrid_xhr emails)
- (libraries timeline_data data_encoding ez-api.common ez-api.curl-lwt config))
+ (libraries timeline_data data_encoding ez-api.common ez-api.cohttp-lwt config))
 
 (library
  (name api_services)
