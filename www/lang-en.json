@@ -37,7 +37,7 @@
         ["descriptionFormHelp", "Add a description of the event you want to share" ],
         ["disableCookiesButtonText", "Do not save timelines on my browser"],
         ["editElementHelp", "Edit the event currently displayed" ],
-        ["editEvent", "Edit event" ],
+        ["editEvent", "Save event" ],
 	["editionLinkTest", "Share this link to give edition rights"],
 	["emailHelp", "We will send the link of your timeline to your email address"],
 	["emailPlaceholder", "Your email (facultative)"],
