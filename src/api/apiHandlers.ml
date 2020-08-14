@@ -9,6 +9,8 @@ module StringMap = StringCompat.StringMap
 
 module Reader = Reader.Reader_generic (Database_interface.Monad_lwt)
 
+module Emails = Email.Emails
+
 let (>>=) = Lwt.(>>=)
 
 let unauthorized () = EzAPIServerUtils.return (Error ("Error 403"))
@@ -250,12 +252,38 @@ let create_timeline_lwt req auth title name public =
     else
       Writer.create_public_timeline title name
 
+let send_link ?lang email tname tid =
+  let lang =
+    match lang with
+    | Some "en" -> Some Emails.En
+    | Some "fr" -> Some Emails.Fr
+    | _ -> None in
+  let mail = Emails.creation_email ?lang email tname tid in
+  Email.Sendgrid_xhr.send_base
+    ~api_key:(!Config.Sendgrid.key)
+    mail
+
 let create_timeline (req, name) _ (title, public) =
   Lwt_io.printl "CALL create_database" >>= fun () ->
-  let name = Utils.trim name in
+  let name' = Utils.trim name in
   is_auth req (fun auth ->
-    EzAPIServerUtils.return @@ create_timeline_lwt req auth title name public
-  )
+    match create_timeline_lwt req auth title name' public with
+      | Error _ as e -> EzAPIServerUtils.return e
+      | (Ok tid) as ok ->
+        match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "email" req.req_params with
+        | None -> 
+          Lwt_io.printl "No email provided, returning" >>= fun () ->
+          EzAPIServerUtils.return ok
+        | Some email ->
+          Lwt_io.printl ("Sending to " ^ email) >>= fun () ->
+          let lang = Utils.fopt Utils.hd_opt @@ StringMap.find_opt "lang" req.req_params in
+          send_link ?lang email name tid >>=
+          function
+          | Error (id, msg) ->
+            Lwt_io.printl (Format.asprintf "Error %i: %a" id Utils.pp_str_opt msg) >>= 
+            fun () -> EzAPIServerUtils.return ok
+          | Ok _ -> EzAPIServerUtils.return ok 
+    )
 
 let import_timeline (req, name) _ (title, events, public) =
   Lwt_io.printl "CALL import_database" >>= fun () ->
@@ -454,6 +482,7 @@ let update_timeline_name req _ tid =
   | Some new_name ->
     EzAPIServerUtils.return @@ Writer.update_timeline_name new_name tid
 
+(* Miscelaneous *)
 let version _ _ () =
   Lwt_io.printl "CALL version" >>= fun () ->
   ok "0.1"

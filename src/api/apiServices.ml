@@ -14,8 +14,8 @@ type nonrec ('a, 'b) service1 = ('a, 'b, string, basic_security) service1
 type nonrec ('a, 'b) post_service0 = ('a, 'b, string, basic_security) post_service0
 type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, basic_security) post_service1
 
-let api_root = 
-  match Config.api_root with
+let api_root =
+  match !Config.API.api_root with
   | None -> Path.root
   | Some p -> Path.(root // p) 
 
@@ -55,6 +55,24 @@ let group_param = {
   param_type = PARAM_STRING;
   param_required = false;
   param_examples = ["OCaml"; "Software"]
+}
+
+let email_param = {
+  param_value = "email";
+  param_name  = Some "email";
+  param_descr = Some "Email";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["your@provider.mail"]
+}
+
+let lang_param = {
+  param_value = "lang";
+  param_name  = Some "lang";
+  param_descr = Some "Language";
+  param_type = PARAM_STRING;
+  param_required = false;
+  param_examples = ["fr"; "en"]
 }
 
 let group_list_param = {
@@ -292,7 +310,7 @@ let export_database : (string, unit) service1 =
 let create_timeline : (string, (Data_types.title * bool), string) post_service1 =
   post_service
     ~error_outputs
-    ~params:auth_params
+    ~params:(email_param :: lang_param :: auth_params)
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
     ~output:string
@@ -434,6 +452,7 @@ let update_timeline_name : (string, unit) post_service0 =
     ~output:unit
     Path.(api_root // "update_timeline_name")
 
+(* Miscelaneous *)
 let version : string service0 =
   service
     ~error_outputs

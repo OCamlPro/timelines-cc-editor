@@ -15,12 +15,15 @@ class type data = object
     method createDescr : Js.js_string Js.t Js.readonly_prop
     method createNamePlaceholder : Js.js_string Js.t Js.readonly_prop
     method createDescrPlaceholder : Js.js_string Js.t Js.readonly_prop
+    method emailPlaceholder : Js.js_string Js.t Js.readonly_prop
+    method emailHelp : Js.js_string Js.t Js.readonly_prop
     method createNameHelp : Js.js_string Js.t Js.readonly_prop
     method createDescrHelp : Js.js_string Js.t Js.readonly_prop
     method createButtonMessage : Js.js_string Js.t Js.readonly_prop
 
     method createNameValue : Js.js_string Js.t Js.prop
     method createDescrValue : Js.js_string Js.t Js.prop
+    method emailValue : Js.js_string Js.t Js.prop
 
     method shareTitle : Js.js_string Js.t Js.readonly_prop
     method shareDescr : Js.js_string Js.t Js.readonly_prop
@@ -45,8 +48,13 @@ end
 module Vue = Vue_js.Make (Input)
 
 let createTimeline (self : data Vue_js.vue) =
+  let email =
+    match Js_of_ocaml.Js.to_string self ##.emailValue with
+    | "" -> None
+    | e -> Some e in
   ignore @@
   Controller.create_timeline
+    ?email
     (Js_of_ocaml.Js.to_string self##.createNameValue)
     (Js_of_ocaml.Js.to_string self##.createDescrValue)
 
@@ -72,6 +80,8 @@ let init () =
       val createDescr = tjs_ s_create_timeline_descr
       val createNamePlaceholder = tjs_ s_name
       val createDescrPlaceholder = tjs_ s_description
+      val emailPlaceholder = tjs_ s_email_placeholder
+      val emailHelp = tjs_ s_email_help
       val createNameHelp = tjs_ s_create_timeline_name_help
       val createDescrHelp = tjs_ s_create_timeline_descr_help
       val createButtonMessage = tjs_ s_create_timeline_button
@@ -87,6 +97,7 @@ let init () =
 
       val mutable createNameValue = jss ""
       val mutable createDescrValue = jss ""
+      val mutable emailValue = jss ""
 
       val mutable cookiesEnabled = Js.bool enabled
       val cookieTimelines = cookieTimelines

@@ -26,7 +26,7 @@ let custom_error default err =
 
 let error = custom_error None
 
-let create_timeline name descr =
+let create_timeline ?email name descr =
   let timeline_id, headline, name =
     match name with
     | "" ->
@@ -38,7 +38,7 @@ let create_timeline name descr =
   in
   let title = Utils.to_title_event headline descr in
   let error e = Lwt.return @@ Error e in 
-  Request.create_timeline ~error timeline_id title true (
+  Request.create_timeline ~error ?email timeline_id title true (
     function id ->
       let () =
         let name =

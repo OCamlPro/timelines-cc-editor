@@ -91,3 +91,6 @@ let s_security_descr = ss_ "securityDescr"
 let s_enable_cookies_button_text = ss_ "enableCookiesButtonText"
 let s_disable_cookies_button_text = ss_ "disableCookiesButtonText"
 let s_confirm_disable_cookies = ss_ "confirmDisableCookies"
+
+let s_email_placeholder = ss_ "emailPlaceholder"
+let s_email_help = ss_ "emailHelp"

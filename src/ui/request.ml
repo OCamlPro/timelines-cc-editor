@@ -4,20 +4,20 @@ open Timeline_data
 
 module ApiServices = Api_services.ApiServices
 
-let api () =
+(*let api () =
   let h = {
-    hu_host = Config.api_host;
+    hu_host = !Config.API.api_host;
     hu_port = begin
-      match Config.api_root with
-      | None -> Config.api_port
+      match !Config.API.api_root with
+      | None -> !Config.API.api_port
       | Some _ -> 443
     end;
     hu_path = [];
     hu_path_string = "";
     hu_arguments = [];
     hu_fragment = "" } in
-  Https h
-(*
+  Https h*)
+
 let api () =
   let h = {
     hu_host = "localhost";
@@ -27,7 +27,6 @@ let api () =
     hu_arguments = [];
     hu_fragment = "" } in
   Http h
-  *)
 (*
   match Js_of_ocaml.Url.Current.get () with
   | Some u -> u
@@ -266,9 +265,16 @@ let logout ~error cont =
       (email, auth_data)
       cont
 
-let create_timeline timeline_id title is_public cont =
+let create_timeline ?email timeline_id title is_public cont =
+  let args =
+    match email with
+    | None -> []
+    | Some email ->
+      match Jslang.get () with
+      | None -> ["email", email]
+      | Some l -> ["email", email; "lang", l] in
   post
-    ~args:(args_from_session [])
+    ~args:(args_from_session args)
     ApiServices.create_timeline [timeline_id]
     (title, is_public)
     cont
