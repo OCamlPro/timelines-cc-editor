@@ -2578,6 +2578,121 @@ table {
     background-color: transparent;
 }
 
+.panel {
+    -webkit-transform: translatex(40em);
+    transform: translatex(40em);
+    -moz-transition: -moz-transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    -webkit-transition: -webkit-transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    -ms-transition: -ms-transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    -webkit-overflow-scrolling: touch; 
+    overflow-y: auto;
+    position: fixed;
+    right: 0;
+    top: 0;
+    visibility: hidden;
+}
+
+.panel.visible {
+    -moz-transform: translatex(0);
+    -webkit-transform: translatex(0);
+    -ms-transform: translatex(0);
+    transform: translatex(0);
+    transform: translatey(50);
+    box-shadow: 0 0 1.5em 0 rgba(0, 0, 0, 0.2);
+    visibility: visible;
+}
+
+.panel a:not(.close):first-child {
+    border: none;
+}
+
+.panel .close {
+    text-decoration: none;
+    -moz-transition: color 0.2s ease-in-out;
+    -webkit-transition: color 0.2s ease-in-out;
+    -ms-transition: color 0.2s ease-in-out;
+    transition: color 0.2s ease-in-out;
+    -webkit-tap-highlight-color: transparent;
+    border: 0;
+    color: #d4e0ef;
+    cursor: pointer;
+    display: block;
+    height: 4em;
+    padding-right: 1.25em;
+    position: absolute;
+    right: 0;
+    text-align: right;
+    top: 0;
+    vertical-align: middle;
+    width: 5em;
+}
+
+
+.panel .close:before {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    font-family: FontAwesome;
+    font-style: normal;
+    font-weight: normal;
+    text-transform: none !important;
+    /* content: '\f00d'; */
+    font-size: 2rem;
+    width: 1.5em;
+    height: 1.5em;
+    line-height: 1.5em;
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    text-align: center;
+}
+
+
+#navPanel{
+    background: #1E6E87;
+    color: white;
+    height: 100%;
+    width: 3em !important;
+    z-index: 10003;
+    overflow: visible;
+}
+
+#navPanel .section{
+    border-top-style: solid;
+    border-top-width: 2px;
+    border-top-color: #d4e0ef
+    border-bottom-style: solid;
+    border-bottom-width: 2px;
+    border-bottom-color: #d4e0ef
+}
+
+
+#navPanel #close{
+    height: 1.5em;
+    padding-left: 0.4em;
+    padding-top: 0.2em
+}
+
+#navPanel .button{
+    /* border: 2px solid white; */
+    padding: 0.5em;
+}
+
+#formPanel{
+    background: #1588ab;
+    /* display: table-cell; */
+    /* vertical-align: middle; */
+    margin-left: auto;
+    margin-right: auto;
+    top: 120px !important;
+    right: 10%;
+    color: #FFF;
+    /* height: 300px; */
+    width: 80%;
+    border: 2px #FFF dashed;
+}
+
 .panel table {
     margin-bottom: 0px;
 }
@@ -3207,7 +3322,7 @@ form-card {
 }
 
 .form-fieldset {
-  width: 500px;
+  width: 100%;
   padding: 0px 30px;
   border: 0;
   height: 100%
@@ -3243,10 +3358,11 @@ form-card {
 }
 
 .form-element-bar {
-  position: relative;
-  height: 1px;
-  background: #FFF;
-  display: block;
+    width: 200px;
+    position: relative;
+    height: 1px;
+    background: #FFF;
+    display: block;
 }
 
 .form-element-bar::after {
@@ -3284,9 +3400,10 @@ form-card {
 }
 
 .form-element-ADD-text {
+  float: left;
   outline: none;
   font: inherit !important;
-  height: 52px;
+  /* height: 52px; */
   margin: auto;
   border: 0 solid transparent;
   font-size: 15px !important;
@@ -3302,8 +3419,21 @@ form-card {
   box-shadow: none;
 }
 
+textarea {
+    margin-bottom: 10px;
+    border: solid 1px #FFFFFF70 !important;
+    padding: 2px !important;
+    width: 100% !important
+}
+
+select#category-select-form {
+    width: 200px;
+    float: left;
+    border-bottom: solid 1px #FFFFFF70
+}
+
 input#start-date {
-    width: 30%;
+    width: 120px;
     float: left;
     margin-right: 20px;
 }
@@ -3313,11 +3443,9 @@ input[type="date" i]::-webkit-calendar-picker-indicator {
     background-origin: content-box;
     background-size: contain;
     height: 1.2em;
-    margin-inline-start: 24px;
+    margin-left: 0px !important;
     opacity: 1;
     padding-bottom: 2px;
-    padding-inline-start: 3px;
-    padding-inline-end: 3px;
     padding-top: 2px;
     width: 1.2em;
     background-repeat: no-repeat;
@@ -3325,7 +3453,7 @@ input[type="date" i]::-webkit-calendar-picker-indicator {
 }
 
 input#end-date {
-    width: 40%;
+    width: 120px;
     float: left;
     margin-left: 20px;
 }
@@ -3352,7 +3480,7 @@ div#picker {
   display: block;
   background: none;
   padding: 0px;
-  /* margin: 0px; */
+  margin: 0px;
   font-size: 1.8rem;
   border-bottom: 0px dashed #ffffff;
   line-height: 1.5;
@@ -3549,7 +3677,7 @@ input {
     border-color: #1e6e87;
     border-image: initial;
     border-radius: 4px;
-    margin-bottom: 4px;
+    margin-bottom: 10px !important;
     /* margin: 20px; */
     }
 

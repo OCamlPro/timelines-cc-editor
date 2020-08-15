@@ -232,7 +232,6 @@
       <img src="/images/edit.svg"><p class="tooltipname">Edit</p>
     </div>
   </div>
-  
 </div>
 
 
@@ -250,33 +249,23 @@
 
       <!-- TITLE -->
       <div class="form-element form-input">
+	<input id="start-date" class="form-element-ADD-text -hasvalue" :placeholder="new Date()" type="date" v-model="startDateFormValue" required/>
+	<input id="end-date" class="form-element-ADD-text -hasvalue" placeholder=" " type="date" v-model="endDateFormValue" />
 	<input id="title" class="form-element-ADD-title" :placeholder="headlineFormHelp" type="input" v-model="headlineFormValue" @keyup="updateDefaultId()" required/>
 	<textarea
 	  id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
 	  class="form-element-ADD-text"
 	  :placeholder="textFormHelp"
-	  v-model="textFormValue">
-	</textarea>
-	<input
-	  id="start-date"
-	  class="form-element-ADD-text -hasvalue"
-	  :placeholder="new Date()"
-	  type="date"
-	  v-model="startDateFormValue" required/>
-	<input
-	  id="end-date"
-	  class="form-element-ADD-text -hasvalue"
-	  placeholder=" "
-	  type="date"
-	  v-model="endDateFormValue" />
+	  v-model="textFormValue"></textarea>
 	<input
 	  id="media"
 	  class="form-element-ADD-text"
-	  placeholder=" "
+	  :placeholder="mediaFormHelp"
 	  type="link"
 	  v-model="mediaFormValue" required/>
 	<select
 	  id="category-select-form"
+	  :placeholder="categoriesFormHelp"
 	  class="form-element-ADD-text"
 	  v-model="categoriesFormValue">
 	  <option v-for="item in categories" :key="item.id" :value="item.catName">
@@ -287,13 +276,21 @@
 	  placeholder="Name this new category"
 	  v-model="otherCategoryFormValue"
 	  v-show="categoriesFormValue=='__other__category__'">
-	<div class="form-element-bar"></div>
-	<label class="form-element-label" for="category-select-form">Select a category</label>
       </div>
     </fieldset>
+    <div class="form-actions">
+      <div class="button special" id="edit-add" @click=addEvent(addingNewEvent)>
+	<span v-if="addingNewEvent">{{addEventButtonText}}</span>
+	<span v-else>{{updateEventButtonText}}</span> 
+      </div>
+      <div class="button special" id="back-from-edit" @click=hideForm()>{{backButton}}</div>
+      <div class="button special" v-show="!addingNewEvent" @click=removeFromForm()>
+	{{removeButton}}
+      </div>
+    </div>
     <!-- TAGS (FEATURE NON PRETE)
 	 <div class="form-element form-input">
-           <input
+	   <input
 	     id="tags"
 	     class="form-element-field"
 	     placeholder=" "
