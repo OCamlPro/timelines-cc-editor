@@ -69,7 +69,7 @@
 	["readLinkText", "Share this link to show your timeline without giving edition rights"],
 	["removeEvent", "Remove the event"],
         ["removeTimelineText", "Remove the timeline"],
-	["securityDescr","Our main concern is the security of your data. You do not need to provide your personal data to start to work. We only save what's important for you: the timeline you want to share. Your browser automatically saves the timelines you visited. If this feature annoys you, you may disactivate it by clicking here. If you do so, make sure to save somewhere the list of timelines you created, or they will be lost!"],
+	["securityDescr","Our main concern is for you to be in total control of the data you enter. First, you do not need to provide any personal data to start working - you can, if you want, provide a mail that will solely be used once to send you the timeline's url. We only save the timeline events for you to be able to share them. Moreover, you can import/export vour timelines at will at will into or from a standard textual csv format. For convenience, your browser can display the last timelines you visited. If this feature annoys you, you may deactivate it by clicking the button below. If you do so, make sure to save the links of the timelines you created, or they will be lost!"],
 	["securityTitle","Security"],
         ["share", "Share" ],
 	["shareDescr", "Timelines is part of OCamlPro's willingness to use its expertise to propose ambitious tools for an Internet that respects the rights and needs of everyone. Timelines.cc will be coupled with the decentralized application Nota[Rize], created by Origin Labs, a spin-off of OCamlPro, to certify uploaded content and thus democratize notarization through the blockchain."],
