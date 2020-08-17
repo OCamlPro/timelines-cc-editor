@@ -24,7 +24,7 @@
         ["confidential", "Confidentiel" ],
         ["confidentialFilterForm", "Faire apparaitre les évènements confidentiels" ],
         ["confidentialFormHelp", "Cochez si cet évènement ne doit jamais être affiché dans votre frise lorsqu'elle est partagée en mode Vue seule." ],
-        ["confirmDisableCookies", "Ceci va supprimer les liens vers les frises de votre navigateur : vérifiez bie nque vous avez sauvegardé quelque part vos frises." ],
+        ["confirmDisableCookies", "Ceci va supprimer les url vers les frises de votre navigateur : vérifiez bien nque vous avez sauvegardé quelque part vos frises." ],
         ["confirmRemoveEvent", "Souhaitez-vous vraiment supprimer cet évènement ? L'Histoire ne peut être changée... mais d'autres moyens existent pour masquer des événements: confidentialité, filtres par catégorie, filtre par niveau d'importance, etc." ],
         ["confirmRemoveTimeline", "Souhaitez-vous vraiment supprimer votre frise ? Cette action est irréversible." ],
         ["confirmRemoveToken", "Souhaitez-vous vraiment supprimer ce lien ? Tous ceux avec qui vous l'avez partagé perdront l'accès à votre frise !" ],

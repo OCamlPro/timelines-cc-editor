@@ -24,7 +24,7 @@
         ["confidential", "Confidential" ],
         ["confidentialFilterForm", "Display confidential events" ],
 	["confidentialFormHelp", "Check to hide this event in view mode" ],
-        ["confirmDisableCookies", "This will remove timelines on your browser: make sure you saved your timelines." ],
+        ["confirmDisableCookies", "This will remove your timelines' url/cookies from your browser's memory: make sure you saved your timelines' permalinks!" ],
         ["confirmRemoveEvent", "Do you really want to remove this event? Changing history cannot be undone. If you only want to change its _visibility_, other means like masking will be possible: specific category display or privacy level, " ],
         ["confirmRemoveTimeline", "Do you really want to remove your timeline? This cannot be undone." ],
         ["confirmRemoveToken", "Do you really want to remove this token? Everyone you shared this link to will lose access to your timeline!" ],
