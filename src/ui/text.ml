@@ -95,3 +95,5 @@ let s_confirm_disable_cookies = ss_ "confirmDisableCookies"
 
 let s_email_placeholder = ss_ "emailPlaceholder"
 let s_email_help = ss_ "emailHelp"
+
+let s_save_title_button_text = ss_ "saveTitleButtonText"

@@ -69,6 +69,7 @@
 	["readLinkText", "Partagez ce lien pour présenter votre frise sans donner les droits d'édition"],
         ["removeEvent", "Supprimer l'évènement"],
         ["removeTimelineText", "Supprimer la frise"],
+	["saveTitleButtonText", "Sauvegarder le titre"],
 	["securityDescr","Notre principale préoccupation est de garantir votre contrôle total de vos données. Premièrement, vous n'avez pas besoin de nous partager vos données personnelles pour commencer à travailler - vous pouvez, is vous le souhaiter, renseigner votre addresse mail qui ne sera utilisé que pour vous envoyer l'URL de vos frises. Nous ne sauvegardons que les évènements de la frise pour que vous puissiez les partager. Deuxièmement, vous pouvez exporter/importer à volonté votre frise au format csv standard.
 Pour vous simplifier la vie, votre navigateur peut enregistrer les frises que vous avez visité. Si cette fonctionnalité ne vous intéresse pas, vous pouvez la désactiver en cliquant sur le bouton ci-dessous. Si vous le faites, vérifiez que vous avez sauvegardé l'url des frises que vous avez créé quelque part ou elles seront perdues !"],
 	["securityTitle","Securité"],

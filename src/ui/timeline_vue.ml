@@ -108,6 +108,7 @@ class type data = object
 
   (* Text to display on the page *)
   method exportButton : Js.js_string Js.t Js.readonly_prop
+  method saveTitleButtonText : Js.js_string Js.t Js.readonly_prop
 
   method categoryHeader      : Js.js_string Js.t Js.readonly_prop
   method otherFiltersHeader  : Js.js_string Js.t Js.readonly_prop
@@ -182,6 +183,7 @@ class type data = object
   method newTimelineName : Js.js_string Js.t Js.prop
 
   method openedMenu : bool Js.t Js.prop
+  method editingTitle : bool Js.t Js.prop
 
 
   method startDateFormValue     : Js.js_string Js.t Js.prop
@@ -272,6 +274,7 @@ let page_vue
     | Some i -> i in
   object%js
     val exportButton        = tjs_ s_share
+    val saveTitleButtonText = tjs_ s_save_title_button_text
 
     val categoryHeader      = tjs_ s_categories
     val otherFiltersHeader  = tjs_ s_extra_filters
@@ -349,6 +352,7 @@ let page_vue
     val mutable timelineName = jss timeline_name
     val mutable newTimelineName = jss timeline_name
     val mutable openedMenu = Js.bool false 
+    val mutable editingTitle = Js.bool false 
 
     val mutable startDateFormValue     = jss ""
     val mutable endDateFormValue       = jss ""
@@ -482,6 +486,7 @@ let hideForm self =
   self##.addingNewEvent := (Js.bool false)
 
 let updateTimelineTitle (self : 'a) : unit =
+  self##.editingTitle := Js._false;
   if self##.timelineName <> self##.newTimelineName then
     let tid = Js.to_string self##.currentTimeline in
     let new_name = Js.to_string self##.newTimelineName in
@@ -503,8 +508,7 @@ let updateTimelineTitle (self : 'a) : unit =
 let hideMenu (self : 'a) : unit =
   hideForm self;
   Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible";
-  self##.openedMenu := Js._false;
-  updateTimelineTitle self
+  self##.openedMenu := Js._false
 
 let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
@@ -836,6 +840,7 @@ let init
   Vue.add_method0 "switchToMainInput" switchToMainInput;
   Vue.add_method0 "switchToDefaultInput" switchToDefaultInput;
   Vue.add_method0 "updateDefaultId" updateDefaultId;
+  Vue.add_method0 "updateTimelineTitle" updateTimelineTitle;
 
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
