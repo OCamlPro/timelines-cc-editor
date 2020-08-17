@@ -75,7 +75,7 @@
         ["share", "Share" ],
 	["shareDescr", "Timelines is part of OCamlPro's willingness to use its expertise to propose ambitious tools for an Internet that respects the rights and needs of everyone. Timelines.cc will be coupled with the decentralized application Nota[Rize], created by Origin Labs, a spin-off of OCamlPro, to certify uploaded content and thus democratize notarization through the blockchain."],
 	["shareHelp", "Enter the URL or the name of your timeline"],
-	["shareTitle", "What is Timeline.cc ?"],
+	["shareTitle", "What is Timelines.cc ?"],
 	["startDateFormHelp", "When does your event start?"],
 	["tags", "Tags"],
 	["tagsFormHelp", "Add keywords separated with commas" ],
