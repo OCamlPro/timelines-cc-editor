@@ -634,11 +634,18 @@ let removeFromForm title events self =
     let _l : _ Lwt.t = Controller.removeEvent ~id ~timeline_id in
     ()
 
-let export title events _ = Controller.export_timeline title events
+let export title events self = 
+   Controller.export_timeline
+     ~name:(Js.to_string self##.timelineName)
+     title
+     events
 
 let import self =
   let timeline_id = Js.to_string self##.currentTimeline in
-  Controller.import_timeline timeline_id true (Js_utils.find_component "import-form")
+  Controller.import_timeline
+    timeline_id
+    true 
+    (Js_utils.find_component "import-form")
 
 let addEditionToken self =
   Controller.addToken
