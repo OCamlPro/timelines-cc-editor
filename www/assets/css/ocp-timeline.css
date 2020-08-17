@@ -12,6 +12,27 @@ lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern 
 	--shadow: rgba(41, 41, 48, 0.4);
 }
 
+
+@font-face{
+    font-family: fontin-reg;
+    src: url(/assets/fonts/Fontin-Regular.ttf);
+}
+
+html {
+    --panel-bg-color: transparent;
+    --main-bg-color: white;
+    --main-panel-title-font-family: fontin-reg;
+    --tooltip-font-family: fontin-reg;
+    --main-font-family: fontin-reg;
+    --page-size-text-color: #FFF;
+    --main-text-color: white;
+    --active-bg-color: #fafafa;
+    --disable-text-color: #aaaaaa;
+    --tl-bg-color: transparent;
+    position: relative;
+    height: 100%;
+}
+
   .tl-storyjs div * {
     -webkit-box-sizing:content-box;
     -moz-box-sizing:content-box;
@@ -110,7 +131,7 @@ lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern 
     vertical-align:top
 }
  .tl-timeline {
-    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-family:var(--main-font-family);
     z-index:0;
 }
  .tl-timeline h1,.tl-timeline h2,.tl-timeline h3,.tl-timeline h4,.tl-timeline h5,.tl-timeline h6 {
@@ -2497,28 +2518,10 @@ lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern 
 
 /* CUSTOM CSS */
 
-html {
-    --panel-bg-color: transparent;
-    --main-bg-color: white;
-    --main-panel-title-font-family: Lato, sans-serif;
-    --page-size-text-color: #FFF;
-    --main-text-color: white;
-    --active-bg-color: #fafafa;
-    --disable-text-color: #aaaaaa;
-    --tl-bg-color: transparent;
-    position: relative;
-    height: 100%;
-}
-
-@font-face{
-    font-family: fontin-reg;
-    src: url(/css/fonts/Fontin-Regular.ttf);
-}
-
 .tl-timeline h1, .tl-timeline h2, .tl-timeline h3 {
     font-size: 28px;
     line-height: 28px;
-    font-family: fontin-reg;
+    font-family: var(--main-panel-title-font-family);
 }
 
 h2.tl-headline{
@@ -2741,7 +2744,8 @@ tr:hover.clickable {
   overflow: visible;
   top: -5px;
   font-size: 18px;
-  font-weight: 600;
+  right: 100%;
+  font-family: var(--tooltip-font-family);
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */
