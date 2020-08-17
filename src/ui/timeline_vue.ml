@@ -551,8 +551,7 @@ let addEvent title events self adding : unit =
                  (Js.to_string self##.timelineName)
                  timeline
                  s
-             );
-             Js_utils.reload ()
+             )
           )
       in ()
     end
