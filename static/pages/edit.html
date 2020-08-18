@@ -308,10 +308,10 @@
       <div class="form-element form-select">
         <select
 	  id="category-select-form"
-	  class="form-element-field"
+	  class="form-element-field -hasvalue"
 	  v-model="categoriesFormValue"
 	  >
-	  <option v-for="item in categories" :key="item.id" :value="item.catId">
+	  <option v-for="item in categories" :key="item.id" :value="item.catName">
 	    <span>{{ item.catName }}</span>
 	  </option>
 	  <option value="__other__category__">...️</option>
@@ -397,7 +397,6 @@
       </div> -->
 
       <!-- FIN DU FORMULAIRE -->
-
 
     </fieldset>
   </form>
