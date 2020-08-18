@@ -13,6 +13,7 @@
         ["alertNoViewToken", "No view token can be generated for this timeline." ],
         ["alertTimelineCreation1", "Your timeline has been created! Make sure you save the URL of your timeline somewhere." ],
         ["alertTimelineCreation2", "Note that we saved it in the cookies of your navigator just in case. Are you ready to create your first event?" ],
+        ["alertTimelineNotFound", "Your timeline has not been found; it might have been deleted or the timeline's administrator revoked your rights." ],
         ["alertTitleDeletion", "You cannot delete the title of the timeline." ],
         ["alertUnknownEvent", "This event is unknown." ],
 	["and", "and"],

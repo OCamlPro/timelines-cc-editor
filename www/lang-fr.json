@@ -13,6 +13,7 @@
         ["alertNoViewToken", "Aucun jeton de vue n'a pu être généré pour votre frise." ],
         ["alertTimelineCreation1", "Votre frise a été créée ! Faites bien attention à sauvegarder le lien vers votre frise." ],
         ["alertTimelineCreation2", "Ce lien a été sauvegardé dans vos cookies. Êtes-vous prêt à saisir un premier évènement ?" ],
+        ["alertTimelineNotFound", "Votre frise n'a pas été trouvée ; elle a peut être été supprimée ou l'administrateur de la frise a révoqué vos droits d'édition." ],
         ["alertTitleDeletion", "Le titre de votre frise ne peut être supprimé." ],
         ["alertUnknownEvent", "Cet évènement est inconnu." ],
 	["and", "et"],

@@ -97,3 +97,4 @@ let s_email_placeholder = ss_ "emailPlaceholder"
 let s_email_help = ss_ "emailHelp"
 
 let s_save_title_button_text = ss_ "saveTitleButtonText"
+let s_alert_timeline_not_found = ss_ "alertTimelineNotFound"
