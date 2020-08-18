@@ -855,9 +855,8 @@ let init
   let () = FilterNavs.init () in
   let () =
     match on_page with
-    | No_timeline {name=_; id} ->
+    | No_timeline {name=_; id=_} ->
       Js_utils.alert (Lang.t_ s_alert_timeline_not_found);
-      Timeline_cookies.remove_timeline id;
       Ui_utils.goto_page "/"
     | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
