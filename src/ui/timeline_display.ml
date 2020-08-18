@@ -45,7 +45,7 @@ let slide_event slide_change i = (* Clicks i times on next or prev *)
     end
   in loop i
 
-let display_timeline title events =
+let display_timeline ?(view=false) title events =
   Js_utils.log "[display_timeline] Displaying timeline";
   let title =
     match title with
@@ -55,14 +55,17 @@ let display_timeline title events =
     List.map (fun (_, e) ->
         let text =
           let t = e.text in
-          let text = 
-            match e.last_update with
-            | None -> t.text
-            | Some d -> 
-              Format.asprintf
-                "%s<br/><span class='last-date'>(Last updated: %a)</span>" 
-                t.text
-                (CalendarLib.Printer.Date.fprint "%F") d
+          let text =
+            if view then
+              t.text
+            else
+              match e.last_update with
+              | None -> t.text
+              | Some d -> 
+                Format.asprintf
+                  "%s<br/><span class='last-date'>(Last updated: %a)</span>" 
+                  t.text
+                  (CalendarLib.Printer.Date.fprint "%F") d
           in
           {t with text} in
         {e with text}

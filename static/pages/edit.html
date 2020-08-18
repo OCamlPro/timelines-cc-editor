@@ -1,14 +1,26 @@
 <!-- Header -->
 <header id="timeline-header">
-  <span class="title" v-show="!openedMenu">{{timelineName}}</span>
-  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName">
-  <span style="position: relative; float: right">
-    <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
+  <span
+    class="title"
+    v-show="!editingTitle"
+    title="Click here to edit the title of your timeline"
+    style="cursor:pointer"
+    @click="editingTitle=true">
+    {{timelineName}}
   </span>
+  <input
+    type="text"
+    v-show="editingTitle"
+    v-model="newTimelineName">
+  <span
+    class="button"
+    v-show="editingTitle"
+    @click="updateTimelineTitle()"> {{saveTitleButtonText}} </span>
+  <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
 </header>
 
 <!-- Timeline -->
-<div id="timeline-embed" style="height: 600px;"></div>
+<div id="timeline-embed" style="position:absolute"></div>
 
 <div class="panel" id="navPanel">
   <div class="tooltip fa fa-times fa-2x" id="close" @click="hideMenu()"></div>
@@ -239,8 +251,10 @@
 	    id="start-date"
 	    class="form-element-field -hasvalue"
 	    :placeholder="new Date()"
-	    type="date"
+	    :type="startDateText ? 'text' : 'date'"
 	    v-model="startDateFormValue"
+	    @dblclick="startDateText = !startDateText"
+	    @focusout="startDateText = false"
 	    required/>
 	  <div class="form-element-bar"></div>
 	  <label class="form-element-label" for="start-date">{{startDateFormTitle}}</label>
@@ -252,8 +266,10 @@
 	      id="end-date"
 	      class="form-element-field -hasvalue"
 	      placeholder=" "
-	      type="date"
+	      :type="endDateText ? 'text' : 'date'"
 	      v-model="endDateFormValue"
+	      @dblclick="startDateText = !startDateText"
+	      @focusout="startDateText = false"
 	      />
 	    <div class="form-element-bar"></div>
 	    <label class="form-element-label" for="end-date">{{endDateFormTitle}}</label>
@@ -292,10 +308,10 @@
       <div class="form-element form-select">
         <select
 	  id="category-select-form"
-	  class="form-element-field"
+	  class="form-element-field -hasvalue"
 	  v-model="categoriesFormValue"
 	  >
-	  <option v-for="item in categories" :key="item.id" :value="item.catId">
+	  <option v-for="item in categories" :key="item.id" :value="item.catName">
 	    <span>{{ item.catName }}</span>
 	  </option>
 	  <option value="__other__category__">...️</option>
@@ -381,7 +397,6 @@
       </div> -->
 
       <!-- FIN DU FORMULAIRE -->
-
 
     </fieldset>
   </form>

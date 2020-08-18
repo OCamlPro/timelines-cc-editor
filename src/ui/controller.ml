@@ -166,14 +166,16 @@ let removeEvent ~id ~timeline_id =
       (fun () -> Js_utils.reload (); Lwt.return (Ok ()))
   else Lwt.return (Ok ())
 
-let export_timeline title events =
+let export_timeline ?(name="timeline") title events =
   let title_line = match title with
     | None -> []
     | Some (_, t) -> Csv_utils.title_to_csv_line  t in
   let csv =
     title_line ::
     (List.map (fun (_, e) -> Csv_utils.title_to_csv_line (Utils.event_to_metaevent e)) events) in
-  Ui_utils.download "timeline.csv" (Csv_utils.to_string csv)
+  Ui_utils.download 
+    (name ^ ".csv")
+    (Csv_utils.to_string csv)
 
 let import_timeline tid is_public elt =
   Js_utils.log "Importing timeline";

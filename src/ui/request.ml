@@ -154,7 +154,7 @@ let args_from_session args =
 let timeline_data ~args timeline cont  =
   let args = args_from_session args in
   get
-    ~error:(fun _ -> Js_utils.alert "GET timeline_data failed"; cont (None, []))
+    ~error:(fun _ -> cont (None, []))
     ~args
     ApiServices.timeline_data [timeline]
     cont

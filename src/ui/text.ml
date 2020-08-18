@@ -73,6 +73,7 @@ let s_alert_timeline_creation2 = ss_ "alertTimelineCreation2"
 
 let s_confirm_remove_event = ss_ "confirmRemoveEvent"
 let s_confirm_remove_timeline = ss_ "confirmRemoveTimeline"
+let s_confirm_remove_token = ss_ "confirmRemoveToken"
 let s_new_category = ss_ "newCategory"
 
 let s_edition_link_text = ss_ "editionLinkText"
@@ -94,3 +95,6 @@ let s_confirm_disable_cookies = ss_ "confirmDisableCookies"
 
 let s_email_placeholder = ss_ "emailPlaceholder"
 let s_email_help = ss_ "emailHelp"
+
+let s_save_title_button_text = ss_ "saveTitleButtonText"
+let s_alert_timeline_not_found = ss_ "alertTimelineNotFound"

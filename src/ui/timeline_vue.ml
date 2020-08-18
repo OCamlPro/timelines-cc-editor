@@ -108,6 +108,7 @@ class type data = object
 
   (* Text to display on the page *)
   method exportButton : Js.js_string Js.t Js.readonly_prop
+  method saveTitleButtonText : Js.js_string Js.t Js.readonly_prop
 
   method categoryHeader      : Js.js_string Js.t Js.readonly_prop
   method otherFiltersHeader  : Js.js_string Js.t Js.readonly_prop
@@ -182,7 +183,10 @@ class type data = object
   method newTimelineName : Js.js_string Js.t Js.prop
 
   method openedMenu : bool Js.t Js.prop
+  method editingTitle : bool Js.t Js.prop
 
+  method startDateText : bool Js.t Js.prop
+  method endDateText : bool Js.t Js.prop
 
   method startDateFormValue     : Js.js_string Js.t Js.prop
   method endDateFormValue       : Js.js_string Js.t Js.prop
@@ -272,6 +276,7 @@ let page_vue
     | Some i -> i in
   object%js
     val exportButton        = tjs_ s_share
+    val saveTitleButtonText = tjs_ s_save_title_button_text
 
     val categoryHeader      = tjs_ s_categories
     val otherFiltersHeader  = tjs_ s_extra_filters
@@ -349,6 +354,9 @@ let page_vue
     val mutable timelineName = jss timeline_name
     val mutable newTimelineName = jss timeline_name
     val mutable openedMenu = Js.bool false 
+    val mutable editingTitle = Js.bool false
+    val mutable startDateText = Js.bool false
+    val mutable endDateText = Js.bool false
 
     val mutable startDateFormValue     = jss ""
     val mutable endDateFormValue       = jss ""
@@ -422,7 +430,7 @@ let updateVueFromEvent self e =
 
   let () = (* group *)
     match e.group with
-    | None -> self##.categoriesFormValue := jss ""
+    | None -> Js_utils.log "Event has no category"; self##.categoriesFormValue := jss ""
     | Some g -> Js_utils.log "Current category is %s" g; self##.categoriesFormValue := jss g in
 
   let tags_str =
@@ -472,6 +480,7 @@ let showForm title events (self : 'a) (adding : bool) : unit =
       | _ ->
         let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) events in
         Utils.event_to_metaevent e in
+    Js_utils.log "Edition of event %a" Utils.pp_title current_event;
     updateVueFromEvent self current_event
   end;
   ()
@@ -481,6 +490,7 @@ let hideForm self =
   self##.addingNewEvent := (Js.bool false)
 
 let updateTimelineTitle (self : 'a) : unit =
+  self##.editingTitle := Js._false;
   if self##.timelineName <> self##.newTimelineName then
     let tid = Js.to_string self##.currentTimeline in
     let new_name = Js.to_string self##.newTimelineName in
@@ -502,8 +512,7 @@ let updateTimelineTitle (self : 'a) : unit =
 let hideMenu (self : 'a) : unit =
   hideForm self;
   Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible";
-  self##.openedMenu := Js._false;
-  updateTimelineTitle self
+  self##.openedMenu := Js._false
 
 let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
@@ -546,8 +555,7 @@ let addEvent title events self adding : unit =
                  (Js.to_string self##.timelineName)
                  timeline
                  s
-             );
-             Js_utils.reload ()
+             )
           )
       in ()
     end
@@ -629,11 +637,18 @@ let removeFromForm title events self =
     let _l : _ Lwt.t = Controller.removeEvent ~id ~timeline_id in
     ()
 
-let export title events _ = Controller.export_timeline title events
+let export title events self = 
+   Controller.export_timeline
+     ~name:(Js.to_string self##.timelineName)
+     title
+     events
 
 let import self =
   let timeline_id = Js.to_string self##.currentTimeline in
-  Controller.import_timeline timeline_id true (Js_utils.find_component "import-form")
+  Controller.import_timeline
+    timeline_id
+    true 
+    (Js_utils.find_component "import-form")
 
 let addEditionToken self =
   Controller.addToken
@@ -681,10 +696,12 @@ let editAlias self filter =
            update_filters self l)
 
 let removeToken self token =
-  Controller.removeToken
-    (Js.to_string self##.currentTimeline)
-    (Js.to_string token)
-    (update_filters self)
+  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_token) then 
+    ignore @@
+    Controller.removeToken
+      (Js.to_string self##.currentTimeline)
+      (Js.to_string token)
+      (update_filters self)
 
 let copyLink self readonly filter_id =
   let timeline_name = Js.to_string self##.timelineName in
@@ -833,6 +850,7 @@ let init
   Vue.add_method0 "switchToMainInput" switchToMainInput;
   Vue.add_method0 "switchToDefaultInput" switchToDefaultInput;
   Vue.add_method0 "updateDefaultId" updateDefaultId;
+  Vue.add_method0 "updateTimelineTitle" updateTimelineTitle;
 
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
@@ -841,9 +859,9 @@ let init
   let () = FilterNavs.init () in
   let () =
     match on_page with
-    | No_timeline {name=_; id} ->
-      Js_utils.alert "No timeline has been selected";
-      Timeline_cookies.remove_timeline id
+    | No_timeline {name=_; id=_} ->
+      Js_utils.alert (Lang.t_ s_alert_timeline_not_found);
+      Ui_utils.goto_page "/"
     | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
       let () = Timeline_cookies.add_timeline name id false in
