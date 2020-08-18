@@ -185,6 +185,8 @@ class type data = object
   method openedMenu : bool Js.t Js.prop
   method editingTitle : bool Js.t Js.prop
 
+  method startDateText : bool Js.t Js.prop
+  method endDateText : bool Js.t Js.prop
 
   method startDateFormValue     : Js.js_string Js.t Js.prop
   method endDateFormValue       : Js.js_string Js.t Js.prop
@@ -352,7 +354,9 @@ let page_vue
     val mutable timelineName = jss timeline_name
     val mutable newTimelineName = jss timeline_name
     val mutable openedMenu = Js.bool false 
-    val mutable editingTitle = Js.bool false 
+    val mutable editingTitle = Js.bool false
+    val mutable startDateText = Js.bool false
+    val mutable endDateText = Js.bool false
 
     val mutable startDateFormValue     = jss ""
     val mutable endDateFormValue       = jss ""
