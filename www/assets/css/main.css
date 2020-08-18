@@ -57,7 +57,7 @@ body {
 
 *, *:before, *:after {
     -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
+    /* -webkit-box-sizing: border-box; */
     /* box-sizing: border-box; */
 }
 
@@ -1598,11 +1598,11 @@ body, input, select, textarea {
 
 a {
     color: #5385c1;
-    text-decoration: underline
+    text-decoration: none;
 }
 
 a:hover {
-    text-decoration: none;
+    text-decoration: underline dotted;
 }
 
 strong, b {
@@ -2666,7 +2666,7 @@ button:disabled,
     color: #d4e0ef;
     cursor: pointer;
     display: block;
-    height: 4em;
+    /* height: 4em; */
     padding-right: 1.25em;
     position: absolute;
     right: 0;
@@ -2684,7 +2684,7 @@ button:disabled,
     font-style: normal;
     font-weight: normal;
     text-transform: none !important;
-    content: '\f00d';
+    /* content: '\f00d'; */
     font-size: 2rem;
     width: 1.5em;
     height: 1.5em;
@@ -2717,9 +2717,9 @@ button:disabled,
 
 
 #navPanel #close{
-    height: 1.5em;
+    height: 1.3em;
     padding-left: 0.4em;
-    padding-top: 0.2em
+    padding-top: 0.2em;
 }
 
 #navPanel .button{

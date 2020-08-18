@@ -1,7 +1,7 @@
 <!-- Header -->
 <header id="timeline-header">
   <span class="title" v-show="!openedMenu">{{timelineName}}</span>
-  <input type="text" v-show="openedMenu" v-model="newTimelineName">
+  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName">
   <span style="position: relative; float: right">
     <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
   </span>
@@ -213,6 +213,8 @@
 	<span v-if="addingNewEvent">{{formNameAdding}}</span>
 	<span v-else> {{formNameEditing}}</span>
 	<span @click=hideForm() class="close fa fa-close fa-2x" style="float: right"></span>
+    <span @click=addEvent(addingNewEvent) class="close fa fa-save fa-lg" style="right: 40px"></span>
+    <span @click=removeFromForm() class="close fa fa-trash fa-lg" style="right: 80px"></span>
       </legend>
 
       <!-- TITLE -->
@@ -382,24 +384,5 @@
 
 
     </fieldset>
-    <div class="form-actions">
-
-      <div
-	class="button special"
-	id="edit-add"
-	@click=addEvent(addingNewEvent)>
-	<span v-if="addingNewEvent">{{addEventButtonText}}</span>
-	<span v-else>{{updateEventButtonText}}</span>
-      </div>
-
-      <div class="button special" id="back-from-edit" @click=hideForm()>{{backButton}}</div>
-
-      <div class="button special" v-show="!addingNewEvent" @click=removeFromForm()>
-	{{removeButton}}
-      </div>
-
-      <span @click=hideForm() class="close"></span>
-
-    </div>
   </form>
 </div>
