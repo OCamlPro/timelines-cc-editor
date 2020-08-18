@@ -2716,8 +2716,8 @@ button:disabled,
 }
 
 
-#navPanel #close{
-    height: 1.3em;
+#close{
+    height: 1.46em;
     padding-left: 0.4em;
     padding-top: 0.2em;
 }

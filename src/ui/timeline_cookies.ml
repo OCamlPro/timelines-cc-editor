@@ -99,7 +99,7 @@ let remove_timeline id =
     | ({id=old; _} as old_timeline) :: tl ->
       if old = id then
         remove tl
-      else
+      else 
         old_timeline :: remove tl in
   let new_tls = remove tls in
   let str = 

@@ -2028,7 +2028,7 @@ html {
 }
 .tl-media .tl-media-content-container.tl-media-content-container-text{
     border-right:1px solid #e6e6e6;
-    padding-right:20px
+    padding-right:20px;
 }
 .tl-media .tl-media-content-container .tl-media-content{
     position:relative;
@@ -2136,7 +2136,7 @@ html {
     max-width:50%;
     min-width:120px;
     padding:0 20px;
-    display:table-cell;
+    /*display:table-cell;*/
     vertical-align:middle;
     text-align:left;
     text-shadow:none;
@@ -2734,7 +2734,6 @@ tr:hover.clickable {
   color: #ffffff;
   padding: 10px;
   width: 230px;
-  left: -250px;
   border-radius: 6px;
   box-shadow: 0 0 1.5em 0 rgba(0, 0, 0, 0.2);
 
@@ -2761,7 +2760,7 @@ tr:hover.clickable {
 #timeline-header{
     top: 0px !important;
     margin: 0px;
-    height: 52px !important;
+    height: 3em;
     text-align: center;
     width: 100%;
     color: white;
