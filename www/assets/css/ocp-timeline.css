@@ -2981,8 +2981,8 @@ tr:hover.clickable {
   width: 100%;
 }
 
-form-card {
-  background-color:blue;
+.form-card {
+  overflow:hidden
 }
 
 .form-btn,
@@ -3379,26 +3379,6 @@ form-card {
   will-change: transform;
 }
 
-.form-element-label {
-  position: absolute;
-  top: 0.75rem;
-  line-height: 1.5rem;
-  pointer-events: none;
-  padding-left: 0.125rem;
-  z-index: 1;
-  font-size: 1rem;
-  font-weight: normal;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-  color: #FFFFFF70;
-  transform: translateY(-50%);
-  transform-origin: left center;
-  transition: transform 0.28s ease, color 0.28s linear, opacity 0.28s linear;
-  will-change: transform, color, opacity;
-}
-
 .form-element-ADD-text {
   float: left;
   outline: none;
@@ -3414,14 +3394,13 @@ form-card {
   font-size: 1.8rem;
   border-bottom: 0px dashed #ffffff;
   line-height: 1.5;
-  width: 500px;
-  color: #FFFFFF70;
+  color: #FFFFFF;
   box-shadow: none;
 }
 
 textarea {
     margin-bottom: 10px;
-    border: solid 1px #FFFFFF70 !important;
+    border: solid 1px #FFFFFF !important;
     padding: 2px !important;
     width: 100% !important
 }
@@ -3429,7 +3408,7 @@ textarea {
 select#category-select-form {
     width: 200px;
     float: left;
-    border-bottom: solid 1px #FFFFFF70
+    border-bottom: solid 1px #FFFFFF
 }
 
 input#start-date {
@@ -3459,13 +3438,12 @@ input#end-date {
 }
 
 div#picker {
-    color: #FFFFFF70 !important;
+    color: #FFFFFF !important;
     margin-left: 0px;
-
-      fill: red; }
+    fill: red; }
 
 .form-element-ADD-text:hover {
-  text-decoration: underline dotted #ffffff70;
+  text-decoration: underline dotted #ffffff;
 }
 
 .form-element-ADD-title {
@@ -3484,13 +3462,13 @@ div#picker {
   font-size: 1.8rem;
   border-bottom: 0px dashed #ffffff;
   line-height: 1.5;
-  width: 500px;
-  color: #FFFFFF70;
+  min-width: 20em;
+  color: #FFFFFF;
   box-shadow: none;
 }
 
 .form-element-ADD-title:hover {
-  text-decoration: underline dotted #ffffff70;
+  text-decoration: underline dotted #ffffff;
 }
 
 .form-element-field {
@@ -3527,12 +3505,12 @@ div#picker {
   border-bottom: 0px dashed #ffffff;
   line-height: 1.5;
   width: 500px;
-  color: #FFFFFF70;
+  color: #FFFFFF;
   box-shadow: none;
 }
 
 .form-element-title:hover {
-  text-decoration: underline dotted #ffffff70;
+  text-decoration: underline dotted #ffffff;
 }
 
 .form-element-field:-ms-input-placeholder {
@@ -3542,8 +3520,9 @@ div#picker {
 }
 
 .form-element-field::placeholder, .form-element-label::placeholder {
-  color: #FFFFFF50;
+  color: #FFFFFF;
   font-style: italic !important;
+  font-weight: bold !important;
   transform: scale(0.9);
   transform-origin: left top;
 }
@@ -3612,11 +3591,6 @@ select.form-element-field {
   -moz-appearance: none;
   appearance: none;
   cursor: pointer;
-}
-
-.form-select-placeholder {
-  color: #FFFFFF60;
-  display: none;
 }
 
 .form-select .form-element-bar::before {
