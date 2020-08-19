@@ -70,11 +70,10 @@
 	    <div>
 
 	      <input type='text' v-model='filter.pretty' v-show='filter.isEditing'>
-
-	      <span v-show='!filter.isEditing'> {{filter.pretty}} </span>
-
-	      <span v-show='filter.filterId==currentTimeline'> (You) </span>
-
+	      <div>
+		<span v-show='!filter.isEditing'> {{filter.pretty}} </span>
+		<span v-show='filter.filterId==currentTimeline'> (You) </span>
+	      </div>
 	      <div style='float: left; display: inline-block'>
 		<span class="tooltip" v-show="displayTokenFilter(filter)">
 		  <span class="tooltipcontent">
@@ -96,18 +95,38 @@
                     </ul>
                   </span>
 		</span>
-		<img @click='copyLink(filter.readonly, filter.filterId)' src="/images/link.svg">
+		<img
+		  src="/images/edit.svg"
+		  @click="filter.isEditing=true"
+		  v-show="!filter.isEditing"
+		  :title="filterEditAliasHelp"
+		  >
+		<img
+		  src="/images/check.svg"
+		  @click=      "editAlias(filter);filter.isEditing=false"
+		  @keyup.enter="editAlias(filter);filter.isEditing=false"
+		  v-show="filter.isEditing"
+		  :title="filterEditAliasHelp"
+		  >
+		<img
+		  @click='copyLink(filter.readonly, filter.filterId)'
+		  src="/images/link.svg"
+		  :title="filterCopyLinkHelp"
+		  >
 		<img
 		  v-show='filter.readonly'
 		  @click='setTokenAsEdition(filter.filterId);'
-		  src="/images/view.svg">
+		  src="/images/view.svg"
+		  :title="filterReadonlyTokenHelp">
 		<img
 		  v-show='!filter.readonly'
 		  @click='setTokenAsReadOnly(filter.filterId);'
-		  src="/images/hand-write.svg">
+		  src="/images/hand-write.svg"
+		  :title="filterAdminTokenHelp">
 		<img
 		  @click='removeToken(filter.filterId)'
-		  src="/images/trash.svg">
+		  src="/images/trash.svg"
+		  :title="filterRemoveTokenHelp">
               </div>
 
 	    </div>

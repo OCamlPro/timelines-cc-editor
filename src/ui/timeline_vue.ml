@@ -130,6 +130,12 @@ class type data = object
   method importHelp : Js.js_string Js.t Js.readonly_prop
   method filterHelp : Js.js_string Js.t Js.readonly_prop
 
+  method filterEditAliasHelp    : Js.js_string Js.t Js.readonly_prop
+  method filterCopyLinkHelp     : Js.js_string Js.t Js.readonly_prop
+  method filterAdminTokenHelp   : Js.js_string Js.t Js.readonly_prop
+  method filterReadonlyTokenHelp : Js.js_string Js.t Js.readonly_prop
+  method filterRemoveTokenHelp  : Js.js_string Js.t Js.readonly_prop
+
   method startDateFormTitle    : Js.js_string Js.t Js.readonly_prop
   method endDateFormTitle      : Js.js_string Js.t Js.readonly_prop
   method mediaFormTitle        : Js.js_string Js.t Js.readonly_prop
@@ -294,6 +300,12 @@ let page_vue
     val filterHelp          = tjs_ s_filter_help
     val exportHelp          = tjs_ s_export_help
     val importHelp          = tjs_ s_import_help
+
+    val filterEditAliasHelp     = tjs_ s_filter_edit_alias_help
+    val filterCopyLinkHelp      = tjs_ s_filter_copy_link_help
+    val filterAdminTokenHelp    = tjs_ s_filter_admin_token_help
+    val filterReadonlyTokenHelp = tjs_ s_filter_readonly_token_help
+    val filterRemoveTokenHelp   = tjs_ s_filter_remove_token_help
 
     val startDateFormTitle    = tjs_ s_from
     val endDateFormTitle      = tjs_ s_to

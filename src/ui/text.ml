@@ -100,3 +100,9 @@ let s_save_title_button_text = ss_ "saveTitleButtonText"
 let s_alert_timeline_not_found = ss_ "alertTimelineNotFound"
 
 let s_prompt_ask_email = ss_ "promptAskEmail"
+
+let s_filter_edit_alias_help  = ss_ "filterEditAliasHelp"
+let s_filter_copy_link_help   = ss_ "filterCopyLinkHelp"
+let s_filter_admin_token_help = ss_ "filterAdminTokenHelp"
+let s_filter_readonly_token_help = ss_ "filterReadonlyTokenHelp"
+let s_filter_remove_token_help = ss_ "filterRemoveTokenHelp"
