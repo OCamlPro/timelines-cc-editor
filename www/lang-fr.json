@@ -67,6 +67,7 @@
         ["ponderation", "Ponderation" ],
         ["ponderationHelp", "Sélectionnez deux valeurs, seuls les événements compris entre cdes deux valeurs (incluses) seront affichés" ],
         ["ponderationFormHelp", "A quel point votre évènement est-il important ? 0 = très important" ],
+        ["promptAskEmail", "Si vous le souhaitez, nous pouvons envoyer sur votre boite mail l'url de votre frise. Nous ne la sauvegarderons pas, promis !" ],
 	["readLinkText", "Partagez ce lien pour présenter votre frise sans donner les droits d'édition"],
         ["removeEvent", "Supprimer l'évènement"],
         ["removeTimelineText", "Supprimer la frise"],

@@ -26,7 +26,7 @@ let custom_error default err =
 
 let error = custom_error None
 
-let create_timeline ?email name descr =
+let create_timeline ?email name descr cont =
   let timeline_id, headline, name =
     match name with
     | "" ->
@@ -38,18 +38,10 @@ let create_timeline ?email name descr =
   in
   let title = Utils.to_title_event headline descr in
   let error e = Lwt.return @@ Error e in 
-  Request.create_timeline ~error ?email timeline_id title true (
-    function id ->
-      let () =
-        let name =
-          match name with
-          | None -> id
-          | Some n -> n in
-        Timeline_cookies.add_timeline name id false in
-      let id = Ui_utils.timeline_arg_from_id ?name id in
-      let new_page = Format.sprintf "/edit?timeline=%s" id in
-      Js_utils.log "Going to %s" new_page;
-      finish @@ Ok (Ui_utils.goto_page new_page)
+  Request.create_timeline ~error ?email timeline_id title true
+    ( fun (admin,_) -> 
+      cont ~name ~id:admin;
+      finish @@ Ok ()
     )
 
 let add_event
