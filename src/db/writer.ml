@@ -198,6 +198,55 @@ let generate_random_token () =
     if Reader.timeline_exists id then loop () else id in
   loop ()
 
+let create_token
+    ?(users=[])
+    ?(confidential=false)
+    ?(readonly=true)
+    ?after
+    ?before
+    ?min_level
+    ?max_level
+    ?categories
+    ?tags
+    ?pretty
+    (tid : string) =
+  Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
+    if admin_rights then begin
+      let new_id = generate_random_token () in
+    let users = List.map (fun s -> Some s) users in
+    let tags : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) tags in
+    let categories : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) categories in     
+      match Reader.timeline_name tid with
+      | Ok timeline_name -> 
+        [%pgsql dbh
+            "INSERT INTO \
+             timeline_ids_(id_, users_, public_, main_title_, alias_, confidential_, readonly_, \
+             after_, before_, min_level_, max_level_, categories_, tags_, pretty_) \
+             VALUES ($new_id, $users, true, $timeline_name, $tid, $confidential, $readonly, \
+             $?after, $?before, $?min_level, $?max_level, $?categories, $?tags, $?pretty)"];
+        Ok new_id
+      | Error e -> (* Should not happen *) Error e
+  end else
+    Error "[create_token] Cannot create token")
+
+
+let raw_remove_timeline tid =
+  let () =
+    [%pgsql dbh "UPDATE users_ SET timelines_=array_remove(timelines_, $tid)"];
+    [%pgsql dbh "DELETE FROM timeline_ids_ WHERE alias_ = $tid"];
+    [%pgsql dbh "DELETE FROM events_ WHERE timeline_id_ = $tid"] in
+  ()
+
+let remove_timeline tid = 
+  Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
+      if admin_rights then begin
+        let () = raw_remove_timeline tid in
+        Ok ()
+      end
+      else
+        Error "[remove_timeline] Incorrect rights"
+    )
+
 let create_private_timeline (email : string) (title : title) (timeline_name : string) =
   match Reader.user_exists email with
   | Some _ -> (* User exists, now checking if the timeline already exists *)
@@ -208,8 +257,6 @@ let create_private_timeline (email : string) (title : title) (timeline_name : st
     Format.eprintf "Timeline id after check: %s@." timeline_id;
     begin
       try
-        match add_title title timeline_id with
-        | Ok _ ->
           [%pgsql dbh
             "INSERT INTO \
              timeline_ids_(id_, users_, public_, main_title_, alias_, \
@@ -218,8 +265,16 @@ let create_private_timeline (email : string) (title : title) (timeline_name : st
                      true, false, $today, 'Admin')";];
           [%pgsql dbh "UPDATE users_ SET timelines_ = array_append(timelines_, $timeline_id) \
                        WHERE email_=$email"];
-          Ok timeline_id
-        | Error e -> Error e
+          match add_title title timeline_id with
+          | Ok _ -> begin
+            match create_token ~readonly:true ~pretty:"Read only" timeline_id with
+            | Ok read_only -> Ok (timeline_id, read_only)
+            | Error e -> raw_remove_timeline timeline_id; Error e
+          end
+          | Error e ->
+            Format.eprintf "[create_public_timeline] Error before adding title: %s@." e;
+            raw_remove_timeline timeline_id;
+            Error e
       with e -> Error (Printexc.to_string e)
     end
   | None -> Error ("User " ^ email ^ " does not exist")  
@@ -240,11 +295,14 @@ let create_public_timeline (title : title) (timeline_name : string) =
            VALUES ($timeline_id, $users, true, $timeline_name, $timeline_id, \
            true, false, $today, 'Admin')"] in
     match add_title title timeline_id with
-    | Ok _ ->
-      Format.eprintf "[create_public_timeline] Title added@.";
-      Format.eprintf "[create_public_timeline] Token added@.";
-      Ok timeline_id
+    | Ok _ -> begin
+      match create_token ~readonly:true ~pretty:"Read only" timeline_id with
+      | Ok read_only -> Ok (timeline_id, read_only)
+      | Error e ->
+        raw_remove_timeline timeline_id; Error e
+        end
     | Error e ->
+      raw_remove_timeline timeline_id;
       Format.eprintf "[create_public_timeline] Error before adding title: %s@." e;
       Error e
   with e ->
@@ -259,23 +317,6 @@ let rename_timeline (timeline_id : string) (new_timeline_name : string) =
         "UPDATE timeline_ids_ SET main_title_=$new_timeline_name WHERE alias_=$timeline_id"]
       in Ok ()
     else Error "[rename_timeline] Incorrect rights"
-    )
-
-let raw_remove_timeline tid =
-  let () =
-    [%pgsql dbh "UPDATE users_ SET timelines_=array_remove(timelines_, $tid)"];
-    [%pgsql dbh "DELETE FROM timeline_ids_ WHERE alias_ = $tid"];
-    [%pgsql dbh "DELETE FROM events_ WHERE timeline_id_ = $tid"] in
-  ()
-
-let remove_timeline tid = 
-  Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
-      if admin_rights then begin
-        let () = raw_remove_timeline tid in
-        Ok ()
-      end
-      else
-        Error "[remove_timeline] Incorrect rights"
     )
 
 (* Do NOT export: replace_timeline keeps the old tokens for the new timeline. This
@@ -346,37 +387,6 @@ let remove_user email =
     remove_unused_timelines user_timelines
     end
   | None -> Error "User does not exist"
-
-let create_token
-    ?(users=[])
-    ?(confidential=false)
-    ?(readonly=true)
-    ?after
-    ?before
-    ?min_level
-    ?max_level
-    ?categories
-    ?tags
-    ?pretty
-    (tid : string) =
-  Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
-    if admin_rights then begin
-      let new_id = generate_random_token () in
-    let users = List.map (fun s -> Some s) users in
-    let tags : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) tags in
-    let categories : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) categories in     
-      match Reader.timeline_name tid with
-      | Ok timeline_name -> 
-        [%pgsql dbh
-            "INSERT INTO \
-             timeline_ids_(id_, users_, public_, main_title_, alias_, confidential_, readonly_, \
-             after_, before_, min_level_, max_level_, categories_, tags_, pretty_) \
-             VALUES ($new_id, $users, true, $timeline_name, $tid, $confidential, $readonly, \
-             $?after, $?before, $?min_level, $?max_level, $?categories, $?tags, $?pretty)"];
-        Ok new_id
-      | Error e -> (* Should not happen *) Error e
-  end else
-    Error "[create_token] Cannot create token")
 
 let update_token_pretty 
     ~pretty

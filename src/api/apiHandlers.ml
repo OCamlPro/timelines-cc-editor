@@ -252,13 +252,13 @@ let create_timeline_lwt req auth title name public =
     else
       Writer.create_public_timeline title name
 
-let send_link ?lang email tname tid =
+let send_link ?lang ~readonly_tid ~email ~timeline_name ~admin_tid =
   let lang =
     match lang with
     | Some "en" -> Some Emails.En
     | Some "fr" -> Some Emails.Fr
     | _ -> None in
-  let mail = Emails.creation_email ?lang email tname tid in
+  let mail = Emails.creation_email ?lang ~readonly_tid ~email ~timeline_name ~admin_tid in
   Email.Sendgrid_xhr.send_base
     ~api_key:(!Config.Sendgrid.key)
     mail
@@ -269,7 +269,7 @@ let create_timeline (req, name) _ (title, public) =
   is_auth req (fun auth ->
     match create_timeline_lwt req auth title name' public with
       | Error _ as e -> EzAPIServerUtils.return e
-      | (Ok tid) as ok ->
+      | (Ok (admin_tid, readonly_tid)) as ok ->
         match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "email" req.req_params with
         | None -> 
           Lwt_io.printl "No email provided, returning" >>= fun () ->
@@ -277,7 +277,7 @@ let create_timeline (req, name) _ (title, public) =
         | Some email ->
           Lwt_io.printl ("Sending to " ^ email) >>= fun () ->
           let lang = Utils.fopt Utils.hd_opt @@ StringMap.find_opt "lang" req.req_params in
-          send_link ?lang email name tid >>=
+          send_link ?lang ~readonly_tid ~email ~timeline_name:name ~admin_tid >>=
           function
           | Error (id, msg) ->
             Lwt_io.printl (Format.asprintf "Error %i: %a" id Utils.pp_str_opt msg) >>= 
@@ -291,7 +291,7 @@ let import_timeline (req, name) _ (title, events, public) =
   is_auth req (fun auth ->
     match create_timeline_lwt req auth title name public with
   | Error e -> EzAPIServerUtils.return (Error e)
-  | Ok tmp_tid ->
+  | Ok (tmp_tid,_) ->
     let exception Stop of string in
     let handle_event e =
       match Writer.add_event e tmp_tid with

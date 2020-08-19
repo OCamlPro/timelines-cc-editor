@@ -83,4 +83,9 @@ let update_event_encoding =
     (req "event_id" int)
     (req "old" Data_encoding.title_encoding)
     (req "new" Data_encoding.title_encoding)
-    (req "timeline_id" string)
+    (req "timeline_id" Json_encoding.string)
+
+let create_timeline_output_encoding = 
+  obj2 
+    (req "admin_tid" Json_encoding.string)
+    (req "readonly_tid" Json_encoding.string)

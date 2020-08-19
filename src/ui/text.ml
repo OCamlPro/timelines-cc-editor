@@ -98,3 +98,5 @@ let s_email_help = ss_ "emailHelp"
 
 let s_save_title_button_text = ss_ "saveTitleButtonText"
 let s_alert_timeline_not_found = ss_ "alertTimelineNotFound"
+
+let s_prompt_ask_email = ss_ "promptAskEmail"

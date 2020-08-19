@@ -307,13 +307,13 @@ let export_database : (string, unit) service1 =
     ~output:unit
     Path.(api_root // "export_database" /: arg_token ())
 
-let create_timeline : (string, (Data_types.title * bool), string) post_service1 =
+let create_timeline : (string, (Data_types.title * bool), string * string) post_service1 =
   post_service
     ~error_outputs
     ~params:(email_param :: lang_param :: auth_params)
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
-    ~output:string
+    ~output:Api_data.ApiData.create_timeline_output_encoding
     Path.(api_root // "create_timeline" /: arg_token ())
 
 let import_timeline : (string, (Data_types.title * Data_types.event list * bool), unit) post_service1 =

@@ -48,15 +48,27 @@ end
 module Vue = Vue_js.Make (Input)
 
 let createTimeline (self : data Vue_js.vue) =
+  let name = Js_of_ocaml.Js.to_string self##.createNameValue in
   let email =
-    match Js_of_ocaml.Js.to_string self ##.emailValue with
+    match Js_utils.Window.prompt (Lang.t_ Text.s_prompt_ask_email) with
     | "" -> None
-    | e -> Some e in
+    | m -> Some m in
   ignore @@
   Controller.create_timeline
     ?email
-    (Js_of_ocaml.Js.to_string self##.createNameValue)
+    name
     (Js_of_ocaml.Js.to_string self##.createDescrValue)
+    (fun ~name ~id ->
+      let name =
+        match name with
+        | None -> id
+        | Some n -> n in
+      let () = Timeline_cookies.add_timeline name id false in
+      let id = Ui_utils.timeline_arg_from_id ~name id in
+      let new_page = Format.sprintf "/edit?timeline=%s" id in
+      Js_utils.log "Going to %s" new_page;
+      Ui_utils.goto_page new_page
+    )
 
 let enableCookies self =
   Timeline_cookies.enable ();
