@@ -2655,7 +2655,7 @@ button:disabled,
     border: none;
 }
 
-.panel .close {
+.panel .token {
     text-decoration: none;
     -moz-transition: color 0.2s ease-in-out;
     -webkit-transition: color 0.2s ease-in-out;
@@ -2677,7 +2677,7 @@ button:disabled,
 }
 
 
-.panel .close:before {
+.panel .token:before {
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     font-family: FontAwesome;
