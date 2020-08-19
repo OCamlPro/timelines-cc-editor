@@ -2733,7 +2733,7 @@ tr:hover.clickable {
   background-color: #1E6E87;
   color: #ffffff;
   padding: 10px;
-  width: 230px;
+  min-width: 15em;
   border-radius: 6px;
   box-shadow: 0 0 1.5em 0 rgba(0, 0, 0, 0.2);
 
