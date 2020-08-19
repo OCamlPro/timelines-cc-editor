@@ -40,14 +40,10 @@ let confidential_rights (req, tid) cont =
     has_admin_rights (req, tid) (fun rights ->
     cont (auth && rights)))
 
-let edition_rights (req, tid) cont = 
-  Reader.is_public tid >>= (function
-    | Ok is_pub -> 
-      if is_pub then 
-        cont true
-      else
-        confidential_rights (req, tid) cont
-    | Error _e -> cont false)
+let edition_rights (_req, tid) cont = 
+  Reader.filter_of_token tid >>= (function
+    | Ok {kind = Edit;_} -> cont true
+    | _-> cont false)
 
 let if_ ~error has args cont =
   has args (fun right -> if right then cont () else error ())
@@ -155,30 +151,35 @@ let timeline_data (req, tid) _ () =
     match confidential with
     | Some "false" -> false
     | _ -> true in
-  if confidential then
-    edition_rights (req, tid) (fun has_rights ->
-    Reader.timeline_data
-      ~with_confidential:has_rights
-      ~tid
-      ?start_date
-      ?end_date
-      ?groups
-      ?min_ponderation
-      ?max_ponderation
-      ?tags
-      () >>= EzAPIServerUtils.return
-      )
-  else
-    Reader.timeline_data
-      ~with_confidential:false
-      ~tid
-      ?start_date
-      ?end_date
-      ?groups
-      ?min_ponderation
-      ?max_ponderation
-      ?tags
-      () >>= EzAPIServerUtils.return
+  edition_rights (req, tid) (fun has_rights ->
+      begin
+        if confidential then
+          Reader.timeline_data
+            ~with_confidential:has_rights
+            ~tid
+            ?start_date
+            ?end_date
+            ?groups
+            ?min_ponderation
+            ?max_ponderation
+            ?tags
+            ()
+
+        else
+          Reader.timeline_data
+            ~with_confidential:false
+            ~tid
+            ?start_date
+            ?end_date
+            ?groups
+            ?min_ponderation
+            ?max_ponderation
+            ?tags
+            ()
+      end >>= function
+      | Ok (title, events) -> EzAPIServerUtils.return (Ok (title, events, has_rights))
+      | Error e -> EzAPIServerUtils.return (Error e)
+    )
     )
 
 let remove_event (req, timeline_id) _ () =
