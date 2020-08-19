@@ -16,8 +16,7 @@ let api () =
     hu_path_string = "";
     hu_arguments = [];
     hu_fragment = "" } in
-  Https h
-(*
+  Https h  (*
 let api () =
   let h = {
     hu_host = "localhost";
@@ -154,7 +153,7 @@ let args_from_session args =
 let timeline_data ~args timeline cont  =
   let args = args_from_session args in
   get
-    ~error:(fun _ -> cont (None, []))
+    ~error:(fun _ -> cont (None, [], false))
     ~args
     ApiServices.timeline_data [timeline]
     cont

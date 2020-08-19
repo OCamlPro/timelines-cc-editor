@@ -4,8 +4,8 @@ open DbData
 let title_api_result_encoding : ((int * Timeline_data.Data_types.title) option) Json_encoding.encoding =
   option (tup2 int Data_encoding.title_encoding) 
 
-let timeline_data_api_result_encoding : (((int * Timeline_data.Data_types.title) option) * ((int * Timeline_data.Data_types.event) list)) Json_encoding.encoding =
-  tup2 (
+let timeline_data_api_result_encoding : (((int * Timeline_data.Data_types.title) option) * ((int * Timeline_data.Data_types.event) list) * bool) Json_encoding.encoding =
+  tup3 (
     option @@
     tup2
       int
@@ -16,6 +16,7 @@ let timeline_data_api_result_encoding : (((int * Timeline_data.Data_types.title)
       int
       Data_encoding.event_encoding
   )
+    bool
 
 (* Updates require a "Modified" case *)
 type 'start_date update_meta_event_res =

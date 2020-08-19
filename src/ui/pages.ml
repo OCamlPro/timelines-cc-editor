@@ -38,23 +38,29 @@ let timeline_page ~args =
     Js_utils.log "Id: %s" tid;
     let _name, tid = Ui_utils.timeline_id_from_arg tid in
     Request.get_tokens tid (fun tokens ->
-      Request.timeline_data ~args tid (fun (title, events) ->
-        Request.timeline_name tid (fun name ->
-          Request.categories tid (fun categories ->
-            let on_page =
-              match title, events with
-              | None, [] -> Timeline_vue.No_timeline {name; id=tid}
-              | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
-            let categories =
-              let in_args = Args.get_categories args in            
-              List.fold_left
-                (fun acc s -> (s, List.mem s in_args) :: acc)
-                []
-                categories in
-            Timeline_vue.init ~args ~categories ~on_page ~tokens;
-            finish ()
-                  )
+      Request.timeline_name tid (fun name ->
+        Request.timeline_data ~args tid (fun (title, events, edition_rights) ->
+          if edition_rights then begin
+            Request.categories tid (fun categories ->
+              let on_page =
+                match title, events with
+                | None, [] -> Timeline_vue.No_timeline {name; id=tid}
+                | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
+              let categories =
+                let in_args = Args.get_categories args in            
+                List.fold_left
+                  (fun acc s -> (s, List.mem s in_args) :: acc)
+                  []
+                  categories in
+              Timeline_vue.init ~args ~categories ~on_page ~tokens;
+              finish ()
+                )
+        end else begin
+          Ui_utils.goto_page (Format.sprintf "/view?timeline=%s-%s" name tid);
+          finish ()
+        end
               )
+
           )
       )
 
@@ -63,8 +69,15 @@ let view_page ~args =
   | None -> View_vue.init None "" None []; finish ()
   | Some tid ->
     let name, tid' = Ui_utils.timeline_id_from_arg tid in
-    Request.timeline_data ~args tid' (fun (title, events) ->
-      View_vue.init (Some tid) name title events;
+    Request.timeline_data ~args tid' (fun (title, events, edition_rights) ->
+      let want_to_edit () =
+        Js_utils.confirm
+          "You have been granted edition rights. Do you wish to go to the edition page?" in
+      let () =
+        if edition_rights && want_to_edit () then
+          Ui_utils.goto_page (Format.sprintf "/edit?timeline=%s-%s" name tid')
+        else 
+          View_vue.init (Some tid) name title events in
       finish ()
     )
 

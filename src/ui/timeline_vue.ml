@@ -771,7 +771,7 @@ let filter self =
     Ui_utils.(push (url "" args));
     ignore @@
     Request.timeline_data ~args tid
-      (fun (title, events) -> display_timeline self title events; Lwt.return ())
+      (fun (title, events, _rights) -> display_timeline self title events; Lwt.return ())
   with Failure s -> Js_utils.alert s
 
 let displayTokenFilter _self filter =

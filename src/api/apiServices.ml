@@ -233,7 +233,7 @@ let update_event : (int * Data_types.title * Data_types.title * string, update_t
 
 let timeline_data :
   (string,
-   (((int * Data_types.title) option) * ((int * Data_types.event) list))) service1 =
+   (((int * Data_types.title) option) * ((int * Data_types.event) list) * bool)) service1 =
   service
     ~error_outputs
     ~name:"timeline_data"
