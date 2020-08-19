@@ -64,16 +64,17 @@
     <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
       <img src="/images/share.svg">
       <p class="tooltipname">{{exportButton}}</p>
-      <div class="tooltipcontent">{{exportButton}}
+      <div class="tooltipcontent" style="width:20em">{{exportButton}}
 	<ul>
           <li class="croptoken" v-for="filter in filters">
 	    <div>
 
-	      <input type='text' v-model='filter.pretty' v-show='filter.isEditing'>
 	      <div>
 		<span v-show='!filter.isEditing'> {{filter.pretty}} </span>
+		<input type='text' v-model='filter.pretty' v-show='filter.isEditing'>
 		<span v-show='filter.filterId==currentTimeline'> (You) </span>
 	      </div>
+
 	      <div style='float: left; display: inline-block'>
 		<span class="tooltip" v-show="displayTokenFilter(filter)">
 		  <span class="tooltipcontent">
@@ -128,7 +129,6 @@
 		  src="/images/trash.svg"
 		  :title="filterRemoveTokenHelp">
               </div>
-
 	    </div>
           </li>
         </ul>
