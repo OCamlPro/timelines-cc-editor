@@ -20,7 +20,7 @@ let clean () =
        | Some last_update -> (* if no modification, then discard timeline *)
          let period = Date.sub today last_update in
          if 
-           Date.Period.compare period (Date.Period.day 10) >= 0 && 
+           Date.Period.compare period (Date.Period.month 1) >= 0 && 
            not (List.mem id !timelines_to_keep) 
          then begin
            Format.eprintf "Removing timeline %s@." id;
