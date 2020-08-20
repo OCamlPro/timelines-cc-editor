@@ -2,3 +2,8 @@ _obuild
 csv-parser
 www/data.json
 _opam
+www/edit/index.html
+www/home/index.html
+www/index.html
+www/view/index.html
+www/assets/js.ocp-timeline.js
