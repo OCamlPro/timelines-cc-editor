@@ -262,8 +262,6 @@ module Reader_generic (M : MONAD) = struct
         | _ -> return true
       )
 
-  exception TwoTitles
-
   let timeline_data
       ~(with_confidential : bool)
       ~(tid : string)
@@ -274,7 +272,7 @@ module Reader_generic (M : MONAD) = struct
       ?(groups=[])
       ?(tags=[])
       () =
-    with_filter ~error:(fun () -> return (Error "Invalid token")) tid (fun f ->
+    with_filter ~error:(fun () -> return (Ok NoTimeline)) tid (fun f ->
     let tid = f.timeline in
     let start_date = 
       match f.after with
@@ -376,10 +374,15 @@ module Reader_generic (M : MONAD) = struct
                 match Utils.metaevent_to_event event with
                 | Some e  -> (id, e) :: acc
                 | None -> acc
-            ) [] l
-          in return (Ok (!title, events))
+            ) [] l in
+          let edition_rights = 
+            match f.kind with 
+            | View -> false
+            | Edit -> true in 
+          return (Ok (Timeline {title= !title; events; edition_rights}))
         with TwoTitles -> return (Error "Two titles in database")
-      ))
+      )
+  )
 
   let timeline_exists (tid : string) =
     with_dbh >>> fun dbh ->
@@ -391,15 +394,19 @@ module Reader_generic (M : MONAD) = struct
   (* todo : full sql *)
   let categories (with_confidential : bool) (tid : string) =
     timeline_data ~with_confidential ~tid () >>= (function
-    | Ok (title, events) ->
+    | Ok (Timeline {title; events; edition_rights}) ->
+      (* Temporary restriction : if no edition right, then no category *)
+      if not edition_rights then
+        return []
+      else
         let s = 
           match title with
           | None | Some (_, {group = None; _}) -> Utils.StringSet.empty
           | Some (_, {group = Some g; _}) -> Utils.StringSet.singleton g in 
-        let s =
+        let s =   
           List.fold_left
             (fun acc (_, {group; _}) ->
-               match group with
+              match group with
                | None -> acc
                | Some g -> Utils.StringSet.add g acc)
             s

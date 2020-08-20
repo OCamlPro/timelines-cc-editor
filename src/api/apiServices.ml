@@ -232,8 +232,7 @@ let update_event : (int * Data_types.title * Data_types.title * string, update_t
     Path.(api_root // "update_event")
 
 let timeline_data :
-  (string,
-   (((int * Data_types.title) option) * ((int * Data_types.event) list) * bool)) service1 =
+  (string, DbData.timeline_data_output) service1 =
   service
     ~error_outputs
     ~name:"timeline_data"

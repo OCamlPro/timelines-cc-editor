@@ -153,10 +153,10 @@ let args_from_session args =
 let timeline_data ~args timeline cont  =
   let args = args_from_session args in
   get
-    ~error:(fun _ -> cont (None, [], false))
+    ~error:(fun _ -> cont (Error "[timeline_data] Error while reaching the API"))
     ~args
     ApiServices.timeline_data [timeline]
-    cont
+    (fun res -> cont (Ok res))
 
 (*
 let event ~args (id : int) cont =

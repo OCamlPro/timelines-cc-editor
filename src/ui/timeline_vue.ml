@@ -771,7 +771,18 @@ let filter self =
     Ui_utils.(push (url "" args));
     ignore @@
     Request.timeline_data ~args tid
-      (fun (title, events, _rights) -> display_timeline self title events; Lwt.return ())
+      (function
+         | Error s -> 
+           Js_utils.log "Error while requesting timeline_data: %s. Reloading page" s;
+           Js_utils.reload ();
+           Lwt.return () 
+         | Ok (Timeline {title; events; edition_rights=_}) -> 
+           display_timeline self title events; Lwt.return ()
+         | Ok NoTimeline -> 
+           Js_utils.log "Timeline has not been found after filtering, maybe someone deleted it? Reloading page to be sure.";
+           Js_utils.reload ();
+           Lwt.return () 
+)
   with Failure s -> Js_utils.alert s
 
 let displayTokenFilter _self filter =

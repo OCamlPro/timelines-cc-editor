@@ -1,22 +1,40 @@
 open Json_encoding
 open DbData
 
+(* Redefinition of simple encodings for web *)
+let unit = obj1 (req "unit" unit)
+
+let string = obj1 (req "string" string)
+
 let title_api_result_encoding : ((int * Timeline_data.Data_types.title) option) Json_encoding.encoding =
   option (tup2 int Data_encoding.title_encoding) 
 
-let timeline_data_api_result_encoding : (((int * Timeline_data.Data_types.title) option) * ((int * Timeline_data.Data_types.event) list) * bool) Json_encoding.encoding =
-  tup3 (
-    option @@
-    tup2
-      int
-      Data_encoding.title_encoding
-  ) (
-    list @@
-    tup2
-      int
-      Data_encoding.event_encoding
+let events_api_result_encoding = 
+  list (
+  tup2
+    int
+    Data_encoding.event_encoding
   )
+
+let timeline_result_encoding =
+  tup3 
+    title_api_result_encoding
+    events_api_result_encoding
     bool
+
+let timeline_data_api_result_encoding = 
+  union [
+    case 
+     timeline_result_encoding 
+     (function 
+        | Timeline {title; events; edition_rights} -> Some (title, events, edition_rights) 
+        | _ -> None) 
+     (fun (title, events, edition_rights) -> Timeline {title; events; edition_rights});
+     case 
+       unit
+       (function NoTimeline -> Some () | _ -> None)
+       (fun () -> NoTimeline)   
+  ]
 
 (* Updates require a "Modified" case *)
 type 'start_date update_meta_event_res =
@@ -74,10 +92,6 @@ let filter_encoding =
 let admin_token = obj1 (req "admin" string)
 
 let any_token = obj1 (req "token" string)
-
-let unit = obj1 (req "unit" unit)
-
-let string = obj1 (req "string" string)
 
 let update_event_encoding =
   obj4 
