@@ -1,12 +1,13 @@
 open CalendarLib
 
+let filename : string ref = ref ""
 let timelines_to_keep : string list ref = ref []
 
 let dbh () : _ PGOCaml.t PGOCaml.monad =
   let open Config.DB in
   PGOCaml.connect ?host ?password ?port ?user ~database ()
 
-let clean () = 
+let clean () =    
   let dbh = dbh () in
   let to_remove =
     [%pgsql dbh "SELECT id_, last_update_ FROM timeline_ids_ WHERE id_=alias_"] in
@@ -19,7 +20,7 @@ let clean () =
        | Some last_update -> (* if no modification, then discard timeline *)
          let period = Date.sub today last_update in
          if 
-           Date.Period.compare period (Date.Period.month 1) >= 0 && 
+           Date.Period.compare period (Date.Period.day 10) >= 0 && 
            not (List.mem id !timelines_to_keep) 
          then begin
            Format.eprintf "Removing timeline %s@." id;
@@ -31,7 +32,7 @@ let clean () =
 
 let load_keep () = try
     let l =
-      let chan = open_in "keep.json" in
+      let chan = open_in !filename in
       let str = 
         let res = ref "" in
         let () = 
@@ -49,7 +50,10 @@ let load_keep () = try
   with _ -> ()
 
 let () =
-  Format.eprintf "Start cleaning@.";  
+  Format.eprintf "Start cleaning@.";
+  let () =
+    try filename := Sys.argv.(1) with
+    _ -> failwith "You jave to provide a list of timelines to keep" in
   while true do
     load_keep ();
     clean ();
