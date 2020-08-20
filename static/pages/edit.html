@@ -239,13 +239,19 @@
 <div class="panel" id="formPanel">
   <form class="form-card">
     <fieldset class="form-fieldset">
-      <legend class="form-legend">
-	<span v-if="addingNewEvent">{{formNameAdding}}</span>
-	<span v-else> {{formNameEditing}}</span>
-	<span @click=hideForm() class="token fa fa-close fa-2x" style="float: right"></span>
-	<span @click=addEvent(addingNewEvent) class="token fa fa-save fa-lg" style="right: 40px"></span>
-	<span @click=removeFromForm() class="token fa fa-trash fa-lg" style="right: 80px"></span>
+      
+      <legend class="form-legend" style="width:100%;">
+	<span style="float: left">
+	  <span v-if="addingNewEvent">{{formNameAdding}}</span>
+	  <span v-else> {{formNameEditing}}</span>
+	</span>
+	<span style="float: right">
+	  <span @click=addEvent(addingNewEvent) class="clickable fa fa-save fa-lg" style="right: 40px"></span>
+	  <span @click=removeFromForm() class="clickable fa fa-trash fa-lg" style="right: 80px"></span>
+	  <span @click=hideForm() class="clickable fa fa-close fa-lg"></span>
+	</span>
       </legend>
+      
 
       <!-- TITLE -->
       <div class="form-element form-input">
