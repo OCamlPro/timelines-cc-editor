@@ -176,10 +176,16 @@ let timeline_data (req, tid) _ () =
             ?max_ponderation
             ?tags
             ()
-      end >>= function
-      | Ok (title, events) -> EzAPIServerUtils.return (Ok (title, events, has_rights))
-      | Error e -> EzAPIServerUtils.return (Error e)
-    )
+      end >>= 
+        function 
+        | Ok (Timeline {title; events; edition_rights}) -> 
+          (* Todo: parametrize the removal of categories *)
+          let remove_category (i, e) = (i, {e with Timeline_data.Data_types.group = None}) in
+          let title = Timeline_data.Utils.opt remove_category title in
+          let events = List.map remove_category events in
+          EzAPIServerUtils.return (Ok (DbData.Timeline {title; events; edition_rights}))
+        | other -> EzAPIServerUtils.return other
+      )
     )
 
 let remove_event (req, timeline_id) _ () =
@@ -228,7 +234,7 @@ let logout _ _ (email, cookie) =
 let export_database (_req, timeline_id) _ () =
   Lwt_io.printl "CALL export_database" >>= fun () ->
   Reader.timeline_data ~with_confidential:true ~tid:timeline_id () >>= (function
-    | Ok (title, events) -> begin
+    | Ok (Timeline {title; events; _}) -> begin
       try
         let events = List.map snd events in
         let title =
@@ -239,7 +245,8 @@ let export_database (_req, timeline_id) _ () =
           Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
         EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
       with Failure s -> EzAPIServerUtils.return (Error s)
-    end
+    end 
+    | Ok NoTimeline -> EzAPIServerUtils.return (Error "Invalid token")
     | Error e -> EzAPIServerUtils.return (Error e)
     )
 

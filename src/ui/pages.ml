@@ -39,7 +39,8 @@ let timeline_page ~args =
     let _name, tid = Ui_utils.timeline_id_from_arg tid in
     Request.get_tokens tid (fun tokens ->
       Request.timeline_name tid (fun name ->
-        Request.timeline_data ~args tid (fun (title, events, edition_rights) ->
+        Request.timeline_data ~args tid (function
+        | Ok (Timeline {title; events; edition_rights}) -> begin
           if edition_rights then begin
             Request.categories tid (fun categories ->
               let on_page =
@@ -54,13 +55,23 @@ let timeline_page ~args =
                   categories in
               Timeline_vue.init ~args ~categories ~on_page ~tokens;
               finish ()
-                )
-        end else begin
-          Ui_utils.goto_page (Format.sprintf "/view?timeline=%s-%s" name tid);
-          finish ()
-        end
               )
-
+          end else begin
+            Ui_utils.goto_page (Format.sprintf "/view?timeline=%s-%s" name tid);
+            finish ()
+          end
+        end
+        | Ok NoTimeline -> begin
+            Js_utils.alert "This timeline seems to have been deleted.";
+            Timeline_cookies.remove_timeline tid;
+            Ui_utils.goto_page "/";
+            finish ()        
+          end
+        | Error s -> 
+          Js_utils.alert (Format.sprintf "ERROR: API Server seems to be down: %s" s);
+          Ui_utils.goto_page "/";
+          finish ()
+              )
           )
       )
 
@@ -69,16 +80,26 @@ let view_page ~args =
   | None -> View_vue.init None "" None []; finish ()
   | Some tid ->
     let name, tid' = Ui_utils.timeline_id_from_arg tid in
-    Request.timeline_data ~args tid' (fun (title, events, edition_rights) ->
-      let want_to_edit () =
-        Js_utils.confirm
-          "You have been granted edition rights. Do you wish to go to the edition page?" in
-      let () =
-        if edition_rights && want_to_edit () then
-          Ui_utils.goto_page (Format.sprintf "/edit?timeline=%s-%s" name tid')
-        else 
-          View_vue.init (Some tid) name title events in
-      finish ()
+    Request.timeline_data ~args tid' (function
+      | Error s ->
+        Js_utils.alert (Format.sprintf "ERROR: API Server seems to be down: %s" s);
+        Ui_utils.goto_page "/";
+        finish ()
+      | Ok (Timeline {title; events; edition_rights}) ->
+        let want_to_edit () =
+          Js_utils.confirm
+            "You have been granted edition rights. Do you wish to go to the edition page?" in
+        let () =
+          if edition_rights && want_to_edit () then
+            Ui_utils.goto_page (Format.sprintf "/edit?timeline=%s-%s" name tid')
+          else 
+            View_vue.init (Some tid) name title events in
+        finish ()
+      | Ok NoTimeline -> 
+        Js_utils.alert "This timeline seems to have been deleted.";
+        Timeline_cookies.remove_timeline tid';
+        Ui_utils.goto_page "/";
+        finish ()        
     )
 
 let () =
