@@ -240,6 +240,12 @@ let find_event unique_id events =
     (fun (_, e) -> unique_id = e.unique_id)
     events
 
+(* Small hack for fixing centering issue *)
+let resize_tl_slide_content () =
+  List.iter
+    (fun elt -> Js_utils.Manip.SetCss.width elt "100%")
+    (Js_utils.Manip.by_class "tl-slide-content")
+
 let init_slide_from_url ~whenOnSlide title events = begin
   let events =
     let e = List.map (fun (i, e) -> i, (Utils.event_to_metaevent e)) events in
@@ -269,6 +275,7 @@ let init_slide_from_url ~whenOnSlide title events = begin
   let () = go_to_right_slide       ~whenOnSlide order rev_order in
   let () = add_handlers_to_markers ~whenOnSlide order rev_order in
   let () = add_handlers_to_arrows  ~whenOnSlide order rev_order in
+  let () = resize_tl_slide_content () in
   Js_utils.log "Timeline initialized";
   ()
 end

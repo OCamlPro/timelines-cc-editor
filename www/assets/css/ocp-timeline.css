@@ -1567,6 +1567,7 @@ html {
     display:table;
     table-layout:fixed;
     height:100%;
+    width:100%;
     z-index:1
 }
 .tl-slide .tl-slide-content-container{

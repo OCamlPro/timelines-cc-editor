@@ -11868,11 +11868,10 @@ TL.TimeMarker = TL.Class.extend({
 		if (this.data.end_date) {
 			this._el.container.style.width = w + "px";
 
+		        this._el.content_container.style.width = w + "px";
 			if (w > this.options.marker_width_min) {
-				this._el.content_container.style.width = w + "px";
 				this._el.content_container.className = "tl-timemarker-content-container tl-timemarker-content-container-long";
 			} else {
-				this._el.content_container.style.width = this.options.marker_width_min + "px";
 				this._el.content_container.className = "tl-timemarker-content-container";
 			}
 		}
