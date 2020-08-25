@@ -2682,15 +2682,13 @@ table {
 
 #formPanel{
     background: #1588ab;
-    /* display: table-cell; */
-    /* vertical-align: middle; */
     margin-left: auto;
     margin-right: auto;
-    top: 120px !important;
+    top: 90px !important;
     right: 10%;
     color: #FFF;
-    /* height: 300px; */
-    width: 80%;
+    height: 55%;
+    width: 85%;
     border: 2px #FFF dashed;
 }
 
@@ -3323,10 +3321,21 @@ tr:hover.clickable {
 }
 
 .form-fieldset {
-  width: 100%;
-  padding: 0px 30px;
+  padding: 0px 15px !important;
   border: 0;
-  height: 100%
+  height: 100%;
+}
+
+fieldset {
+    display: block;
+    margin-inline-start: 0px !important;
+    margin-inline-end: 0px !important;
+    padding-block-start: 0px !important;
+    padding-inline-start: 0px !important;
+    padding-inline-end: 0px !important;
+    padding-block-end: 0px !important;
+    min-inline-size: initial !important;
+
 }
 
 .form-fieldset + .form-fieldset {
@@ -3334,7 +3343,7 @@ tr:hover.clickable {
 }
 
 .form-legend {
-  padding: 0.25em 0 0;
+  padding: 10px 0 0;
   margin: 0 0 -0.5em;
   font-size: 1.5rem;
   text-align: center;
@@ -3346,9 +3355,10 @@ tr:hover.clickable {
 }
 
 .form-element {
+  width: 100%;
   position: relative;
-  margin-top: 2.25rem;
-  margin-bottom: 2.25rem;
+  margin-top: 1rem;
+  /* margin-bottom: 2.25rem; */
 }
 
 .form-element-hint {
@@ -3380,24 +3390,55 @@ tr:hover.clickable {
   will-change: transform;
 }
 
+input::-webkit-datetime-edit-fields-wrapper:hover {
+  text-decoration: underline dotted #ffffff70;
+
+}
+
 .form-element-ADD-text {
+  padding-left: 5px !important;
   float: left;
   outline: none;
   font: inherit !important;
   /* height: 52px; */
   margin: auto;
+  margin-right: 20px !important;
+  margin-bottom: 20px !important;
   border: 0 solid transparent;
   font-size: 15px !important;
   display: block;
   background: none;
-  padding: 0px;
-  /* margin: 0px; */
+  /* padding: 0px; */
+  width: 100%;
+  margin: 0px;
   font-size: 1.8rem;
-  border-bottom: 0px dashed #ffffff;
+  border-bottom: 1px solid #ffffff70;
+  border-radius: 0px;
   line-height: 1.5;
-  color: #FFFFFF;
+  color: #FFFFFF70;
   box-shadow: none;
 }
+
+.form-element-category {
+  padding-left: 5px !important;
+  padding-bottom: 0px !important;
+  float: left;
+  outline: none;
+  font: inherit !important;
+  border: 0 solid transparent;
+  font-size: 15px !important;
+  display: block;
+  background: none;
+  margin: 0px 0px 10px 10px !important;
+  width: 50%;
+  font-size: 1.8rem;
+  border-bottom: 1px solid #ffffff70;
+  line-height: 1.5;
+  color: #FFFFFF70;
+    border-radius: 0px;
+  box-shadow: none;
+}
+
 
 textarea {
     margin-bottom: 10px;
@@ -3407,9 +3448,9 @@ textarea {
 }
 
 select#category-select-form {
-    width: 200px;
+    width: 300px;
     float: left;
-    border-bottom: solid 1px #FFFFFF
+    border-bottom: solid 1px #ffffff70;
 }
 
 input#start-date {
@@ -3419,7 +3460,7 @@ input#start-date {
 }
 
 input[type="date" i]::-webkit-calendar-picker-indicator {
-    background-image: url("/images/date.svg");;
+    background-image: url("/images/date.svg");
     background-origin: content-box;
     background-size: contain;
     height: 1.2em;
@@ -3438,38 +3479,34 @@ input#end-date {
     margin-left: 20px;
 }
 
-div#picker {
-    color: #FFFFFF !important;
-    margin-left: 0px;
-    fill: red; }
-
 .form-element-ADD-text:hover {
-  text-decoration: underline dotted #ffffff;
+  text-decoration: underline dotted #ffffff70;
 }
 
 .form-element-ADD-title {
-  outline: none;
-  font: inherit !important;
-  height: 52px;
-  margin: auto;
-  border: 0 solid transparent;
-  font-size: 32px !important;
-  font-family: fontin-reg !important;
-  font-weight: 700 !important;
-  display: block;
-  background: none;
-  padding: 0px;
-  margin: 0px;
-  font-size: 1.8rem;
-  border-bottom: 0px dashed #ffffff;
-  line-height: 1.5;
-  min-width: 20em;
-  color: #FFFFFF;
-  box-shadow: none;
+    width: 100%;
+    outline: none;
+    font: inherit !important;
+    /* height: 52px; */
+    margin: auto;
+    border: 0 solid transparent;
+    font-size: 32px !important;
+    font-family: fontin-reg !important;
+    /* font-weight: 700 !important; */
+    display: block;
+    background: none;
+    padding: 0px;
+    margin: 0px;
+    font-size: 1.8rem;
+    border-bottom: 0px dashed #ffffff70;
+    line-height: 1.5;
+    min-width: 20em;
+    color: #ffffff70;
+    box-shadow: none;
 }
 
 .form-element-ADD-title:hover {
-  text-decoration: underline dotted #ffffff;
+  text-decoration: underline dotted #ffffff70;
 }
 
 .form-element-field {
@@ -3503,7 +3540,7 @@ div#picker {
   padding: 0px;
   /* margin: 0px; */
   font-size: 1.8rem;
-  border-bottom: 0px dashed #ffffff;
+  border-bottom: 0px dashed #ffffff70;
   line-height: 1.5;
   width: 500px;
   color: #FFFFFF;
@@ -3599,7 +3636,7 @@ select.form-element-field {
   position: absolute;
   height: 0.5em;
   width: 0.5em;
-  border-bottom: 1px solid #FFF;
+  border-bottom: 1px solid #ffffff70;
   border-right: 1px solid #FFF;
   display: block;
   right: 0.5em;
@@ -3652,14 +3689,14 @@ input {
     border-color: #1e6e87;
     border-image: initial;
     border-radius: 4px;
-    margin-bottom: 10px !important;
+    margin: 10px 0px !important;
     /* margin: 20px; */
     }
 
 ::-webkit-input-placeholder {
     -webkit-text-security: none;
-    color: #1e6e87;
-    font-size: 14px;
+    color: #FFFFFF70;
+    font-family: inherit !important;
     font-style: italic;
     pointer-events: none !important;
 }

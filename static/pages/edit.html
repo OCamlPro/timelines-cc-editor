@@ -247,7 +247,7 @@
 	</span>
 	<span style="float: right">
 	  <span @click=addEvent(addingNewEvent) class="clickable fa fa-save fa-lg" style="right: 40px"></span>
-	  <span @click=removeFromForm() class="clickable fa fa-trash fa-lg" style="right: 80px"></span>
+	  <span v-show="!addingNewEvent" @click=removeFromForm() class="clickable fa fa-trash fa-lg" style="right: 80px"></span>
 	  <span @click=hideForm() class="clickable fa fa-close fa-lg"></span>
 	</span>
       </legend>
@@ -295,20 +295,12 @@
 	<input
 	  type="text"
 	  placeholder="Name this new category"
+	  class="form-element-category"
 	  v-model="otherCategoryFormValue"
 	  v-show="categoriesFormValue=='__other__category__'">
       </div>
     </fieldset>
-    <div class="form-actions">
-      <div class="button special" id="edit-add" @click=addEvent(addingNewEvent)>
-	<span v-if="addingNewEvent">{{addEventButtonText}}</span>
-	<span v-else>{{updateEventButtonText}}</span> 
-      </div>
-      <div class="button special" id="back-from-edit" @click=hideForm()>{{backButton}}</div>
-      <div class="button special" v-show="!addingNewEvent" @click=removeFromForm()>
-	{{removeButton}}
-      </div>
-    </div>
+
     <!-- TAGS (FEATURE NON PRETE)
 	 <div class="form-element form-input">
 	   <input
