@@ -8,9 +8,11 @@
     @click="editingTitle=true">
     {{timelineName}}
   </span>
-  <input
-    type="text"
-    v-show="editingTitle"
+<input
+    type="input"
+    id="title"
+    class="form-element-title"
+    v-show="openedMenu"
     v-model="newTimelineName">
   <span
     class="button"
@@ -263,7 +265,7 @@
 	  class="form-element-ADD-text"
 	  :placeholder="textFormHelp"
 	  v-model="textFormValue"></textarea>
-	<input
+	  <input
 	  id="media"
 	  style="width:100%"
 	  class="form-element-ADD-text"

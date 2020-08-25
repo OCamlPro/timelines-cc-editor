@@ -1583,8 +1583,8 @@ html {
 .tl-slide .tl-slide-content-container .tl-slide-content{
     display:table;
     vertical-align:middle;
-    padding-left:100px;
-    padding-right:100px;
+    /* padding-left:100px; */
+    /* padding-right:100px; */
     position:relative;
     max-width:100%;
     /* user-select:text */
@@ -1637,9 +1637,9 @@ html {
     max-width:80%;
     width:80%;
     display:block;
-    margin-left:auto;
-    margin-right:auto;
-    text-align: center
+    /* margin-left:auto; */
+    /* margin-right:auto; */
+    text-align: center;
 }
 .tl-slide.tl-full-image-background,.tl-slide.tl-full-color-background{
     color:#fff!important;
@@ -3390,10 +3390,6 @@ fieldset {
   will-change: transform;
 }
 
-input::-webkit-datetime-edit-fields-wrapper:hover {
-  text-decoration: underline dotted #ffffff70;
-
-}
 
 .form-element-ADD-text {
   padding-left: 5px !important;
@@ -3409,20 +3405,20 @@ input::-webkit-datetime-edit-fields-wrapper:hover {
   display: block;
   background: none;
   /* padding: 0px; */
-  width: 100%;
+  width: 85%;
   margin: 0px;
   font-size: 1.8rem;
-  border-bottom: 1px solid #ffffff70;
+  border-bottom: 1px solid #ffffff60;
   border-radius: 0px;
   line-height: 1.5;
-  color: #FFFFFF70;
+  color: #FFFFFF60;
   box-shadow: none;
 }
 
 .form-element-category {
-  padding-left: 5px !important;
+  /* padding-left: 5px !important; */
   padding-bottom: 0px !important;
-  float: left;
+  /* float: left; */
   outline: none;
   font: inherit !important;
   border: 0 solid transparent;
@@ -3431,26 +3427,36 @@ input::-webkit-datetime-edit-fields-wrapper:hover {
   background: none;
   margin: 0px 0px 10px 10px !important;
   width: 50%;
-  font-size: 1.8rem;
-  border-bottom: 1px solid #ffffff70;
-  line-height: 1.5;
-  color: #FFFFFF70;
-    border-radius: 0px;
+  /* font-size: 1.8rem; */
+  border-bottom: 1px solid #ffffff60;
+  line-height: 1.3em !important;
+  color: #FFFFFF60;
+  border-radius: 0px;
   box-shadow: none;
 }
 
 
 textarea {
     margin-bottom: 10px;
-    border: solid 1px #FFFFFF !important;
+    border: solid 1px #FFFFFF60 !important;
     padding: 2px !important;
-    width: 100% !important
+    /* width: 85% !important; */
 }
 
+
+textarea:hover {
+    border: dashed 2px #FFFFFF60 !important;
+}
+
+
 select#category-select-form {
-    width: 300px;
+    width: 200px;
     float: left;
-    border-bottom: solid 1px #ffffff70;
+    border-bottom: solid 1px #ffffff60;
+}
+
+select#category-select-form:hover {
+    border-bottom: dashed 2px #ffffff60;
 }
 
 input#start-date {
@@ -3479,35 +3485,33 @@ input#end-date {
     margin-left: 20px;
 }
 
-.form-element-ADD-text:hover {
-  text-decoration: underline dotted #ffffff70;
+.form-element-title:hover; .form-element-ADD-text:hover, .form-element-category:hover, .form-element-field:hover, .form-element-ADD-title:hover {
+   border-bottom: 2px dashed #ffffff60 !important;
 }
 
 .form-element-ADD-title {
     width: 100%;
+    padding-right: 0px !important;
     outline: none;
     font: inherit !important;
     /* height: 52px; */
-    margin: auto;
     border: 0 solid transparent;
     font-size: 32px !important;
     font-family: fontin-reg !important;
     /* font-weight: 700 !important; */
     display: block;
     background: none;
-    padding: 0px;
+    margin-bottom: 20px !important;
     margin: 0px;
     font-size: 1.8rem;
-    border-bottom: 0px dashed #ffffff70;
-    line-height: 1.5;
+    border-radius: 0px;
+    border-bottom: 1px solid #ffffff60;
+    line-height: 0em !important;
     min-width: 20em;
-    color: #ffffff70;
+    color: #ffffff60;
     box-shadow: none;
 }
 
-.form-element-ADD-title:hover {
-  text-decoration: underline dotted #ffffff70;
-}
 
 .form-element-field {
   outline: none;
@@ -3540,15 +3544,11 @@ input#end-date {
   padding: 0px;
   /* margin: 0px; */
   font-size: 1.8rem;
-  border-bottom: 0px dashed #ffffff70;
+  border-bottom: 1px dashed #ffffff60 !important;
   line-height: 1.5;
   width: 500px;
-  color: #FFFFFF;
+  color: #FFFFFF60;
   box-shadow: none;
-}
-
-.form-element-title:hover {
-  text-decoration: underline dotted #ffffff;
 }
 
 .form-element-field:-ms-input-placeholder {
@@ -3636,7 +3636,7 @@ select.form-element-field {
   position: absolute;
   height: 0.5em;
   width: 0.5em;
-  border-bottom: 1px solid #ffffff70;
+  border-bottom: 1px solid #ffffff60;
   border-right: 1px solid #FFF;
   display: block;
   right: 0.5em;
@@ -3689,17 +3689,24 @@ input {
     border-color: #1e6e87;
     border-image: initial;
     border-radius: 4px;
-    margin: 10px 0px !important;
-    /* margin: 20px; */
+    margin-bottom: 4px;
+    margin: 20px;
+
     }
+
+:hover:-webkit-input-placeholder {
+    color: #FFFFFF90 !important;
+}
+
 
 ::-webkit-input-placeholder {
     -webkit-text-security: none;
-    color: #FFFFFF70;
+    color: #FFFFFF60;
     font-family: inherit !important;
     font-style: italic;
     pointer-events: none !important;
 }
+
 
 input.HomePlaceholder {
     margin: 20px !important;
