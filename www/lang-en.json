@@ -2,7 +2,7 @@
     "lang": "en",
     "translations": [
 	["addEditionTokenButton", "New token" ],
-        ["addElementHelp", "Create an event" ],
+        ["addElementHelp", "Create an event:" ],
         ["addEditionTokenButton", "Create a new edition link" ],
         ["addNewEvent", "Save event" ],
         ["addReadonlyTokenButton", "Create a new readonly link" ],
@@ -39,7 +39,7 @@
         ["descriptionFormHelp", "Add a description..." ],
         ["disableCookiesButtonText", "Do not save timelines on my browser"],
         ["editElementHelp", "Edit the event currently displayed" ],
-        ["editEvent", "Edit this event" ],
+        ["editEvent", "Edit this event:" ],
 	["editionLinkTest", "Share this link to give edition rights"],
 	["emailHelp", "We will send the link of your timeline to your email address"],
 	["emailPlaceholder", "Your email (facultative)"],
@@ -86,8 +86,8 @@
 	["startDateFormHelp", "When does your event start?"],
 	["tags", "Tags"],
 	["tagsFormHelp", "Add keywords separated with commas" ],
-	["timelineListText", "Your timelines" ],
-	["timelineShareText", "Your tokens" ],
+	["timelineListText", "Your timelines:" ],
+	["timelineShareText", "Your tokens:" ],
 	["to", "To"],
 	["uniqueId", "URL Identifier"],
 	["uniqueIdFormHelp", "Customize your event's URL (by default, the event's title is used)"]

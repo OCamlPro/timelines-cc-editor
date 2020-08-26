@@ -1,38 +1,25 @@
 <!-- Header -->
 <header id="timeline-header">
-  <span
-    class="title"
-    v-show="!editingTitle"
-    title="Click here to edit the title of your timeline"
-    style="cursor:pointer;margin-left:2.2em"
-    @click="editingTitle=true">
-    {{timelineName}}
+  <span class="title" v-show="!openedMenu">{{timelineName}}</span>
+  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName">
+  <span style="position: relative; float: right">
+   <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
   </span>
-<input
-    type="input"
-    id="title"
-    class="form-element-title"
-    v-show="openedMenu"
-    v-model="newTimelineName">
-  <span
-    class="button"
-    v-show="editingTitle"
-    @click="updateTimelineTitle()"> {{saveTitleButtonText}} </span>
-  <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
 </header>
+
 
 <!-- Timeline -->
 <div id="timeline-embed" style="position:absolute"></div>
 
 <div class="panel" id="navPanel">
-  <div class="tooltip fa fa-times fa-2x" id="close" @click="hideMenu()"></div>
+  <div  id="close" class="tooltip fa fa-times fa-2x" @click="hideMenu();updateTimelineTitle()"></div>
   <div class="section" style="height:435px">
     <!-- 1 -->
     <div class="timeline-menu-token tooltip fa fa-close fa-2x" style="display:none"></div>
     <div class="timeline-menu-token tooltip" v-show="cookieTimelines.length != 0">
       <img src="/images/list.svg">
       <p class="tooltipname">List</p>
-      <div class="tooltipcontent">{{timelineListText}}
+      <div class="tooltipcontent"><div class="tooltiptitle">{{timelineListText}}</div>
         <ul>
           <li class="croptoken" v-for="item in cookieTimelines">
             <div style='float: left; display: inline-block'>
@@ -57,23 +44,21 @@
       @click='removeTimeline(currentTimeline)'>
       <img src="/images/trash.svg">
       <p class="tooltipname">Delete</p>
-      <div class="tooltipcontent">
-	{{removeTimelineText}}
-      </div>
+
     </div> 
     
     <!-- 2 -->
     <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
       <img src="/images/share.svg">
       <p class="tooltipname">{{exportButton}}</p>
-      <div class="tooltipcontent" style="width:20em">{{exportButton}}
+      <div class="tooltipcontent" style="width:20em"><div class="tooltiptitle">{{exportButton}}</div>
 	<ul>
           <li class="croptoken" v-for="filter in filters">
 	    <div>
 
 	      <div>
 		<span v-show='!filter.isEditing'> {{filter.pretty}} </span>
-		<input type='text' v-model='filter.pretty' v-show='filter.isEditing'>
+		<input type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
 		<span v-show='filter.filterId==currentTimeline'> (You) </span>
 	      </div>
 
@@ -153,13 +138,14 @@
       <p class="tooltipname">Files</p>
 
       <div class="tooltipcontent">
+      
 
-	<div>
-	  Export <br/>
+	<div class="tooltiptitle">
+	  Export<br/>
 	  <div class="buttontooltip" @click="exportTimeline()">csv</div>
 	</div>
 
-	<div>
+	<div class="tooltiptitle">
 	  Import <br/>
 	  <div class="buttontooltip" style="position: relative">
 	    <input type="file" style="opacity: 0.0; width: 100%; height: 100%; position: absolute; right:0px; cursor: pointer; top:0em" id="import-form" @change="importTimeline()">
@@ -248,9 +234,10 @@
 	  <span v-else> {{formNameEditing}}</span>
 	</span>
 	<span style="float: right">
-	  <span @click=addEvent(addingNewEvent) class="clickable fa fa-save fa-lg" style="right: 40px"></span>
-	  <span v-show="!addingNewEvent" @click=removeFromForm() class="clickable fa fa-trash fa-lg" style="right: 80px"></span>
-	  <span @click=hideForm() class="clickable fa fa-close fa-lg"></span>
+	  <span @click=addEvent(addingNewEvent) class="clickable fa fa-save fa-lg" style="right: 40px">
+      <p class="tooltipname">Save</p></span>
+	  <span v-show="!addingNewEvent" @click=removeFromForm() class="clickable fa fa-trash fa-lg" style="right: 80px"><p class="tooltipname">Delete</p></span>
+	  <span @click=hideForm() class="clickable fa fa-close fa-lg"><p class="tooltipname">Quit</p></span>
 	</span>
       </legend>
       
