@@ -11,7 +11,7 @@
 <!-- Timeline -->
 <div id="timeline-embed" style="position:absolute"></div>
 
-<div class="panel" id="navPanel">
+<div class="panel visible" id="navPanel">
   <div  id="close" class="tooltip fa fa-times fa-2x" @click="hideMenu();updateTimelineTitle()"></div>
   <div class="section" style="height:435px">
 
@@ -103,19 +103,30 @@
 	</div>
       </div>
     </div>
-    
+    <div class="navPanel1">
     <!-- MENU CREATE -->
     
     <div class="timeline-menu-token tooltip" @click="showForm(true)">
-      <img src="/images/add.svg"><p class="tooltipname">Create</p>
+      <img src="/images/add.svg"><p class="tooltipname">Add<br>event</p>
     </div>
+    <!-- FIN MENU CREATE -->
+
     <!-- MENU EDIT -->
     <div
       class="timeline-menu-token tooltip"
       v-show="events.length != 0"
       @click="showForm(false)">
-      <img src="/images/edit.svg"><p class="tooltipname">Edit</p>
+      <img src="/images/edit.svg"><p class="tooltipname">Edit<br>event</p>
     </div>
+    <!-- FIN MENU EDIT -->
+</div>
+<div class="navPanel2">
+    <!-- MENU HOME -->
+    <div class="timeline-menu-token tooltip"> <a href="/">
+      <img src="/images/home.svg"><p class="tooltipname">Home</p></a>
+    </div>
+    <!-- FIN MENU HOME -->
+    
 
     <!-- MENU SHARE -->
     <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
@@ -201,7 +212,7 @@
 
     <!-- FIN MENU SHARE -->
 
-    <!-- MENU FILES -->
+    <!-- MENU FILES
     
     <div class="timeline-menu-token tooltip">
       <img src="/images/upload.svg">
@@ -210,7 +221,7 @@
 
       <div class="tooltipcontent">
       
-
+s
 	<div class="tooltiptitle">
 	  Export<br/>
 	  <div class="buttontooltip" @click="exportTimeline()">csv</div>
@@ -227,7 +238,7 @@
     </div>
     
     <!-- FIN MENU FILES -->
-
+  </div>
   </div>
 </div>
 
@@ -246,7 +257,7 @@
 	  <span @click=addEvent(addingNewEvent) class="clickable fa fa-save fa-lg" style="right: 40px">
       <p class="tooltipname">Save</p></span>
 	  <span v-show="!addingNewEvent" @click=removeFromForm() class="clickable fa fa-trash fa-lg" style="right: 80px"><p class="tooltipname">Delete</p></span>
-	  <span @click=hideForm() class="clickable fa fa-close fa-lg"><p class="tooltipname">Quit</p></span>
+	  <span @click=hideForm() class="clickable fa fa-close fa-lg"><p class="tooltipname">Cancel</p></span>
 	</span>
       </legend>
       

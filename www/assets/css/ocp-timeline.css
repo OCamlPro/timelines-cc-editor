@@ -182,7 +182,6 @@ html {
 }
  .tl-timeline p a {
     color:#666;
-    text-decoration:underline
 }
  .tl-timeline p a:hover,.tl-timeline p a:focus {
     color: var(--major-strong);
@@ -2588,7 +2587,7 @@ table {
     -webkit-transition: -webkit-transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
     -ms-transition: -ms-transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
     transition: transform 0.2s ease-in-out, visibility 0.2s ease-in-out;
-    -webkit-overflow-scrolling: touch; 
+    -webkit-overflow-scrolling: touch;
     overflow-y: auto;
     position: fixed;
     right: 0;
@@ -2659,6 +2658,12 @@ table {
     width: 3em !important;
     z-index: 10003;
     overflow: visible;
+}
+
+.navPanel2 {
+bottom: 0px !important;
+vertical-align: bottom;
+  position: absolute;
 }
 
 #navPanel .section{
@@ -2858,7 +2863,8 @@ tr:hover.clickable {
   position: absolute;
   z-index: 10004;
   overflow: visible;
-  top: -5px;
+  bottom: 0px !important;
+  vertical-align: bottom;
   font-size: 15px;
   right: 100%;
   font-family: var(--tooltip-font-family);
@@ -2950,6 +2956,8 @@ tr:hover.clickable {
 
 
 .tooltipname {
+    line-height: normal;
+    color : #FFF;
     font-family: raleway;
     vertical-align: top;
     top: 0px !important;
@@ -2958,6 +2966,10 @@ tr:hover.clickable {
     margin: 0px !important;
     text-align: center !important;
     width: 35px !important;
+}
+
+.tooltipname:hover {
+    text-decoration: underline dashed #1e6e87 !important;
 }
 
 .tooltipcontent img{
@@ -3811,7 +3823,7 @@ li.croptoken {
 /* Banner */
 
 #banner {
-    padding: 5em 0em 5em 0em !important;
+    padding: 7em 0em!important;
     background-position: top;
     background-size: cover;
     background-repeat: no-repeat;

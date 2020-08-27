@@ -22,17 +22,22 @@
   	<form id="create-form">
   	<div class="timeline-menu-home-token tooltip">
       <img src="/images/list.svg">
-      <div class="tooltipcontent" style="width:15em !important;left:50px">
+      <div class="tooltipcontent" style="width:15em !important;left:50px; top:0px !important; bottom: unset !important;">
         <ul>
           <li class="homecroptoken" v-for="item in cookieTimelines">
-            <div style='float: right; display: inline-block'><a class="TooltipImgLink" :href="item.url">{{item.name}}</a>
-            <img class="imghometooltip" src="/images/trash.svg"></div>
+            <div style='float: right; display: inline-block'>
+            <a class="TooltipImgLink" :href="item.url">{{item.name}}</a>
+            <img class="imghometooltip"  src="/images/upload.svg">
+            <img class="imghometooltip" src="/images/trash.svg">
+            </div>
+
           </li>
         </ul>
-        <div class="button home" v-if="cookiesEnabled" @click="disableCookies()">
+        <div class="buttontooltip">Import a timeline</div>
+	          <div class="buttontooltip" v-if="cookiesEnabled" @click="disableCookies()">
 	    {{disableCookiesButtonText}}
 	  </div>
-	  <div class="button home" v-else @click="enableCookies()">
+	  <div class="buttontooltip" v-else @click="enableCookies()">
 	    {{enableCookiesButtonText}}
 	  </div>
       </div>
@@ -62,11 +67,11 @@
 	  </header>
 	  <p>{{createDescr}}</p>
     </article>
-    <article>
+    <!--<article>
 	  <header>
 	    <h3>{{securityTitle}}</h3>
 	  </header>
 	  <p>{{securityDescr}}</p>
-    </article>
+    </article>-->
   </div>
 </section>
