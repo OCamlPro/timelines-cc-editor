@@ -1788,8 +1788,8 @@ section.wrapper.style1 h3, article.wrapper.style1 h3 {
 
 section.wrapper, article.wrapper {
 	padding: 2em;
-	height: 27em;	
-    }
+	/* height: 27em; */
+	}
 
 
 @media screen and (max-width: 736px) {
@@ -1915,7 +1915,7 @@ header h6 + p {
 	border-bottom: 1px solid #dbdbdb;
 	padding-bottom: 2.5em;
 	margin-bottom: 3em;
-    }
+	}
 
     .flex.flex-3 article:last-child {
 	border: none;
@@ -2435,26 +2435,6 @@ button.special,
 	width: 100%
 }
 
-.buttontooltip{
-	background-color: #1588ab;
-	border-color: #ffffff;
-	border-width: 2px !important;
-	border-radius: 4px;
-	color: #fff !important;
-	text-align: center;
-	margin: 4px;
-}
-
-
-button.home, .button.home {
-	background-color: #1588ab;
-	border-color: #ffffff;
-	border-width: 2px !important;
-	border-radius: 4px;
-	color: #fff !important;
-	padding: 0 10px;
-	margin: 0 20px;
-}
 
 input[type="submit"].special:hover,
 input[type="reset"].special:hover,
@@ -2625,46 +2605,6 @@ button:disabled,
 
 }
 
-/* Banner */
-
-#banner {
-    padding: 12em 0 10em 0;
-    background-size: cover;
-    background-position: top;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    text-align: center;
-}
-
-#banner h1 {
-    font-size: 3.5em;
-    font-weight: 100;
-    color: #fff;
-    line-height: 1em;
-    margin: 0 0 0 20px;
-    padding: 0;
-}
-
-#banner p {
-    font-size: 1em;
-    color: rgba(255, 255, 255, 0.55);
-    margin-bottom: 1.75em;
-}
-
-#banner {
-	padding: 3em 1.5em 1em 2em;
-	background-image: url("../../images/banniere-timeline.png");
-	background-color: #116A85;
-	background-position: center;
-	background-size: contain;
-	background-repeat: no-repeat;
-	text-align: left;
-	}
-
-#banner h1 {
-	font-size: 2.5em;
-	width: 70%;
-    }
 
 /* Footer */
 

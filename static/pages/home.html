@@ -20,51 +20,53 @@
   <h1>{{title}}</h1>
   <p>{{subtitle}}</p>
   	<form id="create-form">
-	  <input
-	    class="HomePlaceholder"
-	    :placeholder="createNamePlaceholder"
-	    :title="createNameHelp"
-	    v-model="createNameValue"
-	    >
-	  <div
-	    class="button home"
-	    @click="createTimeline()">{{createButtonMessage}}</div>
-    </form>
+  	<div class="timeline-menu-home-token tooltip">
+      <img src="/images/list.svg">
+      <div class="tooltipcontent" style="width:15em !important;left:50px">
         <ul>
           <li class="homecroptoken" v-for="item in cookieTimelines">
             <div style='float: right; display: inline-block'><a class="TooltipImgLink" :href="item.url">{{item.name}}</a>
             <img class="imghometooltip" src="/images/trash.svg"></div>
           </li>
         </ul>
+        <div class="button home" v-if="cookiesEnabled" @click="disableCookies()">
+	    {{disableCookiesButtonText}}
+	  </div>
+	  <div class="button home" v-else @click="enableCookies()">
+	    {{enableCookiesButtonText}}
+	  </div>
+      </div>
+</div>
+	  <input
+	    class="HomePlaceholder"
+	    :placeholder="createNamePlaceholder"
+	    :title="createNameHelp"
+	    v-model="createNameValue"
+	    >
+	  <div class="button home" @click="createTimeline()">{{createButtonMessage}}</div>
+    </form>
+
 </section>
 
 <section id="one" class="wrapper">
   <div class="inner">
-    <div class="flex flex-3">
-      <article id="create-timeline">
-	<header>
-	  <h3>{{createTimelineTitle}}</h3>
-	</header>
-	<p>{{createDescr}}</p>
-      </article>
-      <article>
-	<header>
-	  <h3 >{{shareTitle}}</h3>
-	</header>
-	<p>{{shareDescr}}</p>
-      </article>
-      <article>
-	<header>
-	  <h3 >{{securityTitle}}</h3>
-	</header>
-	<p>{{securityDescr}}</p>
-	<div class="button home" v-if="cookiesEnabled" @click="disableCookies()">
-	  {{disableCookiesButtonText}}
-	</div>
-	<div class="button home" v-else @click="enableCookies()">
-	  {{enableCookiesButtonText}}
-	</div>
-      </article>
-    </div>
+    <article>
+	  <header>
+	    <h3 >{{shareTitle}}</h3>
+	  </header>
+	  <p>{{shareDescr}}</p>
+    </article>
+    <article id="create-timeline">
+      <header>
+	    <h3>{{createTimelineTitle}}</h3>
+	  </header>
+	  <p>{{createDescr}}</p>
+    </article>
+    <article>
+	  <header>
+	    <h3>{{securityTitle}}</h3>
+	  </header>
+	  <p>{{securityDescr}}</p>
+    </article>
   </div>
 </section>

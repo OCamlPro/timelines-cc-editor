@@ -1,4 +1,5 @@
-lor/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern University a project of the Northwestern University Knight Lab, originally created by Zach Wise https://github.com/NUKnightLab/TimelineJS3 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* TimelineJS - ver. 3.6.6 - 2020-03-11 Copyright (c) 2012-2016 Northwestern University a project of the Northwestern University Knight Lab, originally created by Zach Wise https://github.com/NUKnightLab/TimelineJS3 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 /*! Timeline JS 3 Designed and built by Zach Wise for the Northwestern University Knight Lab This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 @import url(font-awesome.min.css);
@@ -2925,6 +2926,23 @@ tr:hover.clickable {
     width: 2em !important
 }
 
+.timeline-menu-home-token{
+    margin: 0em 1em !important;
+    padding: 0.4em !important;
+    min-height: 3.5em !important;
+    max-width: 2em !important;
+    min-width: 2em !important;
+    float: left !important;
+}
+
+.timeline-menu-home-token:hover{
+    cursor:pointer
+}
+
+.timeline-menu-home-token img{
+    width: 2em !important
+}
+
 .tooltipcontent svg {
     width: 1.5em !important;
     fill: #1588ab !important;
@@ -3726,11 +3744,34 @@ input {
     pointer-events: none !important;
 }
 
+.buttontooltip{
+	background-color: #1588ab;
+	border-color: #ffffff;
+	border-width: 2px !important;
+	border-radius: 4px;
+	color: #fff !important;
+	text-align: center;
+	margin: 4px;
+}
+
+
+button.home, .button.home {
+	background-color: #1588ab;
+	border-radius: 4px;
+	color: #fff !important;
+	padding: 0 10px;
+	margin: 0 20px;
+	font-size: 15px;
+}
+
+
 
 input.HomePlaceholder {
-    margin: 20px !important;
-    height: 25px;
+    margin: 0px !important;
+    height: 40px;
     width: 186px;
+    font-size: 20px;
+    float: left;
 }
 
 .croptoken {
@@ -3766,6 +3807,47 @@ li.croptoken {
     margin: 0px;
     vertical-align: top;
 }
+
+/* Banner */
+
+#banner {
+    padding: 5em 0em 5em 0em !important;
+    background-position: top;
+    background-size: cover;
+    background-repeat: no-repeat;
+    text-align: center;
+}
+
+#banner h1 {
+    font-size: 3.5em;
+    font-weight: 100;
+    color: #fff;
+    line-height: 1em;
+    margin: 0 0 0 20px;
+    padding: 0;
+}
+
+#banner p {
+    font-size: 1em;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 1.75em;
+}
+
+#banner {
+	padding: 3em 1.5em 1em 2em;
+	background-image: url("../../images/banniere-timeline.png");
+	background-color: #116A85;
+	background-position: center;
+	background-size: contain;
+	background-repeat: no-repeat;
+	text-align: left;
+	}
+
+#banner h1 {
+	font-size: 2.5em;
+	width: 70%;
+    }
+
 
 .imghometooltip {
     width: 25px !important;
