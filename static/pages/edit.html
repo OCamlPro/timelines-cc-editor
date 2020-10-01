@@ -265,10 +265,25 @@
 	  v-model="textFormValue"></textarea>
 	<input
 	  id="media"
+	  style="width:100%"
 	  class="form-element-ADD-text"
 	  :placeholder="mediaFormHelp"
 	  type="link"
 	  v-model="mediaFormValue" required/>
+	
+	<div class="form-element form-input">
+	  <input
+	    id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
+	    class="form-element-field"
+	    :placeholder="ponderationFormHelp"
+	    v-model.number="ponderationFormValue"
+	    type="number" required/>
+	  <div class="form-element-bar">
+	  </div>
+	  <label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
+	    {{ponderationFormTitle}}
+	  </label>
+	</div>
 	<select
 	  id="category-select-form"
 	  :placeholder="categoriesFormHelp"
