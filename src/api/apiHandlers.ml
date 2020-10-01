@@ -178,11 +178,15 @@ let timeline_data (req, tid) _ () =
             ()
       end >>= 
         function 
-        | Ok (Timeline {title; events; edition_rights}) -> 
+        | Ok (Timeline {title; events; edition_rights}) ->
           (* Todo: parametrize the removal of categories *)
           let remove_category (i, e) = (i, {e with Timeline_data.Data_types.group = None}) in
-          let title = Timeline_data.Utils.opt remove_category title in
-          let events = List.map remove_category events in
+          let title, events =
+            if edition_rights then
+              title, events
+            else 
+              Timeline_data.Utils.opt remove_category title, 
+              List.map remove_category events in
           EzAPIServerUtils.return (Ok (DbData.Timeline {title; events; edition_rights}))
         | other -> EzAPIServerUtils.return other
       )
