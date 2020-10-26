@@ -41,7 +41,7 @@
     </div>
     -->
 
-    
+
     <!-- BOUTON DELETE CACHÉ CAR FAISABLE DEPUIS LIST DANS LA HOME
     <div
       class="timeline-menu-token tooltip"
@@ -49,9 +49,9 @@
       <img src="/images/trash.svg">
       <p class="tooltipname">Delete</p>
 
-    </div> 
+    </div>
     -->
-    
+
     <!-- Filter -->
 
     <div
@@ -105,7 +105,7 @@
     </div>
     <div class="navPanel1">
     <!-- MENU CREATE -->
-    
+
     <div class="timeline-menu-token tooltip" @click="showForm(true)">
       <img src="/images/add.svg"><p class="tooltipname">Add<br>event</p>
     </div>
@@ -126,7 +126,7 @@
       <img src="/images/home.svg"><p class="tooltipname">Home</p></a>
     </div>
     <!-- FIN MENU HOME -->
-    
+
 
     <!-- MENU SHARE -->
     <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
@@ -205,7 +205,7 @@
           <div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
           </div>
         </div>
-	
+
       </div>
 
     </div>
@@ -213,14 +213,14 @@
     <!-- FIN MENU SHARE -->
 
     <!-- MENU FILES
-    
+
     <div class="timeline-menu-token tooltip">
       <img src="/images/upload.svg">
-      
+
       <p class="tooltipname">Files</p>
 
       <div class="tooltipcontent">
-      
+
 s
 	<div class="tooltiptitle">
 	  Export<br/>
@@ -236,7 +236,7 @@ s
 	</div>
       </div>
     </div>
-    
+
     <!-- FIN MENU FILES -->
   </div>
   </div>
@@ -247,7 +247,7 @@ s
 <div class="panel" id="formPanel">
   <form class="form-card">
     <fieldset class="form-fieldset">
-      
+
       <legend class="form-legend" style="width:100%;">
 	<span style="float: left">
 	  <span v-if="addingNewEvent">{{formNameAdding}}</span>
@@ -260,7 +260,7 @@ s
 	  <span @click=hideForm() class="clickable fa fa-close fa-lg"><p class="tooltipname">Cancel</p></span>
 	</span>
       </legend>
-      
+
 
       <!-- TITLE -->
       <div class="form-element form-input">
@@ -279,7 +279,7 @@ s
 	  :placeholder="mediaFormHelp"
 	  type="link"
 	  v-model="mediaFormValue" required/>
-	<!--<select
+	<select
 	  id="category-select-form"
 	  :placeholder="categoriesFormHelp"
 	  class="form-element-ADD-text"
@@ -292,7 +292,7 @@ s
 	  placeholder="Name this new category"
 	  class="form-element-category"
 	  v-model="otherCategoryFormValue"
-	  v-show="categoriesFormValue=='__other__category__'"> -->
+	  v-show="categoriesFormValue=='__other__category__'">
       </div>
     </fieldset>
 

@@ -1024,11 +1024,11 @@ html {
     position:relative;
     overflow:hidden;
     height:100%;
-    z-index:8;
+    z-index: 8;
     padding:5px;
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
-    box-sizing:border-box
+    box-sizing:border-box;
 }
 .tl-timemarker .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text{
     overflow:hidden;
@@ -1152,8 +1152,7 @@ html {
     box-shadow:0 1px 3px rgba(145,145,145,.5)
 }
 .tl-timemarker.tl-timemarker-active .tl-timemarker-timespan{
-    z-index:8;
-    
+    z-index: 8;
 }
 .tl-timemarker.tl-timemarker-active .tl-timemarker-timespan .tl-timemarker-timespan-content{
     background-color:#1588ab;
@@ -1378,11 +1377,14 @@ html {
     transition-timing-function:cubic-bezier(.77,0,.175,1)
 }
 .tl-timegroup .tl-timegroup-message{
+    FONT-WEIGHT: 200;
     background-color: white;
     color:var(--major-regular) !important;
     padding: 10px;
-    width: 100px;
-    text-align: right;
+    width: 110px;
+    height: 12px;
+    border-right: 0.1px solid #e6e6e6;
+    text-align: left;
     }
 
 .tl-timegroup.tl-timegroup-alternate{
@@ -1407,7 +1409,7 @@ html {
     position:absolute;
     bottom:0;
     left:0;
-    z-index:3
+    z-index: 20;
 }
 .tl-timeaxis .tl-timeaxis-content-container{
     position:relative;
@@ -3445,6 +3447,7 @@ fieldset {
   margin-bottom: 20px !important;
   border: 0 solid transparent;
   font-size: 15px !important;
+  font-weight: 700 !important;
   display: block;
   background: none;
   /* padding: 0px; */
@@ -3541,17 +3544,17 @@ input#end-date {
     border: 0 solid transparent;
     font-size: 32px !important;
     font-family: fontin-reg !important;
-    /* font-weight: 700 !important; */
+    font-weight: 700 !important;
     display: block;
     background: none;
     margin-bottom: 20px !important;
     margin: 0px;
-    font-size: 1.8rem;
-    border-bottom: 1px solid #ffffff60;
+    /* font-size: 1.8rem; */
+    border-bottom: 1px solid #ffffff80;
     border-radius: 0px;
     line-height: 0.1em !important;
     /* min-width: 15em; */
-    color: #ffffff60;
+    color: #ffffff80;
     box-shadow: none;
 }
 
@@ -3591,7 +3594,6 @@ input#end-date {
   border-bottom: 1px dashed #ffffff60 !important;
   border-radius: 0px;
   width: 500px;
-  color: #FFFFFF60;
   box-shadow: none;
   font-family: fontin-reg !important;
 }
@@ -3750,9 +3752,9 @@ input {
 
 ::-webkit-input-placeholder {
     -webkit-text-security: none;
-    color: #FFFFFF60;
     font-family: inherit !important;
     font-style: italic;
+    font-weight: 100 !important;
     pointer-events: none !important;
 }
 
