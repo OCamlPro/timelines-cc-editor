@@ -2869,6 +2869,7 @@ tr:hover.clickable {
 #timeline-header{
     top: 0px !important;
     margin: 0px;
+    right: 20px;
     height: 3em;
     text-align: center;
     width: 100%;
@@ -2877,7 +2878,8 @@ tr:hover.clickable {
 }
 
 #timeline-header span.title{
-    margin: 20px 20px 20px 20px;
+    outline: none;
+    margin: auto;
     font-size: 30px;
     font-weight: 700;
     font-family: fontin-reg;
