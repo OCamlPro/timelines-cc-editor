@@ -42,68 +42,17 @@
     -->
 
 
-    <!-- BOUTON DELETE CACHÉ CAR FAISABLE DEPUIS LIST DANS LA HOME
+    <!-- 1 BOUTON LIST CACHÉ CAR MIS SUR LA HOME
     <div
       class="timeline-menu-token tooltip"
       @click='removeTimeline(currentTimeline)'>
       <img src="/images/trash.svg">
       <p class="tooltipname">Delete</p>
 
-    </div>
-    -->
+    </div> -->
 
-    <!-- Filter -->
 
-    <div
-      class="timeline-menu-token tooltip"
-      v-show="events.length != 0 && false"> <!-- Filter : for a near future ->
-      <!-- <img src="/images/filter.svg"><p class="tooltipname">Filter</p> -->
-      <div class="tooltipcontent">
-	<div class="panel-default filtering-form" style='width:30em'>
-	  <div class="navbar">
-	    <ul class="inline">
-	      <li id="filter-categories" class="active" >
-		<div>Categories</div>
-	      </li>
-	      <li id="filter-ponderation">
-		<div>Ponderation</div>
-	      </li>
-	      <li id="filter-other">
-		<div>Other</div>
-	      </li>
-	    </ul>
-	  </div>
-	  <div id="filter-categories-content">
-	    <div v-for="category in categories">
-	      <div>
-		<input type="checkbox" v-model="category.checked">
-		{{category.catName}}
-	      </div>
-	    </div>
-	  </div>
-	  <div id="filter-ponderation-content" style="display:none">
-	    <input
-	      type="range"
-	      v-model="minPonderationFilter"
-	      min=0
-	      :max="maxPonderationFilter"
-	      > From <input type="number" v-model="minPonderationFilter">
-	    <br/>
-	    <input
-	      type="range"
-	      v-model="maxPonderationFilter"
-	      :min="minPonderationFilter"
-	      :max="maxBoundInPonderationFilter"> to <input type="number" v-model="maxPonderationFilter">
-	  </div>
-	  <div id="filter-other-content" style="display:none">
-	    <input type="checkbox" v-model="alsoConfidential">
-	    {{confidentialFilterForm}}
-	  </div>
-	  <!-- <div class="buttontooltip" @click="filter()">{{filterButtonText}}</div> -->
-	</div>
-      </div>
-    </div>
-    <div class="navPanel1">
+
     <!-- MENU CREATE -->
 
     <div class="timeline-menu-token tooltip" @click="showForm(true)">
@@ -119,6 +68,62 @@
       <img src="/images/edit.svg"><p class="tooltipname">Edit<br>event</p>
     </div>
     <!-- FIN MENU EDIT -->
+    <!-- Filter -->
+
+    <div
+      class="timeline-menu-token tooltip"
+      v-show="events.length != 0">
+      <img src="/images/filter.svg"><p class="tooltipname">Filter</p>
+      <div class="tooltipcontent tooltipcontentUP">
+  <div class="panel-default filtering-form">
+    <div class="navbar">
+
+      <ul class="inline">
+        <li id="filter-categories" class="active" >
+          <div>Categories</div>
+        </li>
+        <li id="filter-ponderation">
+          <div>Ponderation</div>
+        </li>
+        <li id="filter-other">
+          <div>Other</div>
+        </li>
+      </ul>
+    </div>
+    <div id="filter-categories-content">
+      <div>
+      <div class="tooltiptitle">Categories:</div>
+      <div v-for="category in categories">
+        <div>
+          <input type="checkbox" v-model="category.checked">
+          {{category.catName}}
+        </div>
+      </div>
+      </div>
+      <div>
+        <div class="tooltiptitle"><br>Ponderation:</div>
+        From <input type="number" v-model="minPonderationFilter">
+        to <input type="number" v-model="maxPonderationFilter">
+        <br>
+      </div>
+      <!-- CONFIDENTIAL
+      <div> <br>
+        <div class="tooltiptitle">Confidential:</div>
+      <input type="checkbox" v-model="alsoConfidential">
+      {{confidentialFilterForm}}
+    </div> --><br>
+    </div>
+    <div id="filter-ponderation-content" style="display:none">
+    </div>
+
+    <div id="filter-other-content" style="display:none">
+    </div>
+
+<div class="buttontooltip" @click="filter()">{{filterButtonText}}</div>
+  </div>
+      </div>
+    </div>
+    <div class="navPanel1">
 </div>
 <div class="navPanel2">
     <!-- MENU HOME -->
@@ -132,7 +137,7 @@
     <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
       <img src="/images/share.svg">
       <p class="tooltipname">{{exportButton}}</p>
-      <div class="tooltipcontent" style="width:20em"><div class="tooltiptitle">{{exportButton}}</div>
+      <div class="tooltipcontent tooltipcontentDOWN" style="width:20em"><div class="tooltiptitle">{{exportButton}}</div>
 	<ul>
           <li class="croptoken" v-for="filter in filters">
 	    <div>
@@ -264,15 +269,52 @@ s
 
       <!-- TITLE -->
       <div class="form-element form-input">
-	<input id="start-date" class="form-element-ADD-text -hasvalue" :placeholder="new Date()" type="date" v-model="startDateFormValue" required/>
-	<input id="end-date" class="form-element-ADD-text -hasvalue" placeholder=" " type="date" v-model="endDateFormValue" />
-	<input id="title" class="form-element-ADD-title" :placeholder="headlineFormHelp" type="input" v-model="headlineFormValue" @keyup="updateDefaultId()" required/>
+	<input
+    id="start-date"
+    class="form-element-ADD-text -hasvalue"
+    :placeholder="new Date()"
+    type="date"
+    v-model="startDateFormValue"
+    required/>
+	<input
+    id="end-date"
+    class="form-element-ADD-text -hasvalue"
+    placeholder=" "
+    type="date"
+    v-model="endDateFormValue" />
+    <input
+      id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
+      class="form-element-ADD-text input-weight"
+      placeholder="Weight"
+      v-model.number="ponderationFormValue"
+      type="number" required/><img src="/images/weight.svg" style="height:1.5em">
+    <label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
+    </label>
+
+    <!-- CONFIDENTIAL : PAS PRÊT
+    <label class="form-checkbox-label">
+      <input
+  class="form-checkbox-field"
+  type="checkbox"
+  v-model="confidentialFormValue"
+  />
+      <i class="form-checkbox-button"></i>
+      <span>{{confidentialFormTitle}}</span>
+    </label> -->
+	<input
+    id="title"
+    class="form-element-ADD-title"
+    :placeholder="headlineFormHelp"
+    type="input"
+    v-model="headlineFormValue"
+    @keyup="updateDefaultId()"
+    required/>
 	<textarea
 	  id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
 	  class="form-element-ADD-text"
 	  :placeholder="textFormHelp"
 	  v-model="textFormValue"></textarea>
-	  <input
+  <input
 	  id="media"
 	  style="width:100%"
 	  class="form-element-ADD-text"
@@ -293,10 +335,10 @@ s
 	  class="form-element-category"
 	  v-model="otherCategoryFormValue"
 	  v-show="categoriesFormValue=='__other__category__'">
-      </div>
+    </div>
     </fieldset>
 
-    <!-- TAGS (FEATURE NON PRETE)
+    <!-- TAGS
 	 <div class="form-element form-input">
 	   <input
 	     id="tags"
@@ -312,35 +354,11 @@ s
 	   </label>
 	 </div> -->
 
-	 <!-- Weight (FEATURE NON PRETE)
-	      <div class="form-element form-input">
-		<input
-		  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
-		  class="form-element-field"
-		  :placeholder="ponderationFormHelp"
-		  v-model.number="ponderationFormValue"
-		  type="number" required/>
-		<div class="form-element-bar">
-		</div>
-		<label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
-		  {{ponderationFormTitle}}
-		</label>
-	      </div>  -->
-
-	      <!-- CONFIDENTIAL (FEATURE NON PRETE)
+	      <!-- CONFIDENTIAL (FEATURE NON PRETE) -->
 		   <div class="form-checkbox form-checkbox-inline">
-		     <label class="form-checkbox-label">
-		       <input
-			 class="form-checkbox-field"
-			 type="checkbox"
-			 v-model="confidentialFormValue"
-			 />
-		       <i class="form-checkbox-button"></i>
-		       <span>{{confidentialFormTitle}}</span>
-		     </label>
-		     <small class="form-element-hint">{{confidentialFormHelp}}</small>
 
-		   </div>  -->
+
+		   </div>
 
 
 		   <!-- URL (FEATURE NON PRETE)

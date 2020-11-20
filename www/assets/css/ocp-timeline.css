@@ -2842,13 +2842,19 @@ tr:hover.clickable {
   position: absolute;
   z-index: 10004;
   overflow: visible;
-  bottom: 0px !important;
   vertical-align: bottom;
   font-size: 15px;
   right: 100%;
   font-family: var(--tooltip-font-family);
-  font-weight: 200 !important; 
+  font-weight: 200 !important;
 }
+
+.tooltip>.tooltipcontentDOWN {
+
+  bottom: 0px;}
+
+.tooltip>.tooltipcontentUP {
+  top: 0px;}
 
 .tooltiptitle {
   font-family: raleway !important;
@@ -3437,8 +3443,13 @@ fieldset {
   border-bottom: 1px solid #ffffff60;
   border-radius: 0px;
   line-height: 1.5;
-  color: #FFFFFF60;
+  color: #FFFFFF80;
   box-shadow: none;
+}
+
+.input-weight {
+    margin-left : 20px !important;
+    margin-right: 5px !important;
 }
 
 .form-element-category {
@@ -3701,6 +3712,10 @@ select.form-element-field {
     padding: 0em 0.5em 0em 0.5em
 }
 
+.navbar {
+    visibility: hidden;
+    height: 0px;
+}
 .navbar li {
     cursor: pointer;
     border-style: none solid solid solid;
@@ -3711,6 +3726,15 @@ select.form-element-field {
 
 .navbar li.active{
     border-style: none solid none solid;
+}
+
+input[type="checkbox"] {
+    margin: 0px;
+}
+
+input[type="number"]{
+    width: 4em;
+    margin:  0px;
 }
 
 input {
@@ -3731,12 +3755,16 @@ input {
 }
 
 
+div#spin {
+    color: red !important;
+}
+
 ::-webkit-input-placeholder {
     -webkit-text-security: none;
-    color: #FFFFFF40;
+    color: #FFFFFF60;
     font-family: inherit !important;
     font-style: italic;
-    font-weight: 100 !important;
+    font-weight: 400 !important;
     pointer-events: none !important;
 }
 
