@@ -21,17 +21,19 @@
     <div class="timeline-menu-token tooltip" v-show="cookieTimelines.length != 0">
       <img src="/images/list.svg">
       <p class="tooltipname">List</p>
-      <div class="tooltipcontent"><div class="tooltiptitle">{{timelineListText}}</div>
+      <div class="tooltipcontent">
+      <div class="tooltiptitle">{{timelineListText}}</div>
+
         <ul>
           <li class="croptoken" v-for="item in cookieTimelines">
             <div style='float: left; display: inline-block'>
-	      <a class="TooltipImgLink" :href="item.url">
-		<span v-show='item.filterId==currentTimeline'>(Here)</span>
-		{{item.name}}
-	      </a>
-	      <img
-		@click='removeTimeline(item.id)'
-		src="/images/trash.svg">
+            <a class="TooltipImgLink" :href="item.url">
+            <span v-show='item.filterId==currentTimeline'>(Here)</span>
+            {{item.name}}
+          </a>
+          <img
+          @click='removeTimeline(item.id)'
+          src="/images/trash.svg">
 	    </div>
 
 	  </li>
@@ -174,6 +176,7 @@
 		  @click="filter.isEditing=true"
 		  v-show="!filter.isEditing"
 		  :title="filterEditAliasHelp"
+      style="cursor: pointer"
 		  >
 		<img
 		  src="/images/check.svg"
@@ -181,26 +184,34 @@
 		  @keyup.enter="editAlias(filter);filter.isEditing=false"
 		  v-show="filter.isEditing"
 		  :title="filterEditAliasHelp"
+      style="cursor: pointer"
 		  >
 		<img
 		  @click='copyLink(filter.readonly, filter.filterId)'
 		  src="/images/link.svg"
 		  :title="filterCopyLinkHelp"
+      style="cursor: pointer"
 		  >
 		<img
 		  v-show='filter.readonly'
 		  @click='setTokenAsEdition(filter.filterId);'
 		  src="/images/view.svg"
-		  :title="filterReadonlyTokenHelp">
+		  :title="filterReadonlyTokenHelp"
+      style="cursor: pointer"
+      >
 		<img
 		  v-show='!filter.readonly'
 		  @click='setTokenAsReadOnly(filter.filterId);'
 		  src="/images/hand-write.svg"
-		  :title="filterAdminTokenHelp">
+		  :title="filterAdminTokenHelp"
+      style="cursor: pointer"
+      >
 		<img
 		  @click='removeToken(filter.filterId)'
 		  src="/images/trash.svg"
-		  :title="filterRemoveTokenHelp">
+		  :title="filterRemoveTokenHelp"
+      style="cursor: pointer"
+      >
               </div>
 	    </div>
           </li>
