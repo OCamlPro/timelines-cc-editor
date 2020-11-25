@@ -125,6 +125,10 @@ let get_host () =
     Http h | Https h -> h.hu_host
   | File _ -> ""
 
+let is_localhost () =
+  get_host () = "localhost"
+  
+
 let get_port () =
   match Jsloc.url () with
     Http h | Https h -> h.hu_port

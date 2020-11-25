@@ -567,7 +567,8 @@ let addEvent title events self adding : unit =
                  (Js.to_string self##.timelineName)
                  timeline
                  s
-             )
+             );
+             if Ui_utils.is_localhost () then Js_utils.reload ()
           )
       in ()
     end
