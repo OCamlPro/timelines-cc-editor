@@ -37,7 +37,9 @@ let encoding =
   ]
 
 let reset () =
-  Cookie.set ~path:"/" "timelines" "{}"
+  Cookie.set ~path:"/" "timelines" "{}";
+  Cookie.set ~path:"/edit" "timelines" "{}";
+  Cookie.set ~path:"/view" "timelines" "{}"
 
 let get_timelines () =
   try
@@ -72,7 +74,7 @@ let add_timeline name id readonly =
       Yojson.Safe.to_string @@
       Json_repr.to_yojson @@
       construct encoding (EnabledCookies new_tls) in
-    Cookie.set "timelines" str
+    Cookie.set ~path:"/" "timelines" str
 
 let rename_timeline new_name id =
   let tls, enabled = get_timelines () in
@@ -89,7 +91,7 @@ let rename_timeline new_name id =
       Yojson.Safe.to_string @@
       Json_repr.to_yojson @@
       construct encoding (EnabledCookies new_tls) in
-    Cookie.set "timelines" str
+    Cookie.set ~path:"/" "timelines" str
 
 let remove_timeline id =
   let tls, enabled = get_timelines () in
@@ -106,21 +108,23 @@ let remove_timeline id =
     Yojson.Safe.to_string @@
     Json_repr.to_yojson @@
     construct encoding (EnabledCookies new_tls) in
-  Cookie.set "timelines" str
+  Cookie.set ~path:"/" "timelines" str
 
 let enable () =
   let str =
     Yojson.Safe.to_string @@
     Json_repr.to_yojson @@
     construct encoding (EnabledCookies []) in
-  Cookie.set "timelines" str
+  Cookie.set ~path:"/" "timelines" str
 
 let disable () =
   let str =
     Yojson.Safe.to_string @@
     Json_repr.to_yojson @@
     construct encoding (DisabledCookies) in
-  Cookie.set "timelines" str
+  Cookie.set ~path:"/" "timelines" str;
+  Cookie.set ~path:"/edit" "timelines" str;
+  Cookie.set ~path:"/view" "timelines" str
 
 let is_enabled () =
   snd @@ get_timelines ()

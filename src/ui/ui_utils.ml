@@ -127,7 +127,6 @@ let get_host () =
 
 let is_localhost () =
   get_host () = "localhost"
-  
 
 let get_port () =
   match Jsloc.url () with

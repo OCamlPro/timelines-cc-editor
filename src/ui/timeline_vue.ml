@@ -417,7 +417,7 @@ type on_page =
 
 let update_filters self tokens =
   self##.filters := Ui_utils.list_to_jsarray @@ List.map filter_to_jsfilter tokens
-      
+
 (* Methods of the view *)
 
 let updateVueFromEvent self e =
