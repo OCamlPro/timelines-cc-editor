@@ -37,9 +37,9 @@ let create_timeline ?email name descr cont =
     | _ -> name, name, Some name
   in
   let title = Utils.to_title_event headline descr in
-  let error e = Lwt.return @@ Error e in 
+  let error e = Lwt.return @@ Error e in
   Request.create_timeline ~error ?email timeline_id title true
-    ( fun (admin,_) -> 
+    ( fun (admin,_) ->
       cont ~name ~id:admin;
       finish @@ Ok ()
     )
