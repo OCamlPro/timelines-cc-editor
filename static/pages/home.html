@@ -19,8 +19,8 @@
 <section id="banner">
   <h1>{{title}}</h1>
   <p>{{subtitle}}</p>
-  	<form id="create-form">
-  	<div class="timeline-menu-home-token tooltip">
+  <form id="create-form">
+    <div class="timeline-menu-home-token tooltip">
       <img src="/images/list.svg">
       <div class="tooltipcontent" style="width:15em !important;left:40px; top:0px !important; bottom: unset !important;">
 
@@ -33,13 +33,15 @@
             :href="item.url">
             {{item.name}}</a>
 
-            <img
+            <!--<img
             class="imghometooltip"
             src="/images/upload.svg">
-
+	    -->
             <img
-            @click='removeTimeline(item.id)'
-            src="/images/trash.svg">
+            @click='removeTimelineFromCookies(item.id)'
+              src="/images/trash.svg"
+	      style="cursor:pointer"
+	      >
             </div>
           </li>
         </ul>

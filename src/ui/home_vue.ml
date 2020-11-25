@@ -36,7 +36,7 @@ class type data = object
 
     method cookiesEnabled : bool Js.t Js.prop
 
-    method cookieTimelines : Timeline_cookies.urlData Js.t Js.js_array Js.t Js.readonly_prop
+    method cookieTimelines : Timeline_cookies.urlData Js.t Js.js_array Js.t Js.prop
   end
 
 module Input = struct
@@ -73,15 +73,20 @@ let createTimeline (self : data Vue_js.vue) =
 let enableCookies self =
   Timeline_cookies.enable ();
   self##.cookiesEnabled := Js._true
-    
+
 let disableCookies self =
   if Js_utils.confirm (Lang.t_ s_confirm_disable_cookies) then begin
     Timeline_cookies.disable ();
     self##.cookiesEnabled := Js._false
   end
 
+let removeTimelineFromCookies self id =
+  Timeline_cookies.remove_timeline @@ Js.to_string id;
+  let cookie_timelines, _ = Timeline_cookies.js_data () in
+  self##.cookieTimelines := cookie_timelines
+
 let init () =
-  let cookieTimelines, enabled = Timeline_cookies.js_data () in  
+  let cookieTimelines, enabled = Timeline_cookies.js_data () in
   let data : data Js.t =
     object%js
       val logo = tjs_ s_ez_timeline
@@ -112,10 +117,11 @@ let init () =
       val mutable emailValue = jss ""
 
       val mutable cookiesEnabled = Js.bool enabled
-      val cookieTimelines = cookieTimelines
+      val mutable cookieTimelines = cookieTimelines
     end
   in
   Vue.add_method0 "createTimeline" createTimeline;
+  Vue.add_method1 "removeTimelineFromCookies" removeTimelineFromCookies;
   Vue.add_method0 "enableCookies" enableCookies;
   Vue.add_method0 "disableCookies" disableCookies;
 
