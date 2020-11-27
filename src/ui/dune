@@ -8,7 +8,17 @@
 (executable
  (name ocptimeline_js)
  (modes js)
- (modules dispatcher controller timeline_cookies timeline_display home_vue timeline_vue view_vue pages ocptimeline_js)
+ (modules
+   dispatcher
+   controller
+   timeline_cookies
+   timeline_display
+   alert_vue
+   home_vue
+   timeline_vue
+   view_vue
+   pages
+   ocptimeline_js)
  (preprocess
   (pps js_of_ocaml-ppx))
  (libraries vue-jsoo ui_common js_of_ocaml js_of_ocaml-tyxml js_of_ocaml-lwt

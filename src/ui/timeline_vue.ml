@@ -1,5 +1,6 @@
 open Timeline_data
 open Data_types
+open Lwt
 
 open Ui_common
 open Ui_utils
@@ -106,6 +107,7 @@ let filter_to_jsfilter =
 
 class type data = object
 
+  method alert : Alert_vue.data Js.t Js.prop
   (* Text to display on the page *)
   method exportButton : Js.js_string Js.t Js.readonly_prop
   method saveTitleButtonText : Js.js_string Js.t Js.readonly_prop
@@ -161,7 +163,7 @@ class type data = object
   method confidentialFormHelp  : Js.js_string Js.t Js.readonly_prop
 
   method confidentialFilterForm : Js.js_string Js.t Js.readonly_prop
-  
+
   method backButton            : Js.js_string Js.t Js.readonly_prop
   method removeButton          : Js.js_string Js.t Js.readonly_prop
   method formNameAdding        : Js.js_string Js.t Js.readonly_prop
@@ -224,7 +226,7 @@ class type data = object
 
   method filters : filter Js.t Js.js_array Js.t Js.prop
   (* Tokens *)
-      
+
   method cookieTimelines : Timeline_cookies.urlData Js.t Js.js_array Js.t Js.readonly_prop
   (* Timelines in cookies *)
 end
@@ -268,9 +270,9 @@ let page_vue
       categories in
 
   let max = match Args.get_max args with
-    | None -> 
-      let title_pond = 
-        match title with 
+    | None ->
+      let title_pond =
+        match title with
         | None -> 0
         | Some (_, {ponderation; _}) -> ponderation in
       List.fold_left
@@ -281,6 +283,7 @@ let page_vue
          events
     | Some i -> i in
   object%js
+    val mutable alert = Alert_vue.t
     val exportButton        = tjs_ s_share
     val saveTitleButtonText = tjs_ s_save_title_button_text
 
@@ -529,7 +532,7 @@ let hideMenu (self : 'a) : unit =
 let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
   if timeline = "" then
-    Js_utils.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
+    Alert_vue.alert self##.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
   else begin
     let start_date  = Utils.string_to_date @@ Js.to_string self##.startDateFormValue in
     let end_date    = Utils.string_to_date @@ Js.to_string self##.endDateFormValue   in
@@ -581,7 +584,7 @@ let addEvent title events self adding : unit =
             | Some (_, {unique_id; _}) when unique_id = u_id -> title
             | _ ->
               let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
-              Js_utils.alert err;
+              Alert_vue.alert self##.alert err;
               None
           end
         | Some (i, e) -> Some (i, Utils.event_to_metaevent e) in
@@ -614,11 +617,11 @@ let removeEvent title events self e =
     | None -> begin
         match title with
         | Some (_i, {unique_id; _}) when unique_id = u_id ->
-          Js_utils.alert @@ Lang.t_ Text.s_alert_title_deletion;
+          Alert_vue.alert self##.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
           let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
-          Js_utils.alert err;
+          Alert_vue.alert self##.alert err;
           None
       end
     | Some (i, _e) -> Some i in
@@ -636,11 +639,11 @@ let removeFromForm title events self =
     | None -> begin
         match title with
         | Some (_i, {unique_id; _}) when unique_id = u_id ->
-          Js_utils.alert @@ Lang.t_ Text.s_alert_title_deletion;
+          Alert_vue.alert self##.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
           let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
-          Js_utils.alert err;
+          Alert_vue.alert self##.alert err;
           None
       end
     | Some (i, _e) -> Some i in
@@ -728,7 +731,7 @@ let copyLink self readonly filter_id =
       filter_id in
   Js_utils.Clipboard.set_copy ();
   Js_utils.Clipboard.copy link;
-  Js_utils.alert "Link copied to clipboard"
+  Alert_vue.alert self##.alert "Link copied to clipboard"
 
 (* Timeline initializer *)
 let display_timeline self title events =
@@ -784,7 +787,7 @@ let filter self =
            Js_utils.reload ();
            Lwt.return () 
 )
-  with Failure s -> Js_utils.alert s
+  with Failure s -> Alert_vue.alert self##.alert s
 
 let displayTokenFilter _self filter =
   let res =
@@ -830,14 +833,14 @@ let updateDefaultId self =
   end;
   self##.uniqueIdFormValueDefault := uid
 
-let first_connexion self =
+let first_connexion self : unit Lwt.t =
   let msg =
     Format.sprintf "%s\n\n%s\n\n%s"
       (Lang.t_ Text.s_alert_timeline_creation1)
       (Js.to_string Ocp_js.Dom_html.window##.location##.href)
       (Lang.t_ Text.s_alert_timeline_creation2) in
-  Js_utils.alert msg;
-  showForm None [] self true
+  Alert_vue.alert_lwt self##.alert msg >|= (fun () ->
+  showForm None [] self true)
 
 let init
     ~(args: Args.t)
@@ -878,13 +881,13 @@ let init
 
   Js_utils.log "Adding components@.";
   Js_utils.log "Initializing vue@.";
-  let vue = Vue.init ~data (*~show:true*) () in
+  let vue = Vue.init ~data ~show:true () in
   let () = Ui_utils.slow_hide (Js_utils.find_component "page_content-loading") in
   let () = FilterNavs.init () in
   let () =
     match on_page with
     | No_timeline {name=_; id=_} ->
-      Js_utils.alert (Lang.t_ s_alert_timeline_not_found);
+      Alert_vue.alert data##.alert (Lang.t_ s_alert_timeline_not_found);
       Ui_utils.goto_page "/"
     | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
@@ -893,6 +896,6 @@ let init
       update_page_title name;
       Js_utils.log "Displaying timeline@.";
       match events with
-      | [] -> first_connexion vue
+      | [] -> ignore @@ first_connexion vue
       | _ -> display_timeline vue title events
   in ()

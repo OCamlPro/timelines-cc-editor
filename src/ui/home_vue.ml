@@ -6,6 +6,7 @@ open Lang
 module Js = Js_of_ocaml.Js
 
 class type data = object
+    method alert : Alert_vue.data Js.t Js.prop
     method logo : Js.js_string Js.t Js.readonly_prop
     method navHome : Js.js_string Js.t Js.readonly_prop
     method title : Js.js_string Js.t Js.readonly_prop
@@ -48,26 +49,25 @@ end
 module Vue = Vue_js.Make (Input)
 
 let createTimeline (self : data Vue_js.vue) =
+  let open Lwt in
   let name = Js_of_ocaml.Js.to_string self##.createNameValue in
-  let email =
-    match Js_utils.Window.prompt (Lang.t_ Text.s_prompt_ask_email) with
-    | "" -> None
-    | m -> Some m in
-  ignore @@
-  Controller.create_timeline
-    ?email
-    name
-    (Js_of_ocaml.Js.to_string self##.createDescrValue)
-    (fun ~name ~id ->
-      let name =
-        match name with
-        | None -> id
-        | Some n -> n in
-      let () = Timeline_cookies.add_timeline name id false in
-      let id = Ui_utils.timeline_arg_from_id ~name id in
-      let new_page = Format.sprintf "/edit?timeline=%s" id in
-      Js_utils.log "Going to %s" new_page;
-      Ui_utils.goto_page new_page
+  (Alert_vue.prompt self##.alert (Lang.t_ Text.s_prompt_ask_email)) >>= (fun email ->
+    let email = if email = "" then None else Some email in
+    Controller.create_timeline
+      ?email
+      name
+      (Js_of_ocaml.Js.to_string self##.createDescrValue)
+      (fun ~name ~id ->
+        let name =
+          match name with
+          | None -> id
+          | Some n -> n in
+        let () = Timeline_cookies.add_timeline name id false in
+        let id = Ui_utils.timeline_arg_from_id ~name id in
+        let new_page = Format.sprintf "/edit?timeline=%s" id in
+        Js_utils.log "Going to %s" new_page;
+        Ui_utils.goto_page new_page
+      )
     )
 
 let enableCookies self =
@@ -89,6 +89,7 @@ let init () =
   let cookieTimelines, enabled = Timeline_cookies.js_data () in
   let data : data Js.t =
     object%js
+      val mutable alert = Alert_vue.t
       val logo = tjs_ s_ez_timeline
       val navHome = tjs_ s_nav_home
       val title = tjs_ s_home_title
@@ -118,13 +119,12 @@ let init () =
 
       val mutable cookiesEnabled = Js.bool enabled
       val mutable cookieTimelines = cookieTimelines
-    end
-  in
+    end in
   Vue.add_method0 "createTimeline" createTimeline;
   Vue.add_method1 "removeTimelineFromCookies" removeTimelineFromCookies;
   Vue.add_method0 "enableCookies" enableCookies;
   Vue.add_method0 "disableCookies" disableCookies;
 
-  let _obj = Vue.init ~data () in
+  let _obj = Vue.init ~show:true ~data () in
   Ui_utils.slow_hide (Js_utils.find_component "page_content-loading");
   ()

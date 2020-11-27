@@ -174,7 +174,7 @@ let slow_hide elt =
             loop new_opacity) in
   ignore @@ loop opacity
 
-let update_page_title title = 
+let update_page_title title =
   Ocp_js.Dom_html.document##.title := Js.string (title ^ " - Timelines.cc")
 
 (*

@@ -1,11 +1,13 @@
-<head>
+<!DOCTYPE HTML>
+<html>
+  <head>
   <meta charset="utf-8">
   <title>EZ-Timeline by OCamlPro</title>
   <meta name="description" content="Add description" />
   <meta name="generator" content="EZ-Timeline (v1.0.0)" />
   <meta property="og:title" content="EZ-Timeline by OCamlPro" />
   <meta property="og:type" content="text/html" />
-  <meta property="og:image" content="http://www.ocamlpro.com/wp-content/uploads/OCP-timeline.png" />   
+  <meta property="og:image" content="http://www.ocamlpro.com/wp-content/uploads/OCP-timeline.png" />
   <meta name="keywords" content="OCaml, OCaml Pro, OCamlPro, Opam, Rust, Blockchain, Flambda, Alt-Ergo, Formal methods, Prototyping, Expertise, Dune, DunScan, TzScan, Tezos, TypeRex, Functional Programming, Inria, Programming Languages, Type systems, Developement, Dune Network, Love Language, Liquidity, Smart contracts, Block explorer" >
   <meta name="news_keywords" content="OCaml, OCaml Pro, OCamlPro, Opam, Rust, Blockchain, Flambda, Alt-Ergo, Formal methods, Prototyping, Expertise, Dune, DunScan, TzScan, Tezos,Functional Programming, Inria, Programming Languages, Type systems, Developement, Dune Network, Love Language, Liquidity, Smart contracts, Block explorer, TypeRex" >
   <link rel="stylesheet" href="/assets/css/font-awesome.min.css" />
@@ -16,3 +18,16 @@
   <script src="/assets/js/vue.js"></script>
   <script src="/assets/js/main.js"></script>
 </head>
+  <body>
+    <div id="page_content-loading"></div>
+    <div id="page_content" style="display: none">
+      <div id="alert-div" v-if="alert.alertOn || alert.promptOn || alert.confirmOn">
+	<div>
+	  <div id="alert-content">{{alert.message}}</div>
+	  <input type="email" v-if="alert.promptOn" v-model="alert.promptValue">
+	  <div class="button" @click="alert.ok()">Ok</div>
+	  <div class="button"
+	       v-if="alert.confirmOn || alert.promptOk"
+	       @click="alert.cancel()">Cancel</div>
+	</div>
+      </div>
