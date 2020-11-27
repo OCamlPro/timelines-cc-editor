@@ -505,7 +505,10 @@ html {
     content:"\e63d"
 }
 .tl-icon-goback:after{
-    content:"\e63e"
+    font-family: fontawesome;
+    font-weight: 800;
+    font-size: 25px;
+    content:"\f100"
 }
 .tl-icon-doc-v2:after{
     content:"\e63f"
@@ -579,15 +582,17 @@ html {
     user-select:none
 }
 .tl-menubar{
-    background-color:#1588ab;
+    background-color: #fff;
     position:absolute;
-    z-index:11;
+    width: 125px;
+    z-index: 100;
     text-align:center;
     over flow:hidden;
-    border-bottom-left-radius:10px;
-    border-top-left-radius:10px;
-    top:100%;
-    right: 0px;
+    top: initial !important;
+    bottom: 1px !important;
+    left: 0px;
+    border-right: solid 1px #e6e6e6;
+    border-top: solid 1px #e6e6e6
 }
 @keyframes invertToBlack{
     from{
@@ -625,10 +630,10 @@ html {
     font-size:18px;
     line-height:18px;
     cursor:pointer;
-    padding:6px 6px;
+    padding: 6px 9px;
     display:inline-block;
-    display:block;
-    color:white
+    /* display:block; */
+    color: #1688ab;
 }
 .tl-menubar-button.tl-menubar-button-inactive{
     opacity:.33
@@ -785,18 +790,19 @@ html {
     border-top:1px solid #e5e5e5
 }
 .tl-timenav .tl-attribution{
+    transform: rotate(-90deg) translateY(20px);
     cursor:pointer;
     z-index:9;
     position:absolute;
-    bottom: 0;
-    left:0;
-    border-right: 0.1px solid #e6e6e6;
-    border-top: 0.1px solid #e6e6e6;
+    bottom: 70px;
+    right: 3px;
+    /* border-right: 0.1px solid #e6e6e6; */
+    /* border-top: 0.1px solid #e6e6e6; */
     font-size:10px;
-    line-height:10px;
+    /* line-height:10px; */
     font-family:"Helvetica Neue",Helvetica,Arial,sans-serif!important;
-    background-color:#fff;
-    padding: 28px 32.5px 5px 30px;
+    /* background-color:#fff; */
+    /* padding: 35px 0px 35px 0px; */
 }
 .tl-timenav .tl-attribution a{
     color:#1588ab
@@ -1060,24 +1066,22 @@ html {
     right:0;
     width:100%;
     height:50%;
-    background:-moz-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-webkit-gradient(linear,left top,left bottom,color-stop(0,rgba(229,229,229,0)),color-stop(50%,#e5e5e5));
-    background:-webkit-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-o-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-ms-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:linear-gradient(to bottom,rgba(229,229,229,0)0,#e5e5e5 50%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
 }
+
+.tl-timemarker-content.tl-timemarker-content-small {
+    padding-top: 3px !important
+}
+
 .tl-timemarker .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container{
     float:left;
-    max-width:24px;
-    max-height:24px;
-    overflow:hidden;
+    max-width:31px;
+    max-height:31px;
     margin-right:5px;
     height:100%;
+    top:-5px;
     -webkit-box-sizing:border-box;
     -moz-box-sizing:border-box;
-    box-sizing:border-box
+    box-sizing:border-box;
 }
 .tl-timemarker .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container .tl-timemarker-media{
     max-width:24px;
@@ -1123,29 +1127,12 @@ html {
 .tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
     color:#1588ab
 }
-.tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:after{
-    background:-moz-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-    background:-webkit-gradient(linear,left top,left bottom,color-stop(0,rgba(191,191,191,0)),color-stop(80%,#bfbfbf));
-    background:-webkit-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-    background:-o-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-    background:-ms-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-    background:linear-gradient(to bottom,rgba(191,191,191,0)0,#bfbfbf 80%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
-}
+
 .tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container .tl-timemarker-media{
     opacity:1
 }
 .tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container [class^=tl-icon-],.tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container [class*=" tl-icon-"]{
     color:#fff
-}
-.tl-timemarker:hover.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:after{
-    background:-moz-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-webkit-gradient(linear,left top,left bottom,color-stop(0,rgba(255,255,255,0)),color-stop(80%,#fff));
-    background:-webkit-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-o-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-ms-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:linear-gradient(to bottom,rgba(255,255,255,0)0,#fff 80%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
 }
 
 .tl-timemarker:hover.tl-timemarker-active .tl-timemarker-line-left:after,.tl-timemarker:hover.tl-timemarker-active .tl-timemarker-line-right:after{
@@ -1178,15 +1165,7 @@ html {
 .tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
     color: #fff;
 }
-.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:after{
-    background:-moz-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-webkit-gradient(linear,left top,left bottom,color-stop(0,rgba(255,255,255,0)),color-stop(80%,#fff));
-    background:-webkit-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-o-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-ms-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:linear-gradient(to bottom,rgba(255,255,255,0)0,#fff 80%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
-}
+
 .tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container .tl-timemarker-media{
     opacity:1
 }
@@ -1302,7 +1281,7 @@ html {
     -o-transition-timing-function:cubic-bezier(.77,0,.175,1);
     transition-timing-function:cubic-bezier(.77,0,.175,1);
     box-sizing:border-box;
-    border:1px solid #1e6e87 
+    border:1px solid #1e6e87
 }
 .tl-timeera .tl-timeera-content-container .tl-timeera-content{
     position:relative;
@@ -1343,13 +1322,6 @@ html {
     right:0;
     width:100%;
     height:50%;
-    background:-moz-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-webkit-gradient(linear,left top,left bottom,color-stop(0,rgba(229,229,229,0)),color-stop(50%,#e5e5e5));
-    background:-webkit-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-o-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-ms-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:linear-gradient(to bottom,rgba(229,229,229,0)0,#e5e5e5 50%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
 }
 .tl-timegroup{
     width:100%;
@@ -1374,6 +1346,7 @@ html {
     transition-timing-function:cubic-bezier(.77,0,.175,1)
 }
 .tl-timegroup .tl-timegroup-message{
+    padding-left: 5px;
     FONT-WEIGHT: 200;
     background-color: white;
     color:var(--major-regular) !important;
@@ -1576,7 +1549,7 @@ html {
     display:table-cell;
     vertical-align:middle;
     position:relative;
-    width:200% !important;
+    width: 100% !important;
     z-index:3;
     padding: 0px !important;
     margin: 0px;
@@ -1602,12 +1575,13 @@ html {
     margin-bottom:auto;
 }
 .tl-slide .tl-slide-content-container .tl-slide-content .tl-text{
-    width: auto;
+    width: 60%;
     max-width: 60%;
     min-width: 50%;
-    padding:0 20px;
+    padding: 0px;
+    left: 60px !important;
     display:table-cell;
-    vertical-align:middle;
+    vertical-align: middle;
     text-align:left;
 }
 
@@ -1635,6 +1609,13 @@ html {
 .tl-slide-text-only .tl-slide-content-container .tl-slide-content{
     text-align:center
 }
+
+.tl-slide-content {
+    padding-left: 10% !important;
+    padding-right: 10% !important; 
+    width: 80% !important;
+}
+
 .tl-slide-text-only .tl-slide-content-container .tl-slide-content .tl-text{
     max-width:80%;
     width:80%;
@@ -2445,7 +2426,7 @@ html {
 }
 .tl-timeline{
     width:100%;
-    height:90%;
+    height: 92%;
     font-size:16px;
     line-height:normal;
     overflow:hidden;
@@ -2629,6 +2610,7 @@ table {
     top: 0;
     text-align: center;
 }
+
 
 
 #navPanel{
@@ -2858,7 +2840,7 @@ tr:hover.clickable {
 
 .tooltiptitle {
   font-family: raleway !important;
-  font-weight: 600; 
+  font-weight: 600;
   font-size: 18px !important;
 }
 
@@ -3313,7 +3295,7 @@ tr:hover.clickable {
   /* transition: all 0.56s cubic-bezier(0.25, 0.8, 0.25, 1);*/
   padding: 0;
 }
-  /* 
+  /*
 .form-card:hover,
 .form-card:focus {
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
@@ -3831,7 +3813,7 @@ li.croptoken {
 /* Banner */
 
 #banner {
-    padding: 7em 0em!important;
+    padding: 5em 0em!important;
     background-position: top;
     background-size: cover;
     background-repeat: no-repeat;

@@ -328,17 +328,16 @@
 	       class="form-element-ADD-text"
 	       :placeholder="mediaFormHelp"
 	       type="link"
-	       v-model="mediaFormValue" required/>
+	       v-model="mediaFormValue"/>
 	     <select
 	       id="category-select-form"
-	       :placeholder="categoriesFormHelp"
 	       class="form-element-ADD-text"
 	       v-model="categoriesFormValue">
+	       <option value="__other__category__">...️</option>
 	       <option v-for="item in categories" :key="item.id" :value="item.catName">
 		 {{item.catName}}
 	       </option>
 	       <option value="">No category</option>
-	       <option value="__other__category__">...️</option>
 	     </select>
 	     <input
 	       type="text"
