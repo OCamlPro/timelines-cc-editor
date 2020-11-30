@@ -2656,7 +2656,7 @@ vertical-align: bottom;
 
 
 #navPanel #close{
-    height: 1.3em;
+    height: 1.6em;
     padding-left: 0.4em;
     padding-top: 0.2em;
 }
@@ -2875,7 +2875,7 @@ tr:hover.clickable {
     top: 0px !important;
     margin: 0px;
     right: 20px;
-    height: 3em;
+    height: 3.2em;
     text-align: center;
     width: 100%;
     color: white;
@@ -3497,7 +3497,7 @@ select#category-select-form:hover {
 }
 
 input#start-date {
-    width: 120px;
+    width: 130px;
     float: left;
     margin-right: 20px;
 }
@@ -3517,7 +3517,7 @@ input[type="date" i]::-webkit-calendar-picker-indicator {
 }
 
 input#end-date {
-    width: 120px;
+    width: 130px;
     float: left;
     margin-left: 20px;
 }
