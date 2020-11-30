@@ -335,7 +335,7 @@ let page_vue
     val confidentialFormHelp   = tjs_ s_confidential_help
 
     val confidentialFilterForm = tjs_ s_confidential_filter_form
- 
+
     val backButton            = tjs_ s_back
     val removeButton          = tjs_ s_remove_event
     val addEditionTokenButton = tjs_ s_add_edition_token_button
@@ -346,12 +346,12 @@ let page_vue
     val addEventButtonText    = tjs_ s_add_new_event
     val updateEventButtonText = tjs_ s_edit_event
     val removeTimelineText = tjs_ s_remove_timeline_text
-    
+
     val editionLinkText = tjs_ s_edition_link_text
     val readLinkText    = tjs_ s_read_link_text
 
     val timelineListText = tjs_ s_timeline_list_text
-    
+
     val mutable minPonderationFilter =
       match Args.get_min args with
       | None -> 0
@@ -368,7 +368,7 @@ let page_vue
 
     val mutable timelineName = jss timeline_name
     val mutable newTimelineName = jss timeline_name
-    val mutable openedMenu = Js.bool false 
+    val mutable openedMenu = Js.bool false
     val mutable editingTitle = Js.bool false
     val mutable startDateText = Js.bool false
     val mutable endDateText = Js.bool false
@@ -465,7 +465,7 @@ let updateVueFromEvent self e =
     self##.tagsFormValue := jss tags_str in
   ()
 
-let showMenu (self : 'a) : unit = 
+let showMenu (self : 'a) : unit =
   Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible";
   self##.openedMenu := Js._true
 
@@ -735,6 +735,11 @@ let copyLink self readonly filter_id =
   Js_utils.Clipboard.copy link;
   Alert_vue.alert "Link copied to clipboard"
 
+let center_slide_content () =
+  List.iter
+    (fun elt -> Js_utils.Manip.SetCss.width elt "100%")
+    (Js_utils.Manip.by_class "tl-slide-content")
+
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
@@ -744,7 +749,8 @@ let display_timeline self title events =
     | Some s ->
       self##.currentEvent := jss s;
       Js_utils.log "Current event is %s" s in
-  Timeline_display.init_slide_from_url ~whenOnSlide title events
+  Timeline_display.init_slide_from_url ~whenOnSlide title events;
+  center_slide_content ()
 
 let filter self =
   try
