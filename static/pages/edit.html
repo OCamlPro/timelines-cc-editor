@@ -17,205 +17,226 @@
 
 
     <!-- 1 BOUTON LIST CACHÉ CAR MIS SUR LA HOME
-	 <div class="timeline-menu-token tooltip fa fa-close fa-2x" style="display:none"></div>
-	 <div class="timeline-menu-token tooltip" v-show="cookieTimelines.length != 0">
-	   <img src="/images/list.svg">
-	   <p class="tooltipname">List</p>
-	   <div class="tooltipcontent">
-	     <div class="tooltiptitle">{{timelineListText}}</div>
+    <div class="timeline-menu-token tooltip fa fa-close fa-2x" style="display:none"></div>
+    <div class="timeline-menu-token tooltip" v-show="cookieTimelines.length != 0">
+      <img src="/images/list.svg">
+      <p class="tooltipname">List</p>
+      <div class="tooltipcontent">
+      <div class="tooltiptitle">{{timelineListText}}</div>
 
-             <ul>
-               <li class="croptoken" v-for="item in cookieTimelines">
-		 <div style='float: left; display: inline-block'>
-		   <a class="TooltipImgLink" :href="item.url">
-		     <span v-show='item.filterId==currentTimeline'>(Here)</span>
-		     {{item.name}}
-		   </a>
-		   <img
-		     @click='removeTimeline(item.id)'
-		     src="/images/trash.svg">
-		 </div>
+        <ul>
+          <li class="croptoken" v-for="item in cookieTimelines">
+            <div style='float: left; display: inline-block'>
+            <a class="TooltipImgLink" :href="item.url">
+            <span v-show='item.filterId==currentTimeline'>(Here)</span>
+            {{item.name}}
+          </a>
+          <img
+          @click='removeTimeline(item.id)'
+          src="/images/trash.svg">
+	    </div>
 
-	       </li>
-             </ul>
-	   </div>
+	  </li>
+        </ul>
+      </div>
 
-	 </div>
-	 -->
-
-
-	 <!-- MENU CREATE -->
-
-	 <div class="timeline-menu-token tooltip" @click="showForm(true)">
-	   <img src="/images/add.svg"><p class="tooltipname">Add<br>event</p>
-	 </div>
-	 <!-- FIN MENU CREATE -->
-
-	 <!-- MENU EDIT -->
-	 <div
-	   class="timeline-menu-token tooltip"
-	   v-show="events.length != 0"
-	   @click="showForm(false)">
-	   <img src="/images/edit.svg"><p class="tooltipname">Edit<br>event</p>
-	 </div>
-	 <!-- FIN MENU EDIT -->
-
-	 <!-- MENU DELETE -->
-	 <div
-	   id="delete-button"
-	   class="timeline-menu-token tooltip"
-	   @click='removeTimeline(currentTimeline)'>
-	   <img src="/images/trash.svg">
-	   <p class="tooltipname">Delete</p>
-
-	 </div>
-	 <!-- FUN MENU DELETE -->
-
-	 <!-- Filter -->
-	 <div
-	   class="timeline-menu-token tooltip"
-	   v-show="events.length != 0">
-	   <img src="/images/filter.svg"><p class="tooltipname">Filter</p>
-	   <div class="tooltipcontent tooltipcontentUP">
-	     <div class="panel-default filtering-form">
-	       <div class="navbar">
-
-		 <ul class="inline">
-		   <li id="filter-categories" class="active" >
-		     <div>Categories</div>
-		   </li>
-		   <li id="filter-ponderation">
-		     <div>Ponderation</div>
-		   </li>
-		   <li id="filter-other">
-		     <div>Other</div>
-		   </li>
-		 </ul>
-	       </div>
-	       <div id="filter-categories-content">
-		 <div>
-		   <div class="tooltiptitle">Categories:</div>
-		   <div v-for="category in categories">
-		     <div>
-		       <input type="checkbox" v-model="category.checked">
-		       {{category.catName}}
-		     </div>
-		   </div>
-		 </div>
-		 <div>
-		   <div class="tooltiptitle"><br>Ponderation:</div>
-		   From <input type="number" v-model="minPonderationFilter">
-		   to <input type="number" v-model="maxPonderationFilter">
-		   <br>
-		 </div>
-		 <!-- CONFIDENTIAL
-		      <div> <br>
-			<div class="tooltiptitle">Confidential:</div>
-			<input type="checkbox" v-model="alsoConfidential">
-			{{confidentialFilterForm}}
-		      </div> --><br>
-	       </div>
-	       <div id="filter-ponderation-content" style="display:none">
-	       </div>
-
-	       <div id="filter-other-content" style="display:none">
-	       </div>
-
-	       <div class="buttontooltip" @click="filter()">{{filterButtonText}}</div>
-	     </div>
-	   </div>
-	 </div>
-	 <div class="navPanel1">
-	 </div>
-	 <div class="navPanel2">
-	   <!-- MENU HOME -->
-	   <div class="timeline-menu-token tooltip"> <a href="/">
-	       <img src="/images/home.svg"><p class="tooltipname">Home</p></a>
-	   </div>
-	   <!-- FIN MENU HOME -->
+    </div>
+    -->
 
 
-	   <!-- MENU SHARE -->
-	   <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
-	     <img src="/images/share.svg">
-	     <p class="tooltipname">{{exportButton}}</p>
-	     <div class="tooltipcontent tooltipcontentDOWN" style="width:20em"><div class="tooltiptitle">{{exportButton}}</div>
-	       <ul>
-		 <li class="croptoken" v-for="filter in filters">
-		   <div>
+    <!-- 1 BOUTON LIST CACHÉ CAR MIS SUR LA HOME
+    <div
+      class="timeline-menu-token tooltip"
+      @click='removeTimeline(currentTimeline)'>
+      <img src="/images/trash.svg">
+      <p class="tooltipname">Delete</p>
 
-		     <div>
-		       <span v-show='!filter.isEditing'> {{filter.pretty}} </span>
-		       <input type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
-		       <span v-show='filter.filterId==currentTimeline'> (You) </span>
-		     </div>
+    </div> -->
 
-		     <div style='float: left; display: inline-block'>
-		       <span class="tooltip" v-show="displayTokenFilter(filter)">
-			 <span class="tooltipcontent">
-			   <ul>
-			     <li>
-			       <span> {{confidentialFormTitle}}: {{filter.confidential_rights}}
-			       </span>
-			     </li>
-			     <li v-show="filter.filterCategories"> {{categoriesText}}:
-			       <ul>
-				 <li v-for="cat in filter.filterCategories">
-				   <span>{{cat}}</span>
-				 </li>
-			       </ul>
-			     </li>
-			     <li v-show="filter.min_level !== undefined || filter.max_level !== undefined">
-			       {{ponderationText}}: {{betweenText}} {{filter.min_level}} {{andText}} {{filter.max_level}}
-			     </li>
-			   </ul>
-			 </span>
-		       </span>
-		       <img
-			 src="/images/edit.svg"
-			 @click="filter.isEditing=true"
-			 v-show="!filter.isEditing"
-			 :title="filterEditAliasHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
-			 src="/images/check.svg"
-			 @click=      "editAlias(filter);filter.isEditing=false"
-			 @keyup.enter="editAlias(filter);filter.isEditing=false"
-			 v-show="filter.isEditing"
-			 :title="filterEditAliasHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
-			 @click='copyLink(filter.readonly, filter.filterId)'
-			 src="/images/link.svg"
-			 :title="filterCopyLinkHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
-			 v-show='filter.readonly'
-			 @click='setTokenAsEdition(filter.filterId);'
-			 src="/images/view.svg"
-			 :title="filterReadonlyTokenHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
-			 v-show='!filter.readonly'
-			 @click='setTokenAsReadOnly(filter.filterId);'
-			 src="/images/hand-write.svg"
-			 :title="filterAdminTokenHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
-			 @click='removeToken(filter.filterId)'
-			 src="/images/trash.svg"
-			 :title="filterRemoveTokenHelp"
-			 style="cursor: pointer"
-			 >
-		     </div>
-		   </div>
-		 </li>
-	       </ul>
+
+
+    <!-- MENU CREATE -->
+
+    <div class="timeline-menu-token tooltip" @click="showForm(true)">
+      <img src="/images/add.svg"><p class="tooltipname">Add<br>event</p>
+    </div>
+    <!-- FIN MENU CREATE -->
+
+    <!-- MENU EDIT -->
+    <div
+      class="timeline-menu-token tooltip"
+      v-show="events.length != 0"
+      @click="showForm(false)">
+      <img src="/images/edit.svg"><p class="tooltipname">Edit<br>event</p>
+    </div>
+    <!-- FIN MENU EDIT -->
+    <!-- Filter -->
+
+    <div
+      class="timeline-menu-token tooltip"
+      v-show="events.length != 0">
+      <img src="/images/filter.svg"><p class="tooltipname">Filter</p>
+      <div class="tooltipcontent tooltipcontentUP">
+  <div class="panel-default filtering-form">
+    <div class="navbar">
+
+      <ul class="inline">
+        <li id="filter-categories" class="active" >
+          <div>Categories</div>
+        </li>
+        <li id="filter-ponderation">
+          <div>Ponderation</div>
+        </li>
+        <li id="filter-other">
+          <div>Other</div>
+        </li>
+      </ul>
+    </div>
+    <div id="filter-categories-content">
+      <div>
+      <div class="tooltiptitle">Categories:</div>
+      <div v-for="category in categories">
+        <div>
+          <input type="checkbox" v-model="category.checked">
+          {{category.catName}}
+        </div>
+      </div>
+      </div>
+      <div>
+        <div class="tooltiptitle"><br>Ponderation:</div>
+        From <input type="number" v-model="minPonderationFilter">
+        to <input type="number" v-model="maxPonderationFilter">
+        <br>
+      </div>
+      <!-- CONFIDENTIAL
+      <div> <br>
+        <div class="tooltiptitle">Confidential:</div>
+      <input type="checkbox" v-model="alsoConfidential">
+      {{confidentialFilterForm}}
+    </div> --><br>
+    </div>
+    <div id="filter-ponderation-content" style="display:none">
+    </div>
+
+    <div id="filter-other-content" style="display:none">
+    </div>
+
+<div class="buttontooltip" @click="filter()">{{filterButtonText}}</div>
+  </div>
+      </div>
+    </div>
+    <div class="navPanel1">
+</div>
+<div class="navPanel2">
+    <!-- MENU HOME -->
+    <div class="timeline-menu-token tooltip"> <a href="/">
+      <img src="/images/home.svg"><p class="tooltipname">Home</p></a>
+    </div>
+    <!-- FIN MENU HOME -->
+
+
+    <!-- MENU SHARE -->
+    <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
+      <img src="/images/share.svg">
+      <p class="tooltipname">{{exportButton}}</p>
+      <div class="tooltipcontent tooltipcontentDOWN" style="width:20em"><div class="tooltiptitle">{{exportButton}}</div>
+	<ul>
+          <li class="croptoken" v-for="filter in filters">
+	    <div>
+
+	      <div>
+		<span v-show='!filter.isEditing'> {{filter.pretty}} </span>
+		<input type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
+		<span v-show='filter.filterId==currentTimeline'> (You) </span>
+	      </div>
+
+	      <div style='float: left; display: inline-block'>
+		<span class="tooltip" v-show="displayTokenFilter(filter)">
+		  <span class="tooltipcontent">
+                    <ul>
+                      <li>
+			<span> {{confidentialFormTitle}}: {{filter.confidential_rights}}
+			</span>
+                      </li>
+                      <li v-show="filter.filterCategories"> {{categoriesText}}:
+			<ul>
+			  <li v-for="cat in filter.filterCategories">
+			    <span>{{cat}}</span>
+			  </li>
+			</ul>
+                      </li>
+                      <li v-show="filter.min_level !== undefined || filter.max_level !== undefined">
+			{{ponderationText}}: {{betweenText}} {{filter.min_level}} {{andText}} {{filter.max_level}}
+                      </li>
+                    </ul>
+                  </span>
+		</span>
+		<img
+		  src="/images/edit.svg"
+		  @click="filter.isEditing=true"
+		  v-show="!filter.isEditing"
+		  :title="filterEditAliasHelp"
+      style="cursor: pointer"
+		  >
+		<img
+		  src="/images/check.svg"
+		  @click=      "editAlias(filter);filter.isEditing=false"
+		  @keyup.enter="editAlias(filter);filter.isEditing=false"
+		  v-show="filter.isEditing"
+		  :title="filterEditAliasHelp"
+      style="cursor: pointer"
+		  >
+		<img
+		  @click='copyLink(filter.readonly, filter.filterId)'
+		  src="/images/link.svg"
+		  :title="filterCopyLinkHelp"
+      style="cursor: pointer"
+		  >
+		<img
+		  v-show='filter.readonly'
+		  @click='setTokenAsEdition(filter.filterId);'
+		  src="/images/view.svg"
+		  :title="filterReadonlyTokenHelp"
+      style="cursor: pointer"
+      >
+		<img
+		  v-show='!filter.readonly'
+		  @click='setTokenAsReadOnly(filter.filterId);'
+		  src="/images/hand-write.svg"
+		  :title="filterAdminTokenHelp"
+      style="cursor: pointer"
+      >
+		<img
+		  @click='removeToken(filter.filterId)'
+		  src="/images/trash.svg"
+		  :title="filterRemoveTokenHelp"
+      style="cursor: pointer"
+      >
+              </div>
+	    </div>
+          </li>
+        </ul>
+
+	<div>
+          <div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
+          </div
+
+<!-- Import/Export -->
+<div> Export <br> <div class="buttontooltip"> Export csv</div>
+</div>
+<div> Import csv<br>
+  <div class="buttontooltip" style="position: relative;">
+  <input type="file" id="import-form" style="opacity: 0; width: 100%; height: 100%; position: absolute; right: 0px; cursor: pointer; top: 0em;">
+   Import csv
+ </div>
+</div>
+
+
+<!-- Import/Export -->
+
+        </div>
+
+      </div>
 
 	       <div>
 		 <div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
