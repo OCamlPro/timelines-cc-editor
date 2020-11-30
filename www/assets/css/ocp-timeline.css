@@ -3901,3 +3901,8 @@ body {
     padding:10px;
     background-color:var(--major-strong)
 }
+
+#delete-button{
+    filter: opacity(0.5) drop-shadow(0 0 0 red) drop-shadow(0 0 0 red) drop-shadow(0 0 0 red);
+
+}
