@@ -51,7 +51,7 @@ module Vue = Vue_js.Make (Input)
 let createTimeline (self : data Vue_js.vue) =
   let open Lwt in
   let name = Js_of_ocaml.Js.to_string self##.createNameValue in
-  (Alert_vue.prompt self##.alert (Lang.t_ Text.s_prompt_ask_email)) >>= (fun email ->
+  (Alert_vue.prompt (Lang.t_ Text.s_prompt_ask_email)) >>= (fun email ->
     let email = if email = "" then None else Some email in
     Controller.create_timeline
       ?email

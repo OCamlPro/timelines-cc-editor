@@ -228,32 +228,29 @@
 
 		<!-- FIN MENU SHARE -->
 
-		<!-- MENU FILES
+		<!-- MENU FILES -->
 
-		     <div class="timeline-menu-token tooltip">
-		       <img src="/images/upload.svg">
+		<div class="timeline-menu-token tooltip">
+		  <img src="/images/upload.svg">
 
-		       <p class="tooltipname">Files</p>
+		  <p class="tooltipname">Files</p>
+		  <div class="tooltipcontent tooltipcontentDOWN">
+		    <div class="tooltiptitle">
+		      Export<br/>
+		      <div class="buttontooltip" @click="exportTimeline()">csv</div>
+		    </div>
 
-		       <div class="tooltipcontent">
+		    <div class="tooltiptitle">
+		      Import <br/>
+		      <div class="buttontooltip" style="position: relative">
+			<input type="file" id="import-form" @change="importTimeline()">
+			csv
+		      </div>
+		    </div>
+		  </div>
+		</div>
 
-			 s
-			 <div class="tooltiptitle">
-			   Export<br/>
-			   <div class="buttontooltip" @click="exportTimeline()">csv</div>
-			 </div>
-
-			 <div class="tooltiptitle">
-			   Import <br/>
-			   <div class="buttontooltip" style="position: relative">
-			     <input type="file" style="opacity: 0.0; width: 100%; height: 100%; position: absolute; right:0px; cursor: pointer; top:0em" id="import-form" @change="importTimeline()">
-			     csv
-			   </div>
-			 </div>
-		       </div>
-		     </div>
-
-		     <!-- FIN MENU FILES -->
+		<!-- FIN MENU FILES -->
 	      </div>
   </div>
 </div>

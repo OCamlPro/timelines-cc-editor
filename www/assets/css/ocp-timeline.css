@@ -3906,3 +3906,14 @@ body {
     filter: opacity(0.5) drop-shadow(0 0 0 red) drop-shadow(0 0 0 red) drop-shadow(0 0 0 red);
 
 }
+
+#import-form{
+    position:absolute;
+    width:100%;
+    height:100%;
+    right:0px;
+    top:0px;
+    margin:0px;
+    padding:0px;
+    display:none;
+}

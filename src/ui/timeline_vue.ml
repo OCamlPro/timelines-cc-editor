@@ -532,7 +532,7 @@ let hideMenu (self : 'a) : unit =
 let addEvent title events self adding : unit =
   let timeline = Js.to_string self##.currentTimeline in
   if timeline = "" then
-    Alert_vue.alert self##.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
+    Alert_vue.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
   else begin
     let start_date  = Utils.string_to_date @@ Js.to_string self##.startDateFormValue in
     let end_date    = Utils.string_to_date @@ Js.to_string self##.endDateFormValue   in
@@ -584,7 +584,7 @@ let addEvent title events self adding : unit =
             | Some (_, {unique_id; _}) when unique_id = u_id -> title
             | _ ->
               let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
-              Alert_vue.alert self##.alert err;
+              Alert_vue.alert err;
               None
           end
         | Some (i, e) -> Some (i, Utils.event_to_metaevent e) in
@@ -617,11 +617,11 @@ let removeEvent title events self e =
     | None -> begin
         match title with
         | Some (_i, {unique_id; _}) when unique_id = u_id ->
-          Alert_vue.alert self##.alert @@ Lang.t_ Text.s_alert_title_deletion;
+          Alert_vue.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
           let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
-          Alert_vue.alert self##.alert err;
+          Alert_vue.alert err;
           None
       end
     | Some (i, _e) -> Some i in
@@ -639,11 +639,11 @@ let removeFromForm title events self =
     | None -> begin
         match title with
         | Some (_i, {unique_id; _}) when unique_id = u_id ->
-          Alert_vue.alert self##.alert @@ Lang.t_ Text.s_alert_title_deletion;
+          Alert_vue.alert @@ Lang.t_ Text.s_alert_title_deletion;
           None
         | _ ->
           let err = Format.sprintf "%s --> %s" u_id (Lang.t_ Text.s_alert_unknown_event) in
-          Alert_vue.alert self##.alert err;
+          Alert_vue.alert err;
           None
       end
     | Some (i, _e) -> Some i in
@@ -653,7 +653,7 @@ let removeFromForm title events self =
     let _l : _ Lwt.t = Controller.removeEvent ~id ~timeline_id in
     ()
 
-let export title events self = 
+let export title events self =
    Controller.export_timeline
      ~name:(Js.to_string self##.timelineName)
      title
@@ -663,7 +663,7 @@ let import self =
   let timeline_id = Js.to_string self##.currentTimeline in
   Controller.import_timeline
     timeline_id
-    true 
+    true
     (Js_utils.find_component "import-form")
 
 let addEditionToken self =
@@ -712,12 +712,14 @@ let editAlias self filter =
            update_filters self l)
 
 let removeToken self token =
-  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_token) then 
-    ignore @@
-    Controller.removeToken
-      (Js.to_string self##.currentTimeline)
-      (Js.to_string token)
-      (update_filters self)
+  let open Lwt in
+  Alert_vue.confirm (Lang.t_ Text.s_confirm_remove_token) >>= (fun confirm ->
+    if confirm then
+      Controller.removeToken
+        (Js.to_string self##.currentTimeline)
+        (Js.to_string token)
+        (update_filters self)
+    else Lwt.return (Ok ()))
 
 let copyLink self readonly filter_id =
   let timeline_name = Js.to_string self##.timelineName in
@@ -731,7 +733,7 @@ let copyLink self readonly filter_id =
       filter_id in
   Js_utils.Clipboard.set_copy ();
   Js_utils.Clipboard.copy link;
-  Alert_vue.alert self##.alert "Link copied to clipboard"
+  Alert_vue.alert "Link copied to clipboard"
 
 (* Timeline initializer *)
 let display_timeline self title events =
@@ -765,8 +767,8 @@ let filter self =
       let min_ponderation = self##.minPonderationFilter in
       let args = Args.set_min min_ponderation args in
       let max_ponderation = self##.maxPonderationFilter in
-      if max_ponderation >= self##.maxBoundInPonderationFilter 
-        then args else 
+      if max_ponderation >= self##.maxBoundInPonderationFilter
+        then args else
       Args.set_max max_ponderation args
     in
     let args = (* Confidential *)
@@ -776,18 +778,18 @@ let filter self =
     ignore @@
     Request.timeline_data ~args tid
       (function
-         | Error s -> 
+         | Error s ->
            Js_utils.log "Error while requesting timeline_data: %s. Reloading page" s;
            Js_utils.reload ();
-           Lwt.return () 
-         | Ok (Timeline {title; events; edition_rights=_}) -> 
+           Lwt.return ()
+         | Ok (Timeline {title; events; edition_rights=_}) ->
            display_timeline self title events; Lwt.return ()
-         | Ok NoTimeline -> 
+         | Ok NoTimeline ->
            Js_utils.log "Timeline has not been found after filtering, maybe someone deleted it? Reloading page to be sure.";
            Js_utils.reload ();
-           Lwt.return () 
+           Lwt.return ()
 )
-  with Failure s -> Alert_vue.alert self##.alert s
+  with Failure s -> Alert_vue.alert s
 
 let displayTokenFilter _self filter =
   let res =
@@ -801,22 +803,23 @@ let displayTokenFilter _self filter =
   res
 
 let removeTimeline self tid =
-  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_timeline) then
-    let tids = Js.to_string tid in
-    ignore @@
-    Controller.removeTimeline tids
-      (fun () ->
-         Timeline_cookies.remove_timeline tids;
-         if tid = self##.currentTimeline then
-           Ui_utils.goto_page "/"
-         else Js_utils.reload ()
-      )
-  else ()
+  let open Lwt in
+  Alert_vue.confirm (Lang.t_ Text.s_confirm_remove_timeline) >>=
+  (fun confirm -> if confirm then
+      let tids = Js.to_string tid in
+      Controller.removeTimeline tids
+        (fun () ->
+           Timeline_cookies.remove_timeline tids;
+           if tid = self##.currentTimeline then
+             Ui_utils.goto_page "/"
+           else Js_utils.reload ()
+        )
+    else Lwt.return (Ok ()))
 
 let switchToMainInput self =
   Js_utils.(hide (find_component "unique-id-default-form"));
   Js_utils.(show (find_component "unique-id-form"));
-  self##.uniqueIdFormValue := self##.uniqueIdFormValueDefault  
+  self##.uniqueIdFormValue := self##.uniqueIdFormValueDefault
 
 let switchToDefaultInput self =
   if Js.to_string self##.uniqueIdFormValue = "" then begin
@@ -839,7 +842,7 @@ let first_connexion self : unit Lwt.t =
       (Lang.t_ Text.s_alert_timeline_creation1)
       (Js.to_string Ocp_js.Dom_html.window##.location##.href)
       (Lang.t_ Text.s_alert_timeline_creation2) in
-  Alert_vue.alert_lwt self##.alert msg >|= (fun () ->
+  Alert_vue.alert_lwt msg >|= (fun () ->
   showForm None [] self true)
 
 let init
@@ -887,7 +890,7 @@ let init
   let () =
     match on_page with
     | No_timeline {name=_; id=_} ->
-      Alert_vue.alert data##.alert (Lang.t_ s_alert_timeline_not_found);
+      Alert_vue.alert (Lang.t_ s_alert_timeline_not_found);
       Ui_utils.goto_page "/"
     | Timeline {title; events; id; name} ->
       Js_utils.log "Adding timeline to cookies@.";
