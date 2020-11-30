@@ -19,7 +19,8 @@
    view_vue
    pages
    ocptimeline_js)
+ (js_of_ocaml (flags (--opt 3)))
  (preprocess
   (pps js_of_ocaml-ppx))
- (libraries vue-jsoo ui_common js_of_ocaml js_of_ocaml-tyxml js_of_ocaml-lwt
-   xhr_lwt config timeline_data data_encoding api_data dbData ezjs-timeline))
+ (libraries vue-jsoo ui_common js_of_ocaml js_of_ocaml-lwt
+   config timeline_data data_encoding api_data dbData ezjs-timeline))
