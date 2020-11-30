@@ -11,6 +11,7 @@
 	--contrast: #fff;
 	--minor-light: #292930;
 	--shadow: rgba(41, 41, 48, 0.4);
+	--editable-text-color: #ffffffaa
 }
 
 
@@ -3443,7 +3444,7 @@ fieldset {
   border-bottom: 1px solid #ffffff60;
   border-radius: 0px;
   line-height: 1.5;
-  color: #FFFFFF80;
+  color: var(--editable-text-color);
   box-shadow: none;
 }
 
@@ -3467,7 +3468,7 @@ fieldset {
   /* font-size: 1.8rem; */
   border-bottom: 1px solid #ffffff60;
   line-height: 1.3em !important;
-  color: #FFFFFF60;
+  color: var(--editable-text-color);
   border-radius: 0px;
   box-shadow: none;
 }
@@ -3545,7 +3546,7 @@ input#end-date {
     border-radius: 0px;
     line-height: 0.1em !important;
     /* min-width: 15em; */
-    color: #ffffff80;
+    color: var(--editable-text-color);
     box-shadow: none;
 }
 
@@ -3585,7 +3586,7 @@ input#end-date {
   border-bottom: 1px dashed #ffffff60 !important;
   border-radius: 0px;
   width: 500px;
-  color: #FFFFFF80;
+  color: var(--editable-text-color);
   box-shadow: none;
   font-family: fontin-reg !important;
 }
