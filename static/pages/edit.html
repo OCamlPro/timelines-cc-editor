@@ -43,18 +43,6 @@
     </div>
     -->
 
-
-    <!-- 1 BOUTON LIST CACHÉ CAR MIS SUR LA HOME
-    <div
-      class="timeline-menu-token tooltip"
-      @click='removeTimeline(currentTimeline)'>
-      <img src="/images/trash.svg">
-      <p class="tooltipname">Delete</p>
-
-    </div> -->
-
-
-
     <!-- MENU CREATE -->
 
     <div class="timeline-menu-token tooltip" @click="showForm(true)">
@@ -94,7 +82,8 @@
     </div>
     <div id="filter-categories-content">
       <div>
-      <div class="tooltiptitle">Categories:</div>
+      <div class="tooltiptitle">Categories<sup style="cursor: help"
+		  :title="filterEditAliasHelp">ℹ︎</sup></div>
       <div v-for="category in categories">
         <div>
           <input type="checkbox" v-model="category.checked">
@@ -103,7 +92,8 @@
       </div>
       </div>
       <div>
-        <div class="tooltiptitle"><br>Ponderation:</div>
+        <div class="tooltiptitle"><br>Ponderation<sup style="cursor: help"
+  		  :title="filterEditAliasHelp">ℹ︎</sup></div>
         From <input type="number" v-model="minPonderationFilter">
         to <input type="number" v-model="maxPonderationFilter">
         <br>
@@ -138,8 +128,9 @@
     <!-- MENU SHARE -->
     <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
       <img src="/images/share.svg">
-      <p class="tooltipname">{{exportButton}}</p>
-      <div class="tooltipcontent tooltipcontentDOWN" style="width:20em"><div class="tooltiptitle">{{exportButton}}</div>
+      <p class="tooltipname">Option</p>
+      <div class="tooltipcontent tooltipcontentDOWN" style="width:20em"><div class="tooltiptitle">{{exportButton}}<sup style="cursor: help"
+		  :title="filterEditAliasHelp">ℹ︎</sup></div>
 	<ul>
           <li class="croptoken" v-for="filter in filters">
 	    <div>
@@ -212,44 +203,41 @@
 		  :title="filterRemoveTokenHelp"
       style="cursor: pointer"
       >
-              </div>
-	    </div>
-          </li>
-        </ul>
-
-	<div>
-          <div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
-          </div
-
-<!-- Import/Export -->
-<div> Export <br> <div class="buttontooltip"> Export csv</div>
-</div>
-<div> Import csv<br>
-  <div class="buttontooltip" style="position: relative;">
-  <input type="file" id="import-form" style="opacity: 0; width: 100%; height: 100%; position: absolute; right: 0px; cursor: pointer; top: 0em;">
-   Import csv
- </div>
+    </div>
+  </div>
+</li>
+</ul>
+<div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
 </div>
 
-
 <!-- Import/Export -->
+<br><div class="tooltiptitle">Manage<sup style="cursor: help"
+:title="filterEditAliasHelp">ℹ︎</sup></div>
+
+ <div class="buttontooltip" @click='removeTimeline(currentTimeline)'> Delete this Timeline</div>
+ <div>
+    <div class="buttontooltip" @click="exportTimeline()" style="width: 47% !important; float: left"> Export csv</div>
+    <div class="buttontooltip" style="position: relative; width: 47% !important; float: right"> Import csv
+      <input type="file"  id="import-form" @change="importTimeline()"
+      style="opacity: 0; width: 100%; height: 100%; position: absolute; right: 0px; cursor: pointer; top: 0em">
+    </div>
+  </div>
+
+
+
+
+
+
+<!-- Fin Import/Export -->
 
         </div>
-
       </div>
-
-	       <div>
-		 <div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
-		 </div>
-	       </div>
-
-	     </div>
-
-	   </div>
+    </div>
+  </div>
 
 	   <!-- FIN MENU SHARE -->
 
-	   <!-- MENU FILES -->
+	   <!-- MENU FILES
 
 	   <div class="timeline-menu-token tooltip">
 	     <img src="/images/upload.svg">

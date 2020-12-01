@@ -639,8 +639,8 @@ html {
     opacity:.33
 }
 .tl-menubar-button:hover{
-    background:#333;
-    color:#fff
+    /* background:#333; */
+    color: #1e6e87;
 }
 .tl-menubar-button:hover.tl-menubar-button-inactive{
     color:#bfbfbf;
@@ -794,19 +794,15 @@ html {
     cursor:pointer;
     z-index:9;
     position:absolute;
-    bottom: 70px;
-    right: 3px;
-    /* border-right: 0.1px solid #e6e6e6; */
-    /* border-top: 0.1px solid #e6e6e6; */
+    bottom: 65px;
+    right: -5px;
     font-size:10px;
-    /* line-height:10px; */
     font-family:"Helvetica Neue",Helvetica,Arial,sans-serif!important;
-    /* background-color:#fff; */
-    /* padding: 35px 0px 35px 0px; */
+    background-color:#fff;
+    color:#1588ab;
+    padding: 5px;
 }
-.tl-timenav .tl-attribution a{
-    color:#1588ab
-}
+
 .tl-timenav .tl-attribution a:hover{
     color:#1e6e87;
     text-decoration:none
@@ -1066,12 +1062,6 @@ html {
     right:0;
     width:100%;
     height:50%;
-    background:-moz-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-		background:-webkit-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-o-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-ms-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:linear-gradient(to bottom,rgba(229,229,229,0)0,#e5e5e5 50%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
 }
 
 .tl-timemarker-content.tl-timemarker-content-small {
@@ -1133,27 +1123,12 @@ html {
 .tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
     color:#1588ab
 }
-.tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:after{
-    background:-moz-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-		background:-webkit-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-    background:-o-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-    background:-ms-linear-gradient(top,rgba(191,191,191,0)0,#bfbfbf 80%);
-    background:linear-gradient(to bottom,rgba(191,191,191,0)0,#bfbfbf 80%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
-}
+
 .tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container .tl-timemarker-media{
     opacity:1
 }
 .tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container [class^=tl-icon-],.tl-timemarker:hover .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container [class*=" tl-icon-"]{
     color:#fff
-}
-.tl-timemarker:hover.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:after{
-    background:-moz-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-webkit-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-o-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-ms-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:linear-gradient(to bottom,rgba(255,255,255,0)0,#fff 80%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
 }
 
 .tl-timemarker:hover.tl-timemarker-active .tl-timemarker-line-left:after,.tl-timemarker:hover.tl-timemarker-active .tl-timemarker-line-right:after{
@@ -1186,14 +1161,7 @@ html {
 .tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline{
     color: #fff;
 }
-.tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-text h2.tl-headline.tl-headline-fadeout:after{
-    background:-moz-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-webkit-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-o-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:-ms-linear-gradient(top,rgba(255,255,255,0)0,#fff 80%);
-    background:linear-gradient(to bottom,rgba(255,255,255,0)0,#fff 80%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
-}
+
 .tl-timemarker.tl-timemarker-active .tl-timemarker-content-container .tl-timemarker-content .tl-timemarker-media-container .tl-timemarker-media{
     opacity:1
 }
@@ -1309,6 +1277,7 @@ html {
     -o-transition-timing-function:cubic-bezier(.77,0,.175,1);
     transition-timing-function:cubic-bezier(.77,0,.175,1);
     box-sizing:border-box;
+    border:1px solid #1e6e87
 }
 .tl-timeera .tl-timeera-content-container .tl-timeera-content{
     position:relative;
@@ -1349,12 +1318,6 @@ html {
     right:0;
     width:100%;
     height:50%;
-    background:-moz-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-webkit-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-o-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:-ms-linear-gradient(top,rgba(229,229,229,0)0,#e5e5e5 50%);
-    background:linear-gradient(to bottom,rgba(229,229,229,0)0,#e5e5e5 50%);
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='@thecolor', endColorstr='@thecolor', GradientType=0)
 }
 .tl-timegroup{
     width:100%;
@@ -1645,7 +1608,7 @@ html {
 
 .tl-slide-content {
     padding-left: 10% !important;
-    padding-right: 10% !important; 
+    padding-right: 10% !important;
     width: 80% !important;
 }
 
@@ -2672,7 +2635,7 @@ vertical-align: bottom;
 
 
 #navPanel #close{
-    height: 1.6em;
+    height: 1.3em;
     padding-left: 0.4em;
     padding-top: 0.2em;
 }
@@ -2891,7 +2854,7 @@ tr:hover.clickable {
     top: 0px !important;
     margin: 0px;
     right: 20px;
-    height: 3.2em;
+    height: 3em;
     text-align: center;
     width: 100%;
     color: white;
@@ -2935,10 +2898,10 @@ tr:hover.clickable {
 }
 
 .timeline-menu-home-token{
-    margin: 0 0.1em 0 0.5em !important;
-    padding: 0.3em 0.7em !important;
+    margin: 0em .1em !important;
+    padding: 0.4em 16px !important;
     min-height: 3.5em !important;
-    /* max-width: 2em !important; */
+    max-width: 2em !important;
     min-width: 2em !important;
     float: left !important;
 }
@@ -3328,6 +3291,7 @@ tr:hover.clickable {
   /* transition: all 0.56s cubic-bezier(0.25, 0.8, 0.25, 1);*/
   padding: 0;
 }
+  /*
 .form-card:hover,
 .form-card:focus {
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
@@ -3748,8 +3712,16 @@ input[type="checkbox"] {
 }
 
 input[type="number"]{
-    width: 4em;
+    width: 4.75em;
     margin:  0px;
+}
+
+input:-internal-autofill-previewed {
+    appearance: menulist-button;
+    background-color: #1588ab !important;
+    color: #1588ab !important;
+    background-image: none !important;
+    color: initial !important;
 }
 
 input {
