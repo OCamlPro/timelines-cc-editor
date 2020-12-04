@@ -13331,14 +13331,14 @@ TL.Timeline = TL.Class.extend({
 			var _n = self.config.events.length - 1;
 			var lastSlide = self.config.title ? _n + 1 : _n;
 			var firstSlide = 0;
-
+		        var activate_keypress = !page_content.openedForm;
 			if (keyName == 'ArrowLeft'){
-				if (currentSlide!=firstSlide){
+				if (currentSlide!=firstSlide && activate_keypress){
 					self.goToPrev();
 				}
 			}
 			else if (keyName == 'ArrowRight'){
-				if (currentSlide!=lastSlide){
+				if (currentSlide!=lastSlide && activate_keypress){
 					self.goToNext();
 				}
 			}

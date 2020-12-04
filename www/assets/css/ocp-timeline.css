@@ -1609,7 +1609,7 @@ html {
 .tl-slide-content {
     padding-left: 10% !important;
     padding-right: 10% !important;
-    width: 80% !important;
+    width: 80%;
 }
 
 .tl-slide-text-only .tl-slide-content-container .tl-slide-content .tl-text{
@@ -2635,9 +2635,10 @@ vertical-align: bottom;
 
 
 #navPanel #close{
-    height: 1.3em;
+    height: 1.5em;
     padding-left: 0.4em;
     padding-top: 0.2em;
+    cursor:pointer
 }
 
 #navPanel .button{
@@ -2859,6 +2860,7 @@ tr:hover.clickable {
     width: 100%;
     color: white;
     background: #1E6E87;
+    border-bottom: 2px white
 }
 
 #timeline-header span.title{
@@ -3329,6 +3331,7 @@ tr:hover.clickable {
   padding: 0px 15px !important;
   border: 0;
   height: 100%;
+  overflow: scroll
 }
 
 fieldset {
@@ -3548,7 +3551,7 @@ input#end-date {
 .form-element-title {
   outline: none;
   font: inherit !important;
-  height: 52px;
+  height: 45px;
   text-align: center;
   margin: auto;
   border: 0 solid transparent;

@@ -209,6 +209,9 @@ class type data = object
   method confidentialFormValue  : bool Js.t Js.prop
   method otherCategoryFormValue : Js.js_string Js.t Js.prop
 
+  method openedForm : bool Js.t Js.prop
+  (* Is the form open? *)
+
   method addingNewEvent : bool Js.t Js.prop
   (* Is the form here to add (true) or edit (false) an event *)
 
@@ -386,6 +389,7 @@ let page_vue
     val mutable confidentialFormValue  = Js.bool false
     val mutable otherCategoryFormValue = jss ""
 
+    val mutable openedForm = Js.bool false
     val mutable addingNewEvent = Js.bool false
 
     val mutable currentEvent = jss ""
@@ -471,6 +475,7 @@ let showMenu (self : 'a) : unit =
 
 let showForm title events (self : 'a) (adding : bool) : unit =
   showMenu self;
+  self##.openedForm := Js._true;
   Js_utils.Manip.addClass (Js_utils.find_component "formPanel") "visible";
   self##.addingNewEvent := (Js.bool adding);
   if adding then begin
@@ -502,7 +507,8 @@ let showForm title events (self : 'a) (adding : bool) : unit =
 
 let hideForm self =
   Js_utils.Manip.removeClass (Js_utils.find_component "formPanel") "visible";
-  self##.addingNewEvent := (Js.bool false)
+  self##.addingNewEvent := Js._false;
+  self##.openedForm := Js._false
 
 let updateTimelineTitle (self : 'a) : unit =
   self##.editingTitle := Js._false;
@@ -749,7 +755,11 @@ let display_timeline self title events =
     | Some s ->
       self##.currentEvent := jss s;
       Js_utils.log "Current event is %s" s in
-  Timeline_display.init_slide_from_url ~whenOnSlide title events;
+  Timeline_display.init_slide_from_url
+    ~whenOnSlide
+    ~activate_keypress:(fun () -> not @@ Js.to_bool self##.openedForm)
+    title
+    events;
   center_slide_content ()
 
 let filter self =

@@ -87,7 +87,7 @@ let url_position order (rev_order : string Utils.IntMap.t) =
     Js_utils.log "Path %s has not been found, assuming first slide" path;
     match Utils.IntMap.find_opt 0 rev_order with
     | None -> Js_utils.log "Timeline has no event"; failwith "Timeline has no event"
-    | Some i -> 0, Some i         
+    | Some i -> 0, Some i
   end
   | Some (i, None) -> i, None
   | Some (i, Some e) -> i, Some (e.unique_id)
@@ -105,7 +105,7 @@ let url id = Ui_utils.url ("#" ^ id) []
 let add_handlers_to_markers ~(whenOnSlide:string option -> unit) order rev_order =
   Js_utils.log "Add links to markers";
   let marker_order =
-    let id_to_markerid i = i ^ "-marker" in  
+    let id_to_markerid i = i ^ "-marker" in
     Utils.StringMap.fold
       (fun key bnd acc -> Utils.StringMap.add (id_to_markerid key) (key, bnd) acc)
       order
@@ -171,34 +171,37 @@ let add_handlers_to_markers ~(whenOnSlide:string option -> unit) order rev_order
 
 let add_handlers_to_arrows
     ~(whenOnSlide : string option -> unit)
+    ~(activate_keypress : unit -> bool)
     order
     rev_order =
   Js_utils.log "Adding handlers to arrows";
   let push_next () =
-    let current_pos,_ = url_position order rev_order in
-    match Utils.IntMap.find_opt (current_pos + 1) rev_order with
-    | None ->
-      Js_utils.log "Cannot find event at position %i" (current_pos + 1);
-      whenOnSlide None;
-      Ocp_js.Js._false
-    | Some path ->
-      let url = url path in
-      Ui_utils.replace url;
-      whenOnSlide (Some path);
-      Ocp_js.Js._true
+      Js_utils.log "Push next";
+      let current_pos,_ = url_position order rev_order in
+      match Utils.IntMap.find_opt (current_pos + 1) rev_order with
+      | None ->
+        Js_utils.log "Cannot find event at position %i" (current_pos + 1);
+        whenOnSlide None;
+        Ocp_js.Js._false
+      | Some path ->
+        let url = url path in
+        Ui_utils.replace url;
+        whenOnSlide (Some path);
+        Ocp_js.Js._true
   in
   let push_prev () =
-    let current_pos,_ = url_position order rev_order in
-    match Utils.IntMap.find_opt (current_pos - 1) rev_order with
-    | None ->
-      Js_utils.log "Cannot find event at position %i" (current_pos - 1);
-      whenOnSlide None;
-      Ocp_js.Js._false
-    | Some path ->
-      let url = url path in
-      Ui_utils.replace url;
-      whenOnSlide (Some path);
-      Ocp_js.Js._true
+      Js_utils.log "Push prev";
+      let current_pos,_ = url_position order rev_order in
+      match Utils.IntMap.find_opt (current_pos - 1) rev_order with
+      | None ->
+        Js_utils.log "Cannot find event at position %i" (current_pos - 1);
+        whenOnSlide None;
+        Ocp_js.Js._false
+      | Some path ->
+        let url = url path in
+        Ui_utils.replace url;
+        whenOnSlide (Some path);
+        Ocp_js.Js._true
   in
   let next = slide_changer Next in
   let prev = slide_changer Prev in
@@ -222,17 +225,23 @@ let add_handlers_to_arrows
         document
         Event.keydown
         (handler (fun e ->
-             match e##.keyCode with
-             | 37 -> (* Left *)
-               push_prev ()
-             | 39 -> (* Right *)
-               push_next ()
-             | _ -> Ocp_js.Js._true
-           ) 
+             if activate_keypress () then begin
+               Js_utils.log "Acivate Keypress = true";
+               match e##.keyCode with
+               | 37 -> (* Left *)
+                 push_prev ()
+               | 39 -> (* Right *)
+                 push_next ()
+               | _ -> Ocp_js.Js._true
+             end else begin
+               Js_utils.log "Acivate Keypress = false";
+               Ocp_js.Js._true
+             end
+           )
         )
     )
       Ocp_js.Js._true |> ignore
-  in 
+  in
   Js_utils.log "Handlers added to arrows"
 
 let find_event unique_id events =
@@ -246,7 +255,7 @@ let resize_tl_slide_content () =
     (fun elt -> Js_utils.Manip.SetCss.width elt "100%")
     (Js_utils.Manip.by_class "tl-slide-content")
 
-let init_slide_from_url ~whenOnSlide title events = begin
+let init_slide_from_url ~whenOnSlide ~activate_keypress title events = begin
   let events =
     let e = List.map (fun (i, e) -> i, (Utils.event_to_metaevent e)) events in
     match title with
@@ -274,7 +283,12 @@ let init_slide_from_url ~whenOnSlide title events = begin
   in
   let () = go_to_right_slide       ~whenOnSlide order rev_order in
   let () = add_handlers_to_markers ~whenOnSlide order rev_order in
-  let () = add_handlers_to_arrows  ~whenOnSlide order rev_order in
+  let () =
+    add_handlers_to_arrows
+      ~whenOnSlide
+      ~activate_keypress
+      order
+      rev_order in
   let () = resize_tl_slide_content () in
   Js_utils.log "Timeline initialized";
   ()
