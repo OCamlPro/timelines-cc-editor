@@ -690,12 +690,12 @@ let setTokenAsReadOnly self token =
 let setTokenAsEdition self token =
   Controller.updateTokenFilter ~readonly:false (Js.to_string self##.currentTimeline) (Js.to_string token) (update_filters self)
 
-let editAlias self filter =
+let editAlias self filter = (*
   match Js.Optdef.to_option filter##.editing with
   | None -> (* Entering edition mode *)
     Js_utils.log "New alias treatment: entering edition mode";
     filter##.editing := Js.Optdef.return filter##.pretty
-  | Some _f -> (* Sending new pretty alias *)
+  | Some _f -> (* Sending new pretty alias *) *)
     Js_utils.log "New alias treatment";
     let pretty =
       let p =  Js.to_string filter##.pretty in

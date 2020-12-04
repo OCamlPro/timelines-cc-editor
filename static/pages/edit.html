@@ -164,7 +164,7 @@
 		       </span>
 		       <img
 			 src="/images/edit.svg"
-			 @click="filter.isEditing=true"
+			 @click="filter.isEditing=true; filter.editing=filter.pretty"
 			 v-show="!filter.isEditing"
 			 :title="filterEditAliasHelp"
 			 style="cursor: pointer"
