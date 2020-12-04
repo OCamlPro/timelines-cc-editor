@@ -2898,12 +2898,10 @@ tr:hover.clickable {
 }
 
 .timeline-menu-home-token{
-    margin: 0em .1em !important;
-    padding: 0.4em 16px !important;
-    min-height: 3.5em !important;
-    max-width: 2em !important;
-    min-width: 2em !important;
-    float: left !important;
+    margin: 0em .1em;
+    padding: 0.4em 16px;
+    min-height: 3.5em;
+    float: left;
 }
 
 .timeline-menu-home-token:hover{
