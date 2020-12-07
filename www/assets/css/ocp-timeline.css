@@ -1508,12 +1508,12 @@ html {
 }
 .tl-slide{
     position:absolute;
-    width:100%;
+    width: 100% !important;
     height:100%;
     padding:0;
     margin:0;
     overflow-x:hidden;
-    overflow-y:auto
+    overflow-y:auto;
 }
 .tl-slide .tl-slide-background{
     position:absolute;
@@ -1538,8 +1538,8 @@ html {
     display:table;
     table-layout:fixed;
     height:100%;
-    width:100%;
-    z-index:1
+    width: 100% !important;
+    z-index:1;
 }
 .tl-slide .tl-slide-content-container{
     display:table-cell;
@@ -1557,7 +1557,7 @@ html {
     /* padding-left:100px; */
     /* padding-right:100px; */
     position:relative;
-    max-width:100%;
+    max-width: 80% !important;
     /* user-select:text */
 }
 .tl-slide .tl-slide-content-container .tl-slide-content .tl-media{
@@ -1609,7 +1609,7 @@ html {
 .tl-slide-content {
     padding-left: 10% !important;
     padding-right: 10% !important;
-    width: 80%;
+    width: 80% !important;
 }
 
 .tl-slide-text-only .tl-slide-content-container .tl-slide-content .tl-text{
@@ -1924,7 +1924,7 @@ html {
     display:none
 }
 .tl-storyslider{
-    width:100%;
+    width: 100% !important;
     /* height: 65% !important; */
     overflow:hidden;
     -webkit-user-select:none;
@@ -1958,25 +1958,25 @@ html {
 }
 .tl-storyslider .tl-slider-container-mask{
     text-align: center;
-    width:100%;
+    width: 100% !important;
     height:100%;
     position:relative;
     z-index:5;
-    background-color: #1588ab !important
+    background-color: #1588ab !important;
 }
 .tl-storyslider .tl-slider-container-mask .tl-slider-container{
     position:absolute;
     top:0;
     left:0;
-    width:100%;
+    width: 100% !important;
     height:100%;
     /* text-align:center */
 }
 .tl-storyslider .tl-slider-container-mask .tl-slider-container .tl-slider-item-container{
-    width:100%;
+    width: 100% !important;
     height:100%;
     display:table-cell;
-    vertical-align:middle
+    vertical-align:middle;
 }
 .tl-media{
     width:100%;
@@ -2787,7 +2787,7 @@ tr:hover.clickable {
 #page_content{
     display: block;
     z-index: 0;
-    top: 0px;
+    top: 0px !important;
 }
 
 #page_content-loading{
@@ -3554,15 +3554,17 @@ input#end-date {
   height: 45px;
   text-align: center;
   margin: auto;
+  margin-left: auto;
+  margin-right: auto;
   border: 0 solid transparent;
   font-size: 30px !important;
   font-weight: 700 !important;
   display: block;
   background: none;
   padding: 0px;
-  /* margin: 0px; */
+  margin-top: 0px;
   font-size: 1.8rem;
-  border-bottom: 1px dashed #ffffff60 !important;
+  border-bottom: 0px dashed #ffffff60 !important;
   border-radius: 0px;
   width: 500px;
   color: var(--editable-text-color);

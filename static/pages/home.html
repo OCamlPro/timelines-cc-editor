@@ -58,10 +58,14 @@
          @click="disableCookies()"
          style="cursor: pointer"
          title="This will remove your timelines' url/cookies from your browser's memory: make sure you saved your timelines' permalinks.">
-	    {{disableCookiesButtonText}}
+	    {{disableCookiesButtonText}}<sup>ℹ︎</sup>
 	  </div>
-	  <div class="buttontooltip" v-else @click="enableCookies()">
-	    {{enableCookiesButtonText}}
+	  <div
+    class="buttontooltip"
+    v-else @click="enableCookies()"
+    style="cursor: pointer"
+    title="This will allows the use of cookies to show your timelines' url">
+	    {{enableCookiesButtonText}}<sup>ℹ︎</sup>
 
 	  </div>
       </div>
