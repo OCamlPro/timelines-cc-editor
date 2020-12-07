@@ -73,7 +73,7 @@
         ["ponderation", "Weight" ],
         ["ponderationHelp", "Display level of the event" ],
         ["ponderationFormHelp", "What is the importance level of your event?" ],
-        ["promptAskEmail", "If you wish, we can send to your email address the URL of your timeline. We won't save it, we promise!" ],
+        ["promptAskEmail", "We can send to your email address the URL of your timeline. It won't be saved in our database or used for marketing purpose." ],
 	["readLinkText", "Share this link to show your timeline without giving edition rights"],
 	["removeEvent", "Remove the event"],
         ["removeTimelineText", "Remove the timeline"],

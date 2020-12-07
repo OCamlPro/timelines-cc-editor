@@ -1,7 +1,7 @@
 <!-- Header -->
 <header id="timeline-header">
   <span class="title" v-show="!openedMenu">{{timelineName}}</span>
-  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName">
+  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName" title="Your changes will be saved once you quit the Edition Mode">
   <span style="position: relative; float: right">
     <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
   </span>
@@ -295,13 +295,17 @@
 	  class="form-element-ADD-text -hasvalue"
 	  placeholder=" "
 	  type="date"
+    title="The end date is optionnal."
 	  v-model="endDateFormValue" />
 	<input
 	  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
 	  class="form-element-ADD-text input-weight"
 	  placeholder="Weight"
 	  v-model.number="ponderationFormValue"
-	  type="number" required/><img src="/images/weight.svg" style="height:1.5em">
+    title="Add a weight for this event in order to filter them for a Confidential purpose or to focus on a certain level of information."
+	  type="number" required/>
+    <img src="/images/weight.svg"
+    style="height:1.5em">
 	<label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
 	</label>
 
@@ -338,6 +342,7 @@
 	     <select
 	       id="category-select-form"
 	       class="form-element-ADD-text"
+         title="Select a category for this event to sort them. You can choose to hide some categories in the Filter Menu."
 	       v-model="categoriesFormValue">
 	       <option value="__other__category__">...️</option>
 	       <option v-for="item in categories" :key="item.id" :value="item.catName">
@@ -349,6 +354,7 @@
 	       type="text"
 	       placeholder="Name this new category"
 	       class="form-element-category"
+         title="The new category will be saved when yu save this event."
 	       v-model="otherCategoryFormValue"
 	       v-show="categoriesFormValue=='__other__category__'">
       </div>

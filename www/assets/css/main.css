@@ -1661,6 +1661,7 @@ sup {
     font-size: 0.8em;
     position: relative;
     top: -0.5em;
+    z-index: 100;
 }
 
 blockquote {
