@@ -1356,7 +1356,7 @@ html {
     }
 
 .tl-timegroup.tl-timegroup-alternate{
-    background-color: #116a850f;
+    background-color: #f1f6f8;
 }
 .tl-timegroup.tl-timegroup-hidden{
     display:none
@@ -2931,7 +2931,7 @@ img.tooltipimg {
 }
 
 .timeline-menu-home-token img{
-    width: 2em !important
+    width: 2em !important;
 }
 
 .tooltipcontent svg {
@@ -2960,7 +2960,7 @@ img.tooltipimg {
     font-size: 12px;
     font-weight: 400;
     line-height: normal;
-    margin:  4px;
+    margin: 0px 0px 10px 4px;
 }
 
 .tooltipcontent figure{
@@ -3463,7 +3463,7 @@ fieldset {
 .form-element-category {
   /* padding-left: 5px !important; */
   padding-bottom: 0px !important;
-  /* float: left; */
+  float: left;
   outline: none;
   font: inherit !important;
   border: 0 solid transparent;
@@ -3471,7 +3471,7 @@ fieldset {
   display: block;
   background: none;
   margin: 0px 0px 10px 10px !important;
-  width: 50%;
+  width: 40%;
   /* font-size: 1.8rem; */
   border-bottom: 1px solid #ffffff60;
   line-height: 1.3em !important;
@@ -3498,6 +3498,7 @@ select#category-select-form {
     width: 200px;
     float: left;
     border-bottom: solid 1px #ffffff60;
+    /* margin-left:  30px; */
 }
 
 select#category-select-form:hover {
@@ -3831,7 +3832,7 @@ li.croptoken {
 }
 
 .homecroptoken {
-  width: 185px;
+  width: 90%;
   height: 35px;
   padding: 0 0 0 10px;
   margin: 20px 0 20px 5px !important;
