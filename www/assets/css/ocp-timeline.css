@@ -2956,9 +2956,11 @@ img.tooltipimg {
 
 .tooltipsmall {
     color : #FFF;
-    font-family: raleway;
+    /* font-family: raleway; */
     font-size: 12px;
     font-weight: 400;
+    line-height: normal;
+    margin:  4px;
 }
 
 .tooltipcontent figure{
@@ -2970,7 +2972,7 @@ img.tooltipimg {
 
 .tooltipcontent ul{
     padding: 0px;
-    margin: 0 0 0 10px;
+    margin: 0 0 0 5px;
 }
 
 .timeline-menu-token.fa{
@@ -3737,7 +3739,8 @@ select.form-element-field {
 }
 
 input[type="checkbox"] {
-    margin: 0px;
+    margin: 2px;
+    vertical-align: middle;
 }
 
 input[type="number"]{

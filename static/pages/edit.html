@@ -82,10 +82,9 @@
 	       </div>
 	       <div id="filter-categories-content">
 		 <div>
-		   <div
-       class="tooltiptitle" style="cursor: help"
-       title="Select the categories you want to show here. Categories can be created when you create/edit an event. A category will be deleted when it has no event.">
-         <img src="/images/list.svg" style="height: 1.5em; vertical-align:middle">Categories<sup>ℹ︎</sup>
+		   <div class="tooltiptitle">
+       <img src="/images/list.svg" style="height: 1.5em; vertical-align:middle">Categories
+         <p class="tooltipsmall">Select the categories you want to show</p>
        </div>
 		   <div v-for="category in categories">
 		     <div>
@@ -94,10 +93,10 @@
 		   </div>
 		 </div>
 		 <div>
-       <div class="tooltiptitle" style="cursor: help"
-       title="Show the events according to their weight. It can be for a Confidential purpose or to focus on a certain level of information.">
+       <div class="tooltiptitle">
        <br><img src="/images/weight.svg" style="height: 1.5em; vertical-align:middle">
-         Ponderation<sup>ℹ︎</sup>
+         Ponderation
+         <p class="tooltipsmall">Show the events according to their weight.</p>
        </div>
 		   From <input type="number" v-model="minPonderationFilter">
 		   to <input type="number" v-model="maxPonderationFilter">
@@ -136,9 +135,8 @@
 	     <p class="tooltipname">Option</p>
 	     <div class="tooltipcontent tooltipcontentDOWN"
        style="width:20em">
-       <div class="tooltiptitle" style="cursor: help"
-       title="Share a link to your Timeline with the right to View or Edit. The link will keep the filters as they were when you created it.">
-       <img src="/images/contact.svg" style="height: 1.5em; vertical-align:middle"> Your links<sup>ℹ︎</sup>
+       <div class="tooltiptitle">
+       <img src="/images/contact.svg" style="height: 1.5em; vertical-align:middle"> Your links
        <p class="tooltipsmall">Share a custom link with Edit rights or not. The link will keep the filters as they were when you created it.</p>
        </div>
 	       <ul>
@@ -230,17 +228,15 @@
 </div>
 
 	       <!-- Import/Export -->
-	       <br><div class="tooltiptitle" style="cursor: help"
-         title="You can import & export all your data by using a .csv file. It can be helpful if you want to save, edit or correct them in a sheet.
-         Beware: Import will erase the current data. If you need to merge two sets of data, just merge the two .csv file in your favorite spreadsheet editor.">
-         <img src="/images/createnext.svg" style="height: 1.5em; vertical-align:middle">Your data<sup>ℹ︎</sup>
+	       <br><div class="tooltiptitle">
+         <img src="/images/createnext.svg" style="height: 1.5em; vertical-align:middle">Your data
          <p class="tooltipsmall">Export your data as a .csv file to save it before deleting a Timeline, or to edit it in a sheet before re-importing.</p>
        </div>
 
 	       <div class="buttontooltip" @click='removeTimeline(currentTimeline)'> Delete this Timeline</div>
 	       <div>
 		 <div class="buttontooltip" @click="exportTimeline()" style="width: 47% !important; float: left"> Export csv</div>
-		 <div class="buttontooltip" style="position: relative; width: 47% !important; float: right"> Import csv
+		 <div class="buttontooltip" style="cursor: pointer; position: relative; width: 47% !important; float: right"> Import csv
 		   <input type="file"  id="import-form" @change="importTimeline()">
 		 </div>
 	       </div>
