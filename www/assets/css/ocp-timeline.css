@@ -592,7 +592,8 @@ html {
     bottom: 1px !important;
     left: 0px;
     border-right: solid 1px #e6e6e6;
-    border-top: solid 1px #e6e6e6
+    border-top: solid 1px #e6e6e6;
+    /* height: 100%; */
 }
 @keyframes invertToBlack{
     from{
@@ -1339,7 +1340,7 @@ html {
     -webkit-transition-timing-function:cubic-bezier(.77,0,.175,1);
     -moz-transition-timing-function:cubic-bezier(.77,0,.175,1);
     -o-transition-timing-function:cubic-bezier(.77,0,.175,1);
-    transition-timing-function:cubic-bezier(.77,0,.175,1)
+    transition-timing-function:cubic-bezier(.77,0,.175,1);
 }
 .tl-timegroup .tl-timegroup-message{
     padding-left: 5px;
@@ -1355,7 +1356,7 @@ html {
     }
 
 .tl-timegroup.tl-timegroup-alternate{
-    background-color:#fafafa
+    background-color: #116a850f;
 }
 .tl-timegroup.tl-timegroup-hidden{
     display:none
@@ -2097,7 +2098,7 @@ html {
     max-width:50%;
     min-width:120px;
     padding:0 20px;
-    /*display:table-cell;*/
+    padding-left:  5px !important;
     vertical-align:middle;
     text-align:left;
     text-shadow:none;
@@ -2426,7 +2427,7 @@ html {
     font-size:16px;
     line-height:normal;
     overflow:hidden;
-    position:relative;
+    position: relative;
     -webkit-user-select:none;
     -moz-user-select:none;
     -ms-user-select:none;
@@ -2492,7 +2493,7 @@ h2.tl-headline{
 }
 
 .tl-timegroup {
-    background-color:var(--tl-bg-color)
+    background-color:var(--tl-bg-color);
 }
 
 .tl-timenav {
@@ -2635,10 +2636,10 @@ vertical-align: bottom;
 
 
 #navPanel #close{
-    height: 1.5em;
+    height: 1.3em;
     padding-left: 0.4em;
     padding-top: 0.2em;
-    cursor:pointer
+    cursor:pointer;
 }
 
 #navPanel .button{
@@ -2678,6 +2679,13 @@ vertical-align: bottom;
 .panel-primary .panel-footer {
     background-color: var(--body-bg-color) !important;
 }
+
+footer {
+    height: 0px !important;
+    position: sticky;
+    bottom:  0px;
+}
+
 .panel h4 {
     text-align: center;
     font-weight: bold;
@@ -2829,8 +2837,12 @@ tr:hover.clickable {
 }
 
 .tooltip>.tooltipcontentDOWN {
+   bottom: 0px;
+   }
 
-  bottom: 0px;}
+.tooltipcontentDOWN>img {
+    width: 1em !important;
+    bottom: 0px;}
 
 .tooltip>.tooltipcontentUP {
   top: 0px;}
@@ -2853,14 +2865,16 @@ tr:hover.clickable {
 
 #timeline-header{
     top: 0px !important;
+    z-index: 2;
     margin: 0px;
+    position: sticky;
     right: 20px;
     height: 3em;
     text-align: center;
     width: 100%;
     color: white;
     background: #1E6E87;
-    border-bottom: 2px white
+    border-bottom: 2px white;
 }
 
 #timeline-header span.title{
@@ -2896,7 +2910,13 @@ tr:hover.clickable {
 }
 
 .timeline-menu-token img{
-    width: 2em !important
+    width: 2em;
+}
+
+img.tooltipimg {
+    width: 1.5em !important;
+    margin: 0px;
+    padding: 0px;
 }
 
 .timeline-menu-home-token{
@@ -2933,12 +2953,18 @@ tr:hover.clickable {
     width: 35px !important;
 }
 
-.tooltipname:hover {
-    text-decoration: underline dashed #1e6e87 !important;
+
+.tooltipsmall {
+    color : #FFF;
+    font-family: raleway;
+    font-size: 12px;
+    font-weight: 400;
 }
 
-.tooltipcontent img{
+.tooltipcontent figure{
     width: 1.5em !important;
+    float: left;
+    margin:  0 10px;
 }
 
 
@@ -3553,7 +3579,7 @@ input#end-date {
   font: inherit !important;
   height: 45px;
   text-align: center;
-  margin: auto;
+  text-decoration: underline 1px !important;
   margin-left: auto;
   margin-right: auto;
   border: 0 solid transparent;
@@ -3864,7 +3890,8 @@ li.croptoken {
 }
 
 body {
-    width: 100%;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .clickable {

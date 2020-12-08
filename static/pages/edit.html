@@ -138,19 +138,24 @@
        style="width:20em">
        <div class="tooltiptitle" style="cursor: help"
        title="Share a link to your Timeline with the right to View or Edit. The link will keep the filters as they were when you created it.">
-       <img src="/images/contact.svg" style="height: 1.5em; vertical-align:middle">{{exportButton}}<sup>ℹ︎</sup>
+       <img src="/images/contact.svg" style="height: 1.5em; vertical-align:middle"> Your links<sup>ℹ︎</sup>
+       <p class="tooltipsmall">Share a custom link with Edit rights or not. The link will keep the filters as they were when you created it.</p>
        </div>
 	       <ul>
 		 <li class="croptoken" v-for="filter in filters">
 		   <div>
 
 		     <div>
-		       <span v-show='!filter.isEditing'> {{filter.pretty}} </span>
-		       <input type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
-		       <span v-show='filter.filterId==currentTimeline'> (You) </span>
+		      <span style="width: 55%; cursor: text; overflow: hidden; margin: 0px !important"
+          class="form-element-ADD-text" v-show='!filter.isEditing'
+          @click="filter.isEditing=true; filter.editing=filter.pretty"> {{filter.pretty}} </span>
+
+		      <input style="width: 55%; border-bottom: dashed; margin: 0px !important"
+          type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
+          <!-- <span v-show='filter.filterId==currentTimeline'>(You)</span> -->
 		     </div>
 
-		     <div style='float: left; display: inline-block'>
+		     <div style='float: left; display: inline-block; width: 40%; cursor: default'>
 		       <span class="tooltip" v-show="displayTokenFilter(filter)">
 			 <span class="tooltipcontent">
 			   <ul>
@@ -171,59 +176,65 @@
 			   </ul>
 			 </span>
 		       </span>
-		       <img
-			 src="/images/edit.svg"
-			 @click="filter.isEditing=true; filter.editing=filter.pretty"
-			 v-show="!filter.isEditing"
-			 :title="filterEditAliasHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
+		   <img
 			 src="/images/check.svg"
-			 @click=      "editAlias(filter);filter.isEditing=false"
-			 @keyup.enter="editAlias(filter);filter.isEditing=false"
+			 @click="editAlias(filter)"
+			 @keyup.enter="editAlias(filter)"
 			 v-show="filter.isEditing"
 			 :title="filterEditAliasHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
+			 style="cursor: pointer; width:1.5em !important">
+       <img
+       src="/images/check.svg"
+       v-show="!filter.isEditing"
+       style="cursor: default; opacity:0 !important; width:1.5em !important; margin-right: 5px">
+
+       <img
 			 @click='copyLink(filter.readonly, filter.filterId)'
 			 src="/images/link.svg"
 			 :title="filterCopyLinkHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
+			 style="cursor: pointer; width:1.5em !important; margin-right: 5px">
+
+       <img
+      v-show='filter.filterId == currentTimeline'
+      src="/images/hand-write.svg"
+      :title="filterAdminTokenHelp"
+      style="cursor: default; width:1.5em !important">
+
+      <span v-show='filter.filterId !== currentTimeline'>
+       <img
 			 v-show='filter.readonly'
 			 @click='setTokenAsEdition(filter.filterId);'
-			 src="/images/view.svg"
+			 src="/images/hand-write.svg"
 			 :title="filterReadonlyTokenHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
+			 style="cursor: pointer; width:1.5em !important; opacity:0.3; margin-right: 5px">
+
+		   <img
 			 v-show='!filter.readonly'
 			 @click='setTokenAsReadOnly(filter.filterId);'
 			 src="/images/hand-write.svg"
 			 :title="filterAdminTokenHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
+			 style="cursor: pointer; width:1.5em !important; margin-right: 5px">
+       </span>
+
+       <img
 			 @click='removeToken(filter.filterId)'
 			 src="/images/trash.svg"
 			 :title="filterRemoveTokenHelp"
-			 style="cursor: pointer"
-			 >
-		     </div>
-		   </div>
-		 </li>
-	       </ul>
-	       <div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
-	       </div>
+			 style="cursor: pointer; width:1.5em !important; margin-right: 5px"
+       v-show='filter.filterId !== currentTimeline'>
+     </div>
+   </div>
+ </li>
+</ul>
+<div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
+</div>
 
 	       <!-- Import/Export -->
 	       <br><div class="tooltiptitle" style="cursor: help"
          title="You can import & export all your data by using a .csv file. It can be helpful if you want to save, edit or correct them in a sheet.
          Beware: Import will erase the current data. If you need to merge two sets of data, just merge the two .csv file in your favorite spreadsheet editor.">
-         <img src="/images/createnext.svg" style="height: 1.5em; vertical-align:middle">Manage<sup>ℹ︎</sup>
+         <img src="/images/createnext.svg" style="height: 1.5em; vertical-align:middle">Your data<sup>ℹ︎</sup>
+         <p class="tooltipsmall">Export your data as a .csv file to save it before deleting a Timeline, or to edit it in a sheet before re-importing.</p>
        </div>
 
 	       <div class="buttontooltip" @click='removeTimeline(currentTimeline)'> Delete this Timeline</div>
@@ -364,7 +375,7 @@
 	       <option value="" title="Yo">[No category]</option>
          <option value="__other__category__" title="Select this option to create a new category" style="cursor: cell !important">[New category]</option>
 	     </select>
-       <img src="/images/list.svg" style="height:1em; cursor: help"
+       <img src="/images/list.svg" style="height:1.3em; cursor: help"
        title="Select a category for this event to sort them. You can choose to hide some categories in the Filter Menu.">
 	     <input
 	       type="text"
