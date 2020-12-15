@@ -1558,7 +1558,7 @@ html {
     /* padding-left:100px; */
     /* padding-right:100px; */
     position:relative;
-    max-width: 80% !important;
+    /*max-width: 80% !important;*/
     /* user-select:text */
 }
 .tl-slide .tl-slide-content-container .tl-slide-content .tl-media{
@@ -1610,7 +1610,7 @@ html {
 .tl-slide-content {
     padding-left: 10% !important;
     padding-right: 10% !important;
-    width: 80% !important;
+    /*width: 80% !important;*/
 }
 
 .tl-slide-text-only .tl-slide-content-container .tl-slide-content .tl-text{
