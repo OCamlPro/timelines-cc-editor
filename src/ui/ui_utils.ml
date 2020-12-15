@@ -177,6 +177,9 @@ let slow_hide elt =
 let update_page_title title =
   Ocp_js.Dom_html.document##.title := Js.string (title ^ " - Timelines.cc")
 
+let unURLize str =
+  Str.global_replace (Str.regexp "%20") " " str
+
 (*
 let link ?(args=[]) path =
   match args with
