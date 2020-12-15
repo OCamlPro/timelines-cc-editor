@@ -11866,9 +11866,8 @@ TL.TimeMarker = TL.Class.extend({
 
 	setWidth: function(w) {
 		if (this.data.end_date) {
-			this._el.container.style.width = w + "px";
-
-		        this._el.content_container.style.width = w + "px";
+			this._el.container.style.width = "100%";
+		        this._el.content_container.style.width = "100%";
 			if (w > this.options.marker_width_min) {
 				this._el.content_container.className = "tl-timemarker-content-container tl-timemarker-content-container-long";
 			} else {
@@ -12138,13 +12137,12 @@ TL.TimeEra = TL.Class.extend({
 
 	setWidth: function(w) {
 		if (this.data.end_date) {
-			this._el.container.style.width = w + "px";
+			this._el.container.style.width = "100%";
+		        this._el.content_container.style.width = "100%";
 
 			if (w > this.options.marker_width_min) {
-				this._el.content_container.style.width = w + "px";
 				this._el.content_container.className = "tl-timeera-content-container tl-timeera-content-container-long";
 			} else {
-				this._el.content_container.style.width = this.options.marker_width_min + "px";
 				this._el.content_container.className = "tl-timeera-content-container";
 			}
 		}

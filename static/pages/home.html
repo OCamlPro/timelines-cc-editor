@@ -22,7 +22,7 @@
   <form id="create-form">
     <div class="timeline-menu-home-token tooltip">
       <img src="/images/list.svg">
-      <div class="tooltipcontent" style="width: 15em !important; left: 0px !important; top: 40px !important; margin-top: 10px; bottom: unset !important;">
+      <div class="tooltipcontent" style="width: 13em !important; left: 20px !important; top: 40px !important; margin-top: 10px; bottom: unset !important;">
         <div class="tooltiptitle">Your timelines:</div>
         <ul>
           <li class="homecroptoken" v-for="item in cookieTimelines">
@@ -38,9 +38,9 @@
 	    -->
             <img
             @click='removeTimelineFromCookies(item.id)'
-              src="/images/trash.svg"
-	      style="cursor:pointer"
-	      >
+            src="/images/trash.svg"
+            style="cursor:pointer; width:1.3em !important"
+            >
             </div>
           </li>
         </ul>
@@ -52,11 +52,20 @@
            Import a timeline
          </div></div> -->
 
-         <div class="buttontooltip" v-if="cookiesEnabled" @click="disableCookies()" style="cursor: pointer">
-	    {{disableCookiesButtonText}}
+         <div
+         class="buttontooltip"
+         v-if="cookiesEnabled"
+         @click="disableCookies()"
+         style="cursor: pointer"
+         title="This will remove your timelines' url/cookies from your browser's memory: make sure you saved your timelines' permalinks.">
+	    {{disableCookiesButtonText}}<sup style="cursor: pointer">ℹ︎</sup>
 	  </div>
-	  <div class="buttontooltip" v-else @click="enableCookies()">
-	    {{enableCookiesButtonText}}
+	  <div
+    class="buttontooltip"
+    v-else @click="enableCookies()"
+    style="cursor: pointer"
+    title="This will allows the use of cookies to show your timelines' url">
+	    {{enableCookiesButtonText}}<sup>ℹ︎</sup>
 
 	  </div>
       </div>

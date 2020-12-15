@@ -1,7 +1,7 @@
 <!-- Header -->
 <header id="timeline-header">
   <span class="title" v-show="!openedMenu">{{timelineName}}</span>
-  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName">
+  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName" title="Your changes will be saved once you quit the Edition Mode">
   <span style="position: relative; float: right">
     <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
   </span>
@@ -82,18 +82,22 @@
 	       </div>
 	       <div id="filter-categories-content">
 		 <div>
-		   <div class="tooltiptitle">Categories<sup style="cursor: help"
-							    :title="filterEditAliasHelp">ℹ︎</sup></div>
+		   <div class="tooltiptitle">
+		     <img src="/images/list.svg" style="height: 1.5em; vertical-align:middle">Categories
+		     <p class="tooltipsmall">Select the categories you want to show</p>
+		   </div>
 		   <div v-for="category in categories">
 		     <div>
-		       <input type="checkbox" v-model="category.checked">
-		       {{category.catName}}
+		       <input type="checkbox" v-model="category.checked">{{category.catName}}
 		     </div>
 		   </div>
 		 </div>
 		 <div>
-		   <div class="tooltiptitle"><br>Ponderation<sup style="cursor: help"
-  								 :title="filterEditAliasHelp">ℹ︎</sup></div>
+		   <div class="tooltiptitle">
+		     <br><img src="/images/weight.svg" style="height: 1.5em; vertical-align:middle">
+		     Ponderation
+		     <p class="tooltipsmall">Show the events according to their weight.</p>
+		   </div>
 		   From <input type="number" v-model="minPonderationFilter">
 		   to <input type="number" v-model="maxPonderationFilter">
 		   <br>
@@ -129,19 +133,27 @@
 	   <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
 	     <img src="/images/share.svg">
 	     <p class="tooltipname">Option</p>
-	     <div class="tooltipcontent tooltipcontentDOWN" style="width:20em"><div class="tooltiptitle">{{exportButton}}<sup style="cursor: help"
-															      :title="filterEditAliasHelp">ℹ︎</sup></div>
+	     <div class="tooltipcontent tooltipcontentDOWN"
+		  style="width:20em">
+	       <div class="tooltiptitle">
+		 <img src="/images/contact.svg" style="height: 1.5em; vertical-align:middle"> Your links
+		 <p class="tooltipsmall">Share a custom link with Edit rights or not. The link will keep the filters as they were when you created it.</p>
+	       </div>
 	       <ul>
 		 <li class="croptoken" v-for="filter in filters">
 		   <div>
 
 		     <div>
-		       <span v-show='!filter.isEditing'> {{filter.pretty}} </span>
-		       <input type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
-		       <span v-show='filter.filterId==currentTimeline'> (You) </span>
+		       <span style="width: 55%; cursor: text; overflow: hidden; margin: 0px !important"
+			     class="form-element-ADD-text" v-show='!filter.isEditing'
+			     @click="filter.isEditing=true; filter.editing=filter.pretty"> {{filter.pretty}} </span>
+
+		       <input style="width: 55%; border-bottom: dashed; margin: 0px !important"
+			      type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
+		       <!-- <span v-show='filter.filterId==currentTimeline'>(You)</span> -->
 		     </div>
 
-		     <div style='float: left; display: inline-block'>
+		     <div style='float: left; display: inline-block; width: 40%; cursor: default'>
 		       <span class="tooltip" v-show="displayTokenFilter(filter)">
 			 <span class="tooltipcontent">
 			   <ul>
@@ -163,46 +175,51 @@
 			 </span>
 		       </span>
 		       <img
-			 src="/images/edit.svg"
-			 @click="filter.isEditing=true; filter.editing=filter.pretty"
-			 v-show="!filter.isEditing"
-			 :title="filterEditAliasHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
 			 src="/images/check.svg"
-			 @click=      "editAlias(filter);filter.isEditing=false"
-			 @keyup.enter="editAlias(filter);filter.isEditing=false"
+			 @click="editAlias(filter)"
+			 @keyup.enter="editAlias(filter)"
 			 v-show="filter.isEditing"
 			 :title="filterEditAliasHelp"
-			 style="cursor: pointer"
-			 >
+			 style="cursor: pointer; width:1.5em !important">
+		       <img
+			 src="/images/check.svg"
+			 v-show="!filter.isEditing"
+			 style="cursor: default; opacity:0 !important; width:1.5em !important; margin-right: 5px">
+
 		       <img
 			 @click='copyLink(filter.readonly, filter.filterId)'
 			 src="/images/link.svg"
 			 :title="filterCopyLinkHelp"
-			 style="cursor: pointer"
-			 >
+			 style="cursor: pointer; width:1.5em !important; margin-right: 5px">
+
 		       <img
-			 v-show='filter.readonly'
-			 @click='setTokenAsEdition(filter.filterId);'
-			 src="/images/view.svg"
-			 :title="filterReadonlyTokenHelp"
-			 style="cursor: pointer"
-			 >
-		       <img
-			 v-show='!filter.readonly'
-			 @click='setTokenAsReadOnly(filter.filterId);'
+			 v-show='filter.filterId == currentTimeline'
 			 src="/images/hand-write.svg"
 			 :title="filterAdminTokenHelp"
-			 style="cursor: pointer"
-			 >
+			 style="cursor: default; width:1.5em !important">
+
+		       <span v-show='filter.filterId !== currentTimeline'>
+			 <img
+			   v-show='filter.readonly'
+			   @click='setTokenAsEdition(filter.filterId);'
+			   src="/images/hand-write.svg"
+			   :title="filterReadonlyTokenHelp"
+			   style="cursor: pointer; width:1.5em !important; opacity:0.3; margin-right: 5px">
+
+			 <img
+			   v-show='!filter.readonly'
+			   @click='setTokenAsReadOnly(filter.filterId);'
+			   src="/images/hand-write.svg"
+			   :title="filterAdminTokenHelp"
+			   style="cursor: pointer; width:1.5em !important; margin-right: 5px">
+		       </span>
+
 		       <img
 			 @click='removeToken(filter.filterId)'
 			 src="/images/trash.svg"
 			 :title="filterRemoveTokenHelp"
-			 style="cursor: pointer"
-			 >
+			 style="cursor: pointer; width:1.5em !important; margin-right: 5px"
+			 v-show='filter.filterId !== currentTimeline'>
 		     </div>
 		   </div>
 		 </li>
@@ -211,24 +228,23 @@
 	       </div>
 
 	       <!-- Import/Export -->
-	       <br><div class="tooltiptitle">Manage<sup style="cursor: help"
-							:title="filterEditAliasHelp">ℹ︎</sup></div>
-
+	       <br><div class="tooltiptitle">
+		 <img src="/images/createnext.svg" style="height: 1.5em; vertical-align:middle">Your data
+		 <p class="tooltipsmall">Export your data as a .csv file to save it before deleting a Timeline, or to edit it in a sheet before re-importing.</p>
+	       </div>
 	       <div class="buttontooltip" @click='removeTimeline(currentTimeline)'> Delete this Timeline</div>
 	       <div>
 		 <div class="buttontooltip" @click="exportTimeline()" style="width: 47% !important; float: left"> Export csv</div>
 		 <div class="buttontooltip" style="position: relative; width: 47% !important; float: right"> Import csv
-		   <input type="file"  id="import-form" @change="importTimeline()">
+		   <input
+		     type="file"
+		     id="import-form"
+		     style="cursor:pointer"
+		     @change="importTimeline()"
+		     >
 		 </div>
 	       </div>
-
-
-
-
-
-
 	       <!-- Fin Import/Export -->
-
              </div>
 	   </div>
 	 </div>
@@ -295,13 +311,18 @@
 	  class="form-element-ADD-text -hasvalue"
 	  placeholder=" "
 	  type="date"
+	  title="The end date is optionnal."
 	  v-model="endDateFormValue" />
 	<input
 	  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
 	  class="form-element-ADD-text input-weight"
 	  placeholder="Weight"
 	  v-model.number="ponderationFormValue"
-	  type="number" required/><img src="/images/weight.svg" style="height:1.5em">
+	  title="Add a weight for this event in order to filter them for a Confidential purpose or to focus on a certain level of information."
+	  type="number" required/>
+	<img src="/images/weight.svg"
+	     title="Add a weight for this event in order to filter them for a Confidential purpose or to focus on a certain level of information."
+	     style="height:1.5em; cursor: help">
 	<label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
 	</label>
 
@@ -327,7 +348,8 @@
 	       id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
 	       class="form-element-ADD-text"
 	       :placeholder="textFormHelp"
-	       v-model="textFormValue"></textarea>
+	       v-model="textFormValue"
+               style="width: 98% !important; resize: vertical"></textarea>
 	     <input
 	       id="media"
 	       style="width:100%"
@@ -338,17 +360,21 @@
 	     <select
 	       id="category-select-form"
 	       class="form-element-ADD-text"
-	       v-model="categoriesFormValue">
-	       <option value="__other__category__">...️</option>
-	       <option v-for="item in categories" :key="item.id" :value="item.catName">
-		 {{item.catName}}
-	       </option>
-	       <option value="">No category</option>
+               style="margin-right: 5px !important"
+               title="Select a category for this event to sort them. You can choose to hide some categories in the Filter Menu."
+	       v-model="categoriesFormValue"
+               style="margin-left:1.5em">
+	       <option v-for="item in categories" :key="item.id" :value="item.catName">{{item.catName}}</option>
+	       <option value="" title="Yo">[No category]</option>
+               <option value="__other__category__" title="Select this option to create a new category" style="cursor: cell !important">[New category]</option>
 	     </select>
+	     <img src="/images/list.svg" style="height:1.3em; cursor: help; float: left"
+		  title="Select a category for this event to sort them. You can choose to hide some categories in the Filter Menu.">
 	     <input
 	       type="text"
 	       placeholder="Name this new category"
 	       class="form-element-category"
+               title="The new category will be saved when you save this event."
 	       v-model="otherCategoryFormValue"
 	       v-show="categoriesFormValue=='__other__category__'">
       </div>
