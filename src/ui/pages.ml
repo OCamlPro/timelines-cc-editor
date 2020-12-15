@@ -42,7 +42,6 @@ let timeline_page ~args =
         Request.timeline_data ~args tid (function
         | Ok (Timeline {title; events; edition_rights}) -> begin
           let name = Ui_utils.unURLize name in
-          Js_utils.alert name;
           if edition_rights then begin
             Request.categories tid (fun categories ->
               let on_page =
