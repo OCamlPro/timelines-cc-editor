@@ -2845,7 +2845,7 @@ tr:hover.clickable {
     bottom: 0px;}
 
 .tooltip>.tooltipcontentUP {
-  top: 0px;}
+  bottom: -50px;}
 
 .tooltiptitle {
   font-family: raleway !important;
