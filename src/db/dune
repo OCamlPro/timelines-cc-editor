@@ -11,7 +11,7 @@
 (library
  (name database_version)
  (modules dBVersions)
- (libraries ez-pgocaml config))
+ (libraries ez_pgocaml config))
 
 (library
  (name database_reader_lib)
@@ -19,7 +19,7 @@
  (preprocessor_deps (env_var PGDATABASE))
  (preprocess
   (pps pgocaml_ppx))
- (libraries timeline_data database_interface ez-pgocaml config lwt lwt.unix sha))
+ (libraries timeline_data database_interface ez_pgocaml config lwt lwt.unix sha))
 
 (library
  (name database_writer_lib)
@@ -27,7 +27,7 @@
  (preprocessor_deps (env_var PGDATABASE))
  (preprocess
   (pps pgocaml_ppx))
- (libraries timeline_data database_interface ez-pgocaml config
+ (libraries timeline_data database_interface ez_pgocaml config
    database_reader_lib))
 
 (executable
@@ -41,4 +41,8 @@
  (preprocessor_deps (env_var PGDATABASE))
  (preprocess
  (pps pgocaml_ppx))
- (libraries ocplib-json-typed yojson database_reader_lib database_writer_lib))
+ (libraries
+   ;; ocplib-json-typed
+   json-data-encoding
+   database_reader_lib
+   database_writer_lib))

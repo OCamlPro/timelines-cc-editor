@@ -42,5 +42,5 @@ let start () =
       (String.concat ","
          (List.map (fun (port,_) ->
               string_of_int port) servers));
-    EzAPIServer.server servers
+    EzServer.server servers
   )

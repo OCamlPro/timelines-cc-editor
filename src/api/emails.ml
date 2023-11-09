@@ -1,6 +1,6 @@
 open Sendgrid_encoding
 
-module StringMap = StringCompat.StringMap
+module StringMap = Map.Make(String)
 
 type lang =
   | En
@@ -31,12 +31,12 @@ let mail_from_email_subject_content email subject content = {
 } 
 
 let creation_email
-    ?(lang=En)
+    ~lang
     ~readonly_tid
     ~admin_tid
     ~email
     ~timeline_name
-    : unit Sendgrid_encoding.mail =
+  : unit Sendgrid_encoding.mail =
   let admin_url =
     Format.sprintf "%s/edit?timeline=%s-%s"
       !Config.API.api_host

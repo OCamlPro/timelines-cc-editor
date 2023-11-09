@@ -1,3 +1,5 @@
+module Jslang = Ezjs_lang
+module Xhr = Ezjs_xhr
 open Timeline_data
 
 let default_lang = "en"
@@ -23,7 +25,7 @@ let init draw =
   let download_lang_url lang_file =
     Xhr.get "lang" (Format.sprintf "%s%s:%i/%s" (Ui_utils.get_url_prefix ()) (Ui_utils.get_host ()) (Ui_utils.get_port ()) lang_file)
       (fun res ->
-         Js_utils.log "Lang OK";
+         Ezjs_tyxml.log "Lang OK";
          (try
             let lang, translations =
               EzEncoding.destruct Encoding.translations res
@@ -32,7 +34,7 @@ let init draw =
             let translations =
               List.fold_left (fun translations (id, txt) ->
                 if Utils.StringSet.mem id !set then
-                  Js_utils.log "duplicate id: %S" id;
+                  Ezjs_tyxml.log "duplicate id: %S" id;
                 set := Utils.StringSet.add id !set;
                 (id, txt) :: translations) [] translations
             in
@@ -40,12 +42,12 @@ let init draw =
             set_lang lang;
             draw ()
           with exn ->
-            Js_utils.log
+            Ezjs_tyxml.log
               "Cannot parse lang translations: %s" (Printexc.to_string exn)))
   in
   begin
     match Jslang.get () with
-    | None -> 
+    | None ->
       download_lang_url (Printf.sprintf "lang-%s.json" default_lang)
     | Some lang ->
       download_lang_url (Printf.sprintf "lang-%s.json" lang)

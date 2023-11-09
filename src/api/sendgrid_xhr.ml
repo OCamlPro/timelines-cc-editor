@@ -48,12 +48,12 @@ let send_template ~api_key ~dst ~from template_id data =
   send_base ~api_key mail
 
 let add_contacts ~api_key contacts =
-  post_base ~meth:Resto1.PUT ~api_key add_contacts_enc (None, contacts) "/marketing/contacts"
+  post_base ~meth:`PUT ~api_key add_contacts_enc (None, contacts) "/marketing/contacts"
 
 let delete_contacts ~api_key ?(all=false) ids =
   let query =
     if all then "/marketing/contacts?delete_all_contacts=true"
     else "/marketing/contacts?ids=" ^ String.concat "," ids in
-  EzCohttp_lwt.get ~meth:Resto1.DELETE
+  EzCohttp_lwt.get ~meth:`DELETE
       ~headers:["Authorization", "Bearer " ^ api_key]
       (EzAPI.TYPES.URL (sendgrid_url ^ query))

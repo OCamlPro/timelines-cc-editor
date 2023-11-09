@@ -1,20 +1,34 @@
 (library
- (name data_encoding)
- (modules data_encoding)
- (libraries ocplib-json-typed yojson timeline_data))
-
-(library
- (name xhr_lwt)
- (modules xhr_lwt)
- (libraries ocplib-json-typed js_of_ocaml-lwt yojson))
-
-(library
  (name timeline_data)
  (modules data_types utils csv_utils)
  (libraries calendar csv))
 
 (library
+ (name data_encoding)
+ (modules data_encoding)
+ (libraries
+   ;;ocplib-json-typed
+   json-data-encoding
+   ;;yojson
+   timeline_data))
+
+(library
+ (name xhr_lwt)
+ (modules xhr_lwt)
+ (libraries
+   ;;ocplib-json-typed
+   json-data-encoding
+   ezjsonm
+   js_of_ocaml-lwt
+   ;;yojson
+  ))
+
+(library
  (name config)
  (modules config)
- (libraries ocplib-json-typed ezjsonm)
+ (libraries
+   ;;ocplib-json-typed
+   ezjsonm
+   json-data-encoding
+  )
 )

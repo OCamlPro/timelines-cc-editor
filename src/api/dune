@@ -6,19 +6,55 @@
 (library
  (name api_data)
  (modules apiData)
- (libraries timeline_data data_encoding dbData ez-api.common config))
+ (libraries
+   ;;timeline_data
+   ;;ocplib-json-typed
+   ;;json-data-encoding
+   data_encoding
+   dbData
+   ;;ez_api.encoding
+   ;;config
+   ))
 
 (library
  (name email)
  (modules sendgrid_encoding sendgrid_xhr emails)
- (libraries timeline_data data_encoding ez-api.common ez-api.cohttp-lwt config))
+ (libraries
+   ;;json-data-encoding
+   ;;ocplib-json-typed
+   timeline_data
+   data_encoding
+   ;;ez_api.encoding
+   ez_api.cohttp_lwt
+   config
+   ))
 
 (library
  (name api_services)
  (modules apiServices)
- (libraries ez-api.common timeline_data api_data config))
+ (libraries
+   ;;json-data-encoding
+   ;;ocplib-json-typed
+   ez_api
+   ez_api.encoding
+   timeline_data
+   api_data
+   config
+
+))
 
 (library
  (name api_lib)
  (modules apiHandlers apiServer)
- (libraries config email ez-api.server api_data database_reader_lib database_writer_lib timeline_data data_encoding api_services))
+ (libraries
+   config
+   email
+   ez_api.server
+   ez_api.server_utils
+   api_data
+   database_reader_lib
+   database_writer_lib
+   timeline_data
+   data_encoding
+   api_services
+))

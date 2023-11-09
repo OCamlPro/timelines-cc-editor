@@ -34,7 +34,7 @@ module API = struct
     | exn ->
       Printf.eprintf "Fatal error while reading %S:\n  %s\n%!"
         file (Printexc.to_string exn);
-      exit 2 
+      exit 2
 end
 
 module Sendgrid = struct
@@ -42,13 +42,13 @@ module Sendgrid = struct
   let from : string ref = ref ""
 
   let from_alias : string option ref = ref None
-  
+
   let encoding =
     obj3
       (req "key" string)
       (req "from" string)
-      (opt "from_alias" string)  
-  
+      (opt "from_alias" string)
+
   let init file =
     try
       Format.printf "Reading sendgrid config file %s@." file;

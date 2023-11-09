@@ -1,11 +1,10 @@
-open EzAPI.TYPES
 open Api_data.ApiData
 open Database_reader_lib
 open Database_writer_lib
 open Timeline_data
 open Data_types
 
-module StringMap = StringCompat.StringMap
+module StringMap = Map.Make(String)
 
 module Reader = Reader.Reader_generic (Database_interface.Monad_lwt)
 
@@ -20,7 +19,7 @@ let ok e = EzAPIServerUtils.return (Ok e)
 
 let is_auth req cont =
   let email =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params in
   let salted_pwd =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_data" req.req_params in
   match email, salted_pwd with
@@ -30,7 +29,7 @@ let is_auth req cont =
 
 let has_admin_rights (req, tid) cont =
   match 
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params
   with
   | None -> cont false
   | Some e -> Reader.has_admin_rights e tid >>= cont
@@ -72,7 +71,7 @@ let add_event (req, timeline_id) _ event =
   )
 
 let update_event req _ ((id : int), (old_event : title), (event : title), (timeline_id : string)) :
-  (date option update_meta_event_res, sub_event_type) result EzAPIServerUtils.answer Lwt.t =
+  (date option update_meta_event_res, sub_event_type) result EzAPIServerUtils.Answer.t Lwt.t =
   Lwt_io.printl "CALL update_event" >>= (fun () ->
     Reader.timeline_of_event id >>= (function
     | None -> not_found "[update_event] Event associated to no timeline"
@@ -128,7 +127,7 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
 let timeline_data (req, tid) _ () =
   Lwt_io.printl "CALL timeline_data" >>= (fun () ->
   let start_date =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.EzAPI.Req.req_params in
   let end_date =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
   let groups = StringMap.find_opt "group" req.req_params in
@@ -194,7 +193,7 @@ let timeline_data (req, tid) _ () =
 
 let remove_event (req, timeline_id) _ () =
   Lwt_io.printl "CALL remove_event" >>= (fun () ->
-      match StringMap.find_opt "event_id" req.req_params with
+      match StringMap.find_opt "event_id" req.EzAPI.Req.req_params with
       | None | Some [] -> not_found "Event id"
       | Some (id :: _) ->
         try
@@ -255,7 +254,7 @@ let export_database (_req, timeline_id) _ () =
     )
 
 let create_timeline_lwt req auth title name public =
-  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
+  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params with
   | None ->
     Writer.create_public_timeline title name
   | Some email ->
@@ -264,13 +263,13 @@ let create_timeline_lwt req auth title name public =
     else
       Writer.create_public_timeline title name
 
-let send_link ?lang ~readonly_tid ~email ~timeline_name ~admin_tid =
+let send_link ~lang ~readonly_tid ~email ~timeline_name ~admin_tid =
   let lang =
     match lang with
-    | Some "en" -> Some Emails.En
-    | Some "fr" -> Some Emails.Fr
-    | _ -> None in
-  let mail = Emails.creation_email ?lang ~readonly_tid ~email ~timeline_name ~admin_tid in
+    | Some "en" -> Emails.En
+    | Some "fr" -> Emails.Fr
+    | _ -> Emails.En in
+  let mail = Emails.creation_email ~lang ~readonly_tid ~email ~timeline_name ~admin_tid in
   Email.Sendgrid_xhr.send_base
     ~api_key:(!Config.Sendgrid.key)
     mail
@@ -282,14 +281,14 @@ let create_timeline (req, name) _ (title, public) =
     match create_timeline_lwt req auth title name' public with
       | Error _ as e -> EzAPIServerUtils.return e
       | (Ok (admin_tid, readonly_tid)) as ok ->
-        match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "email" req.req_params with
+        match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "email" req.EzAPI.Req.req_params with
         | None -> 
           Lwt_io.printl "No email provided, returning" >>= fun () ->
           EzAPIServerUtils.return ok
         | Some email ->
           Lwt_io.printl ("Sending to " ^ email) >>= fun () ->
-          let lang = Utils.fopt Utils.hd_opt @@ StringMap.find_opt "lang" req.req_params in
-          send_link ?lang ~readonly_tid ~email ~timeline_name:name ~admin_tid >>=
+          let lang = Utils.fopt Utils.hd_opt @@ StringMap.find_opt "lang" req.EzAPI.Req.req_params in
+          send_link ~lang ~readonly_tid ~email ~timeline_name:name ~admin_tid >>=
           function
           | Error (id, msg) ->
             Lwt_io.printl (Format.asprintf "Error %i: %a" id Utils.pp_str_opt msg) >>= 
@@ -320,7 +319,7 @@ let import_timeline (req, name) _ (title, events, public) =
       with
       | Stop s ->
         Lwt.return @@ Error s
-    in add_events >>= EzAPIServerUtils.return) 
+    in add_events >>= EzAPIServerUtils.return)
 
 let user_timelines req _ () =
   Lwt_io.printl "CALL user_timelines" >>= fun () ->
@@ -350,7 +349,7 @@ let timeline_users (req,tid) _ () =
 let remove_user req _ () =
   Lwt_io.printl "CALL remove_user" >>= fun () ->
   if_ ~error:unauthorized is_auth req (fun () ->
-    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
+    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params with
     | None ->
       unknown_error "[user_timelines] Error: email should be in params"
     | Some email -> EzAPIServerUtils.return @@ Writer.remove_user email
@@ -398,7 +397,7 @@ let view (req, tid) _ () =
 
 let decode_token_params req =
   let after =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.EzAPI.Req.req_params in
   let before =
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
   let groups = StringMap.find_opt "group" req.req_params in
@@ -446,7 +445,7 @@ let create_token (req, tid) _ () =
 
 let update_token_pretty (req, token) _ tid =
   let pretty =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.req_params in
+    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.EzAPI.Req.req_params in
   EzAPIServerUtils.return @@ Writer.update_token_pretty ~pretty ~token tid
 
 let update_token_readonly (req, token) _ tid =
@@ -489,7 +488,7 @@ let has_admin_rights (req, tid) _ () =
   has_admin_rights (req, tid) ok
 
 let update_timeline_name req _ tid =
-  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.req_params with
+  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.EzAPI.Req.req_params with
   | None -> EzAPIServerUtils.return (Error "No name given")
   | Some new_name ->
     EzAPIServerUtils.return @@ Writer.update_timeline_name new_name tid

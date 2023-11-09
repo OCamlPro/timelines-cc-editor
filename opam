@@ -37,7 +37,9 @@ depends: [
   "lwt_log"
   "extunix"
   "menhir"
+  "ez_pgocaml"
   "ezjsonm"
+  "ezjs_timeline"
   "num"
   "omd"
   "ocplib-json-typed"
@@ -69,10 +71,14 @@ depends: [
   "extunix"
   "csv"
   "tls"
+  "vue-jsoo"
 ]
 pin-depends: [
-  [ "pgocaml.4.2.1" "git+https://github.com/ocpmax/pgocaml.git" ]
-  [ "pgocaml_ppx.4.2.1" "git+https://github.com/ocpmax/pgocaml.git" ]
+  [ "ez_pgocaml.1.0" "git+https://github.com/OCamlPro/ez_pgocaml.git" ]
+  [ "ez_api.1.0" "https://github.com/Stevendeo/ez-api.git#get-service-path" ]
+  [ "ezjs_utils.1.0" "git+https://github.com/Stevendeo/ezjs/ezjs.git#input-encoding" ]
+  [ "ezjs_timeline.1.0" "git+https://github.com/Stevendeo/ezjs_timeline/ezjs_timeline.git#dep" ]
+ # [ "pgocaml_ppx.4.2.1" "git+https://github.com/ocpmax/pgocaml.git" ]
 ]
 build: [
   [ make "submodules" "all" ]

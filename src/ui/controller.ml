@@ -147,7 +147,7 @@ let update_event
     ~old_event ~new_event
     ~timeline_id (function
     | Success ->
-      Js_utils.reload (); Lwt.return (Ok ())
+      Ezjs_tyxml.reload (); Lwt.return (Ok ())
     | Modified _t ->
       Alert_vue.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
     )
@@ -157,7 +157,7 @@ let removeEvent ~id ~timeline_id =
   Alert_vue.confirm (Lang.t_ Text.s_confirm_remove_event) >>= (fun confirm ->
   if confirm then
     Request.remove_event ~error ~id:(string_of_int id) ~timeline_id
-      (fun () -> Js_utils.reload (); return (Ok ()))
+      (fun () -> Ezjs_tyxml.reload (); return (Ok ()))
   else return (Ok ()))
 
 let export_timeline ?(name="timeline") title events =
@@ -173,11 +173,11 @@ let export_timeline ?(name="timeline") title events =
 
 let import_timeline tid is_public elt =
   let open Lwt in
-  Js_utils.log "Importing timeline";
+  Ezjs_tyxml.log "Importing timeline";
   Alert_vue.confirm "You are about to replace your timeline by the current one. Are you sure?" >>=
   (fun confirm ->
     if confirm then Lwt.return @@
-      Js_utils.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
+      Ezjs_tyxml.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
         (fun file_content ->
            let title, events = Csv_utils.from_string file_content in
            let title =
@@ -190,7 +190,7 @@ let import_timeline tid is_public elt =
                ~args:[]
                tid title
                events is_public
-               (fun () -> Alert_vue.alert "Success!"; Js_utils.reload (); finish (Ok ())) in ()
+               (fun () -> Alert_vue.alert "Success!"; Ezjs_tyxml.reload (); finish (Ok ())) in ()
       )
     else Lwt.return false)
 
