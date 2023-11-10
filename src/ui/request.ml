@@ -6,7 +6,17 @@ module J = Json_schema
 
 module ApiServices = Api_services.ApiServices
 
-let get_service_path s = EzAPI.(Path.to_string (s.Service.path))
+let get_service_path args s =
+  let wrap s =
+    match List.assoc_opt s args with
+    | None ->
+      Format.ksprintf invalid_arg "Request.get_service_path (%s)" s
+    | Some arg -> arg
+  in
+  EzAPI.(
+    Path.to_string
+      ~wrap
+      (s.Service.path))
 
 let api () =
   let h = {
@@ -91,7 +101,7 @@ let get
     ?(args = [])
     ~error
     (apifun : _ EzAPI.Service.t)
-    (_apiargs : string list)
+    (apiargs : (string * string) list )
     (cont : 'output -> 'a)  =
   let url = api () in (*
   let url = (* Only for standalone !! *)
@@ -99,7 +109,7 @@ let get
     | Http u -> Http {u with hu_path_string = ""}
     | Https u -> Https {u with hu_path_string = ""}
     | File f -> File {f with fu_path_string = ""} in *)
-  let api_fun_name = get_service_path apifun in
+  let api_fun_name = get_service_path apiargs apifun in
   let () =
     Ezjs_tyxml.log "GET %s from %s with args [%a]"
       api_fun_name
@@ -127,8 +137,12 @@ let get
   )
 
 (* TODO: apiargs unused? Spurious!*)
-let post ~args ~error (apifun : _ EzAPI.Service.t) _apiargs input cont =
-  let api_fun_name = EzAPI.(Path.to_string (apifun.Service.path)) in
+let post
+    ~args
+    ~error
+    (apifun : _ EzAPI.Service.t)
+    apiargs input cont =
+  let api_fun_name = get_service_path apiargs apifun in
   let () = Ezjs_tyxml.log "POST %s" api_fun_name in
   let url = api () in
   let () =
@@ -165,41 +179,23 @@ let args_from_session args =
   | Some (email, auth_data) ->
     ("auth_email", email) :: ("auth_data", auth_data) :: args
 
+let arg_tid id = "timeline-id", id
+
 let timeline_data ~args timeline cont  =
   let args = args_from_session args in
   get
     ~error:(fun _ -> cont (Error "[timeline_data] Error while reaching the API"))
     ~args
-    ApiServices.timeline_data.EzAPI.s [timeline]
+    ApiServices.timeline_data.EzAPI.s [arg_tid timeline]
     (fun res -> cont (Ok res))
-
-(*
-let event ~args (id : int) cont =
-  let args = args_from_session args in
-  get
-    ~args
-    ApiServices.event [string_of_int id]
-    cont
-
-let events ~args (tid : string) cont =
-  let args = args_from_session args in
-  get
-    ~args
-    ApiServices.events [tid]
-    cont
-
-let title ~args tid cont =
-  get
-    ~args
-    ApiServices.title [tid]
-    cont *)
 
 let add_event ~error (tid : string) (event : Data_types.event) cont =
   let args = args_from_session [] in
   post
     ~args
     ~error
-    ApiServices.add_event.EzAPI.s [tid]
+    ApiServices.add_event.EzAPI.s
+    [arg_tid tid]
     event
     cont
 
@@ -208,7 +204,8 @@ let update_event ~error ~id ~old_event ~new_event ~timeline_id cont =
   post
     ~args
     ~error
-    ApiServices.update_event.EzAPI.s []
+    ApiServices.update_event.EzAPI.s
+    []
     (id, old_event, new_event, timeline_id)
     cont
 
@@ -217,14 +214,16 @@ let remove_event ~error ~id ~timeline_id cont =
   get
     ~error
     ~args
-    ApiServices.remove_event.EzAPI.s [timeline_id]
+    ApiServices.remove_event.EzAPI.s
+    [arg_tid timeline_id]
     cont
 
 let remove_timeline ~id cont =
   post
     ~error:(fun e -> return (Error e))
     ~args:(args_from_session [])
-    ApiServices.remove_timeline.EzAPI.s [id]
+    ApiServices.remove_timeline.EzAPI.s
+    [arg_tid id]
     cont
 
 let register_user email password cont =
@@ -233,7 +232,8 @@ let register_user email password cont =
   Ezjs_tyxml.log "Hash: %s@." hash;
   post
     ~args:[]
-    ApiServices.register_user.EzAPI.s []
+    ApiServices.register_user.EzAPI.s
+    []
     (email, hash)
     cont
 
@@ -242,21 +242,24 @@ let login email password cont =
   Ezjs_tyxml.log "Hash: %s@." hash;
   post
     ~args:[]
-    ApiServices.login.EzAPI.s []
+    ApiServices.login.EzAPI.s
+    []
     (email, hash)
     cont
 
 let is_auth cont =
   post
     ~args:(args_from_session [])
-    ApiServices.is_auth.EzAPI.s []
+    ApiServices.is_auth.EzAPI.s
+    []
     ()
     cont
 
 let has_admin_rights timeline cont =
   post
     ~args:(args_from_session [])
-    ApiServices.has_admin_rights.EzAPI.s [timeline]
+    ApiServices.has_admin_rights.EzAPI.s
+    [arg_tid timeline]
     ()
     cont
 
@@ -264,7 +267,8 @@ let categories timeline cont =
   post
     ~error:(fun _e -> return (Error "Failed to get categories"))
     ~args:(args_from_session [])
-    ApiServices.categories.EzAPI.s [timeline]
+    ApiServices.categories.EzAPI.s
+    [arg_tid timeline]
     ()
     cont
 
@@ -275,7 +279,8 @@ let logout ~error cont =
     post
       ~error
       ~args:[]
-      ApiServices.logout.EzAPI.s []
+      ApiServices.logout.EzAPI.s
+      []
       (email, auth_data)
       cont
 
@@ -289,21 +294,24 @@ let create_timeline ?email timeline_id title is_public cont =
       | Some l -> ["email", email; "lang", l] in
   post
     ~args:(args_from_session args)
-    ApiServices.create_timeline.EzAPI.s [timeline_id]
+    ApiServices.create_timeline.EzAPI.s
+    [arg_tid timeline_id]
     (title, is_public)
     cont
 
 let user_timelines cont =
   post
     ~args:(args_from_session [])
-    ApiServices.user_timelines.EzAPI.s []
+    ApiServices.user_timelines.EzAPI.s
+    []
     ()
     cont
 
 let allow_user user timeline cont =
   post
     ~args:(args_from_session [])
-    ApiServices.allow_user.EzAPI.s []
+    ApiServices.allow_user.EzAPI.s
+    []
     (user, timeline)
     cont
 
@@ -317,7 +325,8 @@ let timeline_users timeline cont =
 let remove_user cont =
   post
     ~args:(args_from_session [])
-    ApiServices.remove_user.EzAPI.s []
+    ApiServices.remove_user.EzAPI.s
+    []
     ()
     cont
 
@@ -325,7 +334,8 @@ let remove_timeline timeline cont =
   post
     ~error:(fun e -> return (Error e))
     ~args:(args_from_session [])
-    ApiServices.remove_timeline.EzAPI.s [timeline]
+    ApiServices.remove_timeline.EzAPI.s
+    [arg_tid timeline]
     ()
     cont
 
@@ -333,7 +343,8 @@ let update_token_readonly ~error readonly timeline token cont =
   post
     ~error
     ~args:(args_from_session ["readonly", string_of_bool readonly])
-    ApiServices.update_token_readonly.EzAPI.s [token]
+    ApiServices.update_token_readonly.EzAPI.s
+    [arg_tid token]
     timeline
     cont
 
@@ -346,7 +357,8 @@ let update_token_pretty ~error pretty timeline token cont =
   post
     ~error
     ~args
-    ApiServices.update_token_pretty.EzAPI.s [token]
+    ApiServices.update_token_pretty.EzAPI.s
+    [arg_tid token]
     timeline
     cont
 
@@ -354,7 +366,8 @@ let remove_token ~error timeline token cont =
   post
     ~error
     ~args:(args_from_session [])
-    ApiServices.remove_token.EzAPI.s [token]
+    ApiServices.remove_token.EzAPI.s
+    [arg_tid token]
     timeline
     cont
 
@@ -362,7 +375,8 @@ let create_token ~error args timeline cont =
   post
     ~error
     ~args:(args_from_session args)
-    ApiServices.create_token.EzAPI.s [timeline]
+    ApiServices.create_token.EzAPI.s
+    [arg_tid timeline]
     ()
     cont
 
@@ -370,7 +384,7 @@ let get_tokens timeline cont =
   post
     ~error:(fun _ -> cont [])
     ~args:[]
-    ApiServices.get_tokens.EzAPI.s [timeline]
+    ApiServices.get_tokens.EzAPI.s [arg_tid timeline]
     ()
     cont
 
@@ -382,7 +396,7 @@ let import_timeline
   post
     ~error
     ~args
-    ApiServices.import_timeline.EzAPI.s [timeline]
+    ApiServices.import_timeline.EzAPI.s [arg_tid timeline]
     (title, events, is_public)
     cont
 
@@ -390,7 +404,7 @@ let timeline_name (tid : string) cont =
   get
     ~error:(fun _ -> cont "Timeline")
     ~args:[]
-    ApiServices.timeline_name.EzAPI.s [tid]
+    ApiServices.timeline_name.EzAPI.s [arg_tid tid]
     cont
 
 let update_timeline_name (new_name : string) (tid : string) cont =

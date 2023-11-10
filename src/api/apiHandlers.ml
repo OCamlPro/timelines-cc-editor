@@ -46,22 +46,6 @@ let edition_rights (_req, tid) cont =
 
 let if_ ~error has args cont =
   has args (fun right -> if right then cont () else error ())
-(*
-let event (req, id) _ () =
-  Lwt_io.printl "CALL event" >>= (fun () ->
-    Reader.timeline_of_event id >>= (function
-    | Some tid ->
-      edition_rights (req, tid) (fun has_rights ->
-        if has_rights then
-          Reader.event id >>= function
-          | Some e -> ok e
-          | None -> not_found "[event] Event not found"
-        else 
-          unauthorized ()
-        )
-    | None -> not_found "[event] Timeline not found"
-        )
-    ) *)
 
 let add_event (req, timeline_id) _ event =
   Lwt_io.printl "CALL add_event" >>= (fun () ->

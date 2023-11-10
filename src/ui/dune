@@ -7,7 +7,6 @@
    js_of_ocaml-tyxml
    json-data-encoding
    ezjsonm
-   ;; ocplib-json-typed
    xhr_lwt
    data_encoding
    api_data
@@ -16,6 +15,7 @@
    ezjs_utils.loc
    ezjs_utils.lang
    config
+   ez_api.js
    api_services))
 
 (executable

@@ -7,24 +7,16 @@
  (name api_data)
  (modules apiData)
  (libraries
-   ;;timeline_data
-   ;;ocplib-json-typed
-   ;;json-data-encoding
    data_encoding
    dbData
-   ;;ez_api.encoding
-   ;;config
    ))
 
 (library
  (name email)
  (modules sendgrid_encoding sendgrid_xhr emails)
  (libraries
-   ;;json-data-encoding
-   ;;ocplib-json-typed
    timeline_data
    data_encoding
-   ;;ez_api.encoding
    ez_api.cohttp_lwt
    config
    ))
@@ -33,8 +25,6 @@
  (name api_services)
  (modules apiServices)
  (libraries
-   ;;json-data-encoding
-   ;;ocplib-json-typed
    ez_api
    ez_api.encoding
    timeline_data
