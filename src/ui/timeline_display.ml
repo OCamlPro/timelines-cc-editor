@@ -10,19 +10,6 @@ module Js = Js_of_ocaml.Js
 module Timeline = Ezjs_timeline.Timeline
 
 type slide_change = Next | Prev
-(*
-(* 1. EZ-Timeline to Js-Timeline types *)
-
-module T = Timeline
-
-let date d = 
-  let year = CalendarLib.Date.year d in
-  let month = CalendarLib.Date.(int_of_month @@ month d) in
-  let day = CalendarLib.Date.day_of_month d in
-  T.make_date ~day ~month year
-
-let media u = 
-  T.make_media u.url *)
 
 let slide_changer slide_change =
   let slide_div =

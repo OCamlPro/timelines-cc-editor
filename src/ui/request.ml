@@ -28,35 +28,29 @@ let encoding_of_service_io
     Ezjs_tyxml.log "ERROR: raw encoding not supported";
     assert false
 
-(* let api () =
- *   let h = {
- *     hu_host = !Config.API.api_host;
- *     hu_port = begin
- *       match !Config.API.api_root with
- *       | None -> !Config.API.api_port
- *       | Some _ -> 443
- *     end;
- *     hu_path = [];
- *     hu_path_string = "";
- *     hu_arguments = [];
- *     hu_fragment = "" } in
- *   Https h  *) 
 let api () =
   let h = {
-    hu_host = "localhost";
-    hu_port = 13579;
+    hu_host = !Config.API.api_host;
+    hu_port = begin
+      match !Config.API.api_root with
+      | None -> !Config.API.api_port
+      | Some _ -> 443
+    end;
     hu_path = [];
     hu_path_string = "";
     hu_arguments = [];
     hu_fragment = "" } in
-  Http h
-(*
-  match Js_of_ocaml.Url.Current.get () with
-  | Some u -> u
-  | None ->
-    match Js_of_ocaml.Url.url_of_string "http://localhost:8080" with
-    | Some u -> u
-    | None -> assert false *)
+  Https h
+
+(* let api () =
+ *   let h = {
+ *     hu_host = "localhost";
+ *     hu_port = 13579;
+ *     hu_path = [];
+ *     hu_path_string = "";
+ *     hu_arguments = [];
+ *     hu_fragment = "" } in
+ *   Http h *)
 
 let output_encodings_from_apifun apifun =
   let api_error_encodings = EzAPI.Service.errors apifun in
