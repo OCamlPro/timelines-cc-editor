@@ -48,7 +48,7 @@ let timeline_page ~args =
                 | None, [] -> Timeline_vue.No_timeline {name; id=tid}
                 | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
               let categories =
-                let in_args = Args.get_categories args in            
+                let in_args = Args.get_categories args in
                 List.fold_left
                   (fun acc s -> (s, List.mem s in_args) :: acc)
                   []
@@ -65,9 +65,9 @@ let timeline_page ~args =
             Ezjs_tyxml.alert "This timeline seems to have been deleted.";
             Timeline_cookies.remove_timeline tid;
             Ui_utils.goto_page "/";
-            finish ()        
+            finish ()
           end
-        | Error s -> 
+        | Error s ->
           Ezjs_tyxml.alert (Format.sprintf "ERROR: API Server seems to be down: %s" s);
           Ui_utils.goto_page "/";
           finish ()
@@ -92,14 +92,14 @@ let view_page ~args =
         let () =
           if edition_rights && want_to_edit () then
             Ui_utils.goto_page (Format.sprintf "/edit?timeline=%s-%s" name tid')
-          else 
+          else
             View_vue.init (Some tid) name title events in
         finish ()
-      | Ok NoTimeline -> 
+      | Ok NoTimeline ->
         Ezjs_tyxml.alert "This timeline seems to have been deleted.";
         Timeline_cookies.remove_timeline tid';
         Ui_utils.goto_page "/";
-        finish ()        
+        finish ()
     )
 
 let () =

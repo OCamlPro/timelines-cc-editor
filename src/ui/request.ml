@@ -18,19 +18,29 @@ let get_service_path args s =
       ~wrap
       (s.Service.path))
 
-let api () =
-  let h = {
-    hu_host = !Config.API.api_host;
-    hu_port = begin
-      match !Config.API.api_root with
-      | None -> !Config.API.api_port
-      | Some _ -> 443
-    end;
-    hu_path = [];
-    hu_path_string = "";
-    hu_arguments = [];
-    hu_fragment = "" } in
-  Https h  (*
+let encoding_of_service_io
+    (type t)
+    (io : t EzAPI.Service.IO.io) : t Json_encoding.encoding =
+  match io with
+  | Empty -> Json_encoding.unit
+  | Json j -> j
+  | Raw _ ->
+    Ezjs_tyxml.log "ERROR: raw encoding not supported";
+    assert false
+
+(* let api () =
+ *   let h = {
+ *     hu_host = !Config.API.api_host;
+ *     hu_port = begin
+ *       match !Config.API.api_root with
+ *       | None -> !Config.API.api_port
+ *       | Some _ -> 443
+ *     end;
+ *     hu_path = [];
+ *     hu_path_string = "";
+ *     hu_arguments = [];
+ *     hu_fragment = "" } in
+ *   Https h  *) 
 let api () =
   let h = {
     hu_host = "localhost";
@@ -39,7 +49,7 @@ let api () =
     hu_path_string = "";
     hu_arguments = [];
     hu_fragment = "" } in
-  Http h *)
+  Http h
 (*
   match Js_of_ocaml.Url.Current.get () with
   | Some u -> u
@@ -50,11 +60,7 @@ let api () =
 
 let output_encodings_from_apifun apifun =
   let api_error_encodings = EzAPI.Service.errors apifun in
-  let output_encoding =
-    match EzAPI.Service.output apifun with
-    | EzAPI.Service.IO.Json j -> j
-    | _ -> assert false
-  in
+  let output_encoding = encoding_of_service_io @@ EzAPI.Service.output apifun in
   let output_encodings =
     match api_error_encodings with
     | [] -> [
@@ -136,26 +142,38 @@ let get
        error (Xhr (code, msg))
   )
 
+let str_io (type a) (t : a EzAPI.Service.IO.io) : string = match t with
+  | EzAPI.Service.IO.Empty -> "Empty"
+  | Json _ -> "Json"
+  | Raw _ -> "Raw"
+
 (* TODO: apiargs unused? Spurious!*)
 let post
+    (type input)
+    (type output)
     ~args
     ~error
-    (apifun : _ EzAPI.Service.t)
+    (apifun : (_, input, output, _, _) EzAPI.Service.t)
     apiargs input cont =
   let api_fun_name = get_service_path apiargs apifun in
   let () = Ezjs_tyxml.log "POST %s" api_fun_name in
   let url = api () in
   let () =
     Ezjs_tyxml.log "Calling API at %s -- %s" (Js_of_ocaml.Url.string_of_url url) api_fun_name in
-  let input_encoding =
-    match EzAPI.Service.input apifun with
-    | Json e -> e
-    | _ -> assert false
+  let input_encoding : input Json_encoding.encoding =
+    encoding_of_service_io (EzAPI.Service.input apifun)
   in
+  let () = Ezjs_tyxml.log "Input encoding OK" in
   let output_encodings = output_encodings_from_apifun apifun in
   let () = Ezjs_tyxml.log "Encodings OK, calling POST" in
   Xhr_lwt.post
-    ~eprint:Ezjs_tyxml.log ~args ~base:url input_encoding output_encodings api_fun_name input >>=
+    ~eprint:Ezjs_tyxml.log
+    ~args
+    ~base:url
+    input_encoding
+    output_encodings
+    api_fun_name
+    input >>=
   (fun res ->
      Ezjs_tyxml.log "POST  %s%s returned something" (Js_of_ocaml.Url.string_of_url url) api_fun_name;
      match res with
@@ -264,12 +282,11 @@ let has_admin_rights timeline cont =
     cont
 
 let categories timeline cont =
-  post
+  get
     ~error:(fun _e -> return (Error "Failed to get categories"))
     ~args:(args_from_session [])
     ApiServices.categories.EzAPI.s
     [arg_tid timeline]
-    ()
     cont
 
 let logout ~error cont =
