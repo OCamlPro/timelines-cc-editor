@@ -1,3 +1,12 @@
+(library
+ (name api_config)
+ (modules api_config)
+ (libraries
+   ezjsonm
+   json-data-encoding
+  )
+)
+
 (executable
  (name api)
  (modules api)
@@ -5,10 +14,10 @@
 
 (library
  (name api_data)
- (modules apiData)
+ (modules api_data)
  (libraries
    data_encoding
-   dbData
+   db_data
    ))
 
 (library
@@ -18,7 +27,7 @@
    timeline_data
    data_encoding
    ez_api.cohttp_lwt
-   config
+   api_config
    ))
 
 (library
@@ -29,15 +38,14 @@
    ez_api.encoding
    timeline_data
    api_data
-   config
-
-))
+   api_config
+   ))
 
 (library
  (name api_lib)
  (modules apiHandlers apiServer)
  (libraries
-   config
+   api_config
    email
    ez_api.server
    ez_api.server_utils
@@ -47,4 +55,4 @@
    timeline_data
    data_encoding
    api_services
-))
+   ))

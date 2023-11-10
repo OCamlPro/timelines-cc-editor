@@ -25,12 +25,12 @@ let args = [
 let load_api_config () =
   match !api_config with
   | None -> ()
-  | Some f -> Config.API.init f
+  | Some f -> Api_config.init f
 
 let load_sendgrid_config () =
   match !sendgrid_config with
   | None -> ()
-  | Some f -> Config.Sendgrid.init f
+  | Some f -> Api_config.Sendgrid.init f
 
 let () =
   let () = Arg.parse args (fun s -> Format.printf "%s" s) "Usage msg TODO" in

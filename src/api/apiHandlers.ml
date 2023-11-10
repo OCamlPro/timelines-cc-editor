@@ -7,7 +7,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Api_data.ApiData
+open Api_data
 open Database_reader_lib
 open Database_writer_lib
 open Timeline_data
@@ -37,7 +37,7 @@ let is_auth req cont =
   | _ -> cont false
 
 let has_admin_rights (req, tid) cont =
-  match 
+  match
     Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params
   with
   | None -> cont false
@@ -48,7 +48,7 @@ let confidential_rights (req, tid) cont =
     has_admin_rights (req, tid) (fun rights ->
     cont (auth && rights)))
 
-let edition_rights (_req, tid) cont = 
+let edition_rights (_req, tid) cont =
   Reader.filter_of_token tid >>= (function
     | Ok {kind = Edit;_} -> cont true
     | _-> cont false)
@@ -80,7 +80,7 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
              Reader.event id >>= (function
                  | None ->
                    Format.printf "Deleted element while editing@.";
-                   ok (Modified None) 
+                   ok (Modified None)
                  | Some should_be_old_event ->
                    Format.printf "Event in the db: %a@. Expected event: %a@."
                      Utils.pp_title should_be_old_event
@@ -96,7 +96,7 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
                      if is_title then begin
                        match Writer.update_title timeline_id id event with
                        | Ok _s -> ok Success
-                       | Error s -> unknown_error s 
+                       | Error s -> unknown_error s
                      end else begin
                        match Utils.metaevent_to_event event with
                        | None ->
@@ -168,18 +168,18 @@ let timeline_data (req, tid) _ () =
             ?max_ponderation
             ?tags
             ()
-      end >>= 
-        function 
+      end >>=
+        function
         | Ok (Timeline {title; events; edition_rights}) ->
           (* Todo: parametrize the removal of categories *)
           let remove_category (i, e) = (i, {e with Timeline_data.Data_types.group = None}) in
           let title, events =
             if edition_rights then
               title, events
-            else 
-              Timeline_data.Utils.opt remove_category title, 
+            else
+              Timeline_data.Utils.opt remove_category title,
               List.map remove_category events in
-          EzAPIServerUtils.return (Ok (DbData.Timeline {title; events; edition_rights}))
+          EzAPIServerUtils.return (Ok (Db_data.Timeline {title; events; edition_rights}))
         | other -> EzAPIServerUtils.return other
       )
     )
@@ -194,7 +194,7 @@ let remove_event (req, timeline_id) _ () =
           Reader.timeline_of_event id >>= (function
             | None -> not_found "[remove_event] Event does not exist"
             | Some tid ->
-              if tid = timeline_id then (* Otherwise, it is possible to easily remove 
+              if tid = timeline_id then (* Otherwise, it is possible to easily remove
                                            all public events *)
                 if_ ~error:unauthorized edition_rights (req, tid) (fun () ->
                     EzAPIServerUtils.return @@ Writer.remove_event timeline_id id
@@ -215,7 +215,7 @@ let categories (req, id) _ () =
 let register_user _ _ (email, pwdhash) =
   Lwt_io.printl "CALL register_user" >>= fun () ->
   EzAPIServerUtils.return (Writer.register_user email pwdhash)
-  
+
 
 let login _ _ (email, pwdhash) =
   Lwt_io.printl "CALL login" >>= fun () ->
@@ -241,7 +241,7 @@ let export_database (_req, timeline_id) _ () =
           Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
         EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
       with Failure s -> EzAPIServerUtils.return (Error s)
-    end 
+    end
     | Ok NoTimeline -> EzAPIServerUtils.return (Error "Invalid token")
     | Error e -> EzAPIServerUtils.return (Error e)
     )
@@ -264,7 +264,7 @@ let send_link ~lang ~readonly_tid ~email ~timeline_name ~admin_tid =
     | _ -> Emails.En in
   let mail = Emails.creation_email ~lang ~readonly_tid ~email ~timeline_name ~admin_tid in
   Email.Sendgrid_xhr.send_base
-    ~api_key:(!Config.Sendgrid.key)
+    ~api_key:(Api_config.Sendgrid.key ())
     mail
 
 let create_timeline (req, name) _ (title, public) =
@@ -275,7 +275,7 @@ let create_timeline (req, name) _ (title, public) =
       | Error _ as e -> EzAPIServerUtils.return e
       | (Ok (admin_tid, readonly_tid)) as ok ->
         match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "email" req.EzAPI.Req.req_params with
-        | None -> 
+        | None ->
           Lwt_io.printl "No email provided, returning" >>= fun () ->
           EzAPIServerUtils.return ok
         | Some email ->
@@ -284,9 +284,9 @@ let create_timeline (req, name) _ (title, public) =
           send_link ~lang ~readonly_tid ~email ~timeline_name:name ~admin_tid >>=
           function
           | Error (id, msg) ->
-            Lwt_io.printl (Format.asprintf "Error %i: %a" id Utils.pp_str_opt msg) >>= 
+            Lwt_io.printl (Format.asprintf "Error %i: %a" id Utils.pp_str_opt msg) >>=
             fun () -> EzAPIServerUtils.return ok
-          | Ok _ -> EzAPIServerUtils.return ok 
+          | Ok _ -> EzAPIServerUtils.return ok
     )
 
 let import_timeline (req, name) _ (title, events, public) =
@@ -337,7 +337,7 @@ let timeline_users (req,tid) _ () =
   if_ ~error:unauthorized edition_rights (req,tid) (fun () ->
       Reader.timeline_users tid >>= fun l -> ok l
   )
-  
+
 
 let remove_user req _ () =
   Lwt_io.printl "CALL remove_user" >>= fun () ->
@@ -350,8 +350,8 @@ let remove_user req _ () =
 
 let remove_timeline (req,tid) _ () =
   Format.eprintf "CALL remove_timeline";
-  if_ ~error:unauthorized edition_rights (req,tid) (fun () -> 
-    EzAPIServerUtils.return @@ Writer.remove_timeline tid    
+  if_ ~error:unauthorized edition_rights (req,tid) (fun () ->
+    EzAPIServerUtils.return @@ Writer.remove_timeline tid
   )
 
 (*
@@ -427,7 +427,7 @@ let decode_token_params req =
 let create_token (req, tid) _ () =
   let after, before, min_level, max_level, tags, categories, confidential, readonly, pretty =
     decode_token_params req in
-  
+
   EzAPIServerUtils.return @@
   Writer.create_token
     ?after ?before
@@ -450,14 +450,14 @@ let update_token (req, token) _ tid =
   Lwt_io.printl "CALL update_token" >>= (fun () ->
   let after, before, min_level, max_level, tags, categories, confidential, readonly, pretty =
     decode_token_params req in
-  let res = 
+  let res =
     Writer.update_token
       ?after ?before
       ?categories ?min_level
       ?max_level ~confidential
       ?tags ~readonly ?pretty
       ~token tid in
-  Lwt_io.printl "update_token OK" >>= (fun () ->  
+  Lwt_io.printl "update_token OK" >>= (fun () ->
       EzAPIServerUtils.return res
     )
 )

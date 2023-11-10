@@ -22,13 +22,3 @@
    js_of_ocaml-lwt
    ;;yojson
   ))
-
-(library
- (name config)
- (modules config)
- (libraries
-   ;;ocplib-json-typed
-   ezjsonm
-   json-data-encoding
-  )
-)

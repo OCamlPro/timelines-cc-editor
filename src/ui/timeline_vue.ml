@@ -50,7 +50,7 @@ class type filter = object
 end
 
 let filter_to_jsfilter =
-  let i = ref 0 in fun DbData.{timeline; kind; pretty; after;
+  let i = ref 0 in fun Db_data.{timeline; kind; pretty; after;
           before; min_level; max_level;
           categories; tags; confidential_rights} : filter Js.t ->
   let readonly =
@@ -268,7 +268,7 @@ let page_vue
     (categories : (string * bool) list)
     (title : (int * title) option)
     (events : (int * event) list)
-    (tokens : DbData.filter list)
+    (tokens : Db_data.filter list)
   : data Js.t =
   let categories : categoryFilter Js.t Js.js_array Js.t =
     Ui_utils.list_to_jsarray @@
@@ -875,7 +875,7 @@ let init
     ~(args: Args.t)
     ~(on_page: on_page)
     ~(categories : (string * bool) list)
-    ~(tokens : DbData.filter list) =
+    ~(tokens : Db_data.filter list) =
   Ezjs_tyxml.log "Creating vue@.";
   Ezjs_tyxml.log "Tokens: %i@." (List.length tokens);
   let name, id, events, title =

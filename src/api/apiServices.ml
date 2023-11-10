@@ -9,7 +9,7 @@
 
 open Timeline_data
 open Json_encoding
-open Api_data.ApiData
+open Api_data
 open EzAPI
 
 let tup1_int = EzEncoding.tup1_int
@@ -23,10 +23,7 @@ type nonrec ('a, 'b) service1 = ('a, 'b, string, Security.basic) service1
 type nonrec ('a, 'b) post_service0 = ('a, 'b, string, Security.basic) post_service0
 type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, Security.basic) post_service1
 
-let api_root =
-  match !Config.API.api_root with
-  | None -> Path.root
-  | Some p -> Path.(root // p)
+let api_root = Path.(root // "api")
 
 (*
 let arg_address_key = arg_default "address_key"
@@ -55,7 +52,7 @@ let arg_mmsi = arg_string "mmsi" ""
 
 let arg_name = arg_string "name" "" *)
 
-let unit = Api_data.ApiData.unit
+let unit = Api_data.unit
 
 let group_param = Param.{
   param_id = "group";
@@ -200,27 +197,6 @@ let param_number =
 let param_page =
   Param.int ~name:"page" ~descr:"Offset in number of pages" "p"
 
-(*
-let event : (int, Data_types.title) service1 =
-  service
-    ~params:auth_params
-    ~name:"event"
-    ~output:(Data_encoding.title_encoding)
-    Path.(api_root // "event" /: (arg_default "event_key"))
-
-let events : (string, (int * Data_types.event) list) service1 =
-  service
-    ~params:auth_params
-    ~name:"events"
-    ~output:(list (tup2 int Data_encoding.event_encoding))
-    Path.(api_root // "events" /: arg_token ())
-let title : (string, (int * Data_types.title) option) service1 =
-  service
-    ~params:auth_params
-    ~name:"title"
-    ~output:title_api_result_encoding
-    Path.(api_root // "title" /: arg_token ()) *)
-
 let api_error_output =
   EzAPI.Err.Case {
     code = 500;
@@ -253,7 +229,7 @@ let update_event : (int * Data_types.title * Data_types.title * string, update_t
     Path.(api_root // "update_event")
 
 let timeline_data :
-  (string, DbData.timeline_data_output) service1 =
+  (string, Db_data.timeline_data_output) service1 =
   service
     ~errors
     ~name:"timeline_data"
@@ -333,7 +309,7 @@ let create_timeline : (string, (Data_types.title * bool), string * string) post_
     ~params:(email_param :: lang_param :: auth_params)
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
-    ~output:Api_data.ApiData.create_timeline_output_encoding
+    ~output:Api_data.create_timeline_output_encoding
     Path.(api_root // "create_timeline" /: arg_token ())
 
 let import_timeline : (string, (Data_types.title * Data_types.event list * bool), unit) post_service1 =
@@ -445,13 +421,13 @@ let remove_token : (string, string, unit) post_service1 =
     ~output:unit
     Path.(api_root // "remove_token" /: arg_token ())
 
-let get_tokens : (string, unit, DbData.filter list) post_service1 =
+let get_tokens : (string, unit, Db_data.filter list) post_service1 =
   post_service
     ~errors
     ~params:[]
     ~name:"get_tokens"
     ~input:unit
-    ~output:(list Api_data.ApiData.filter_encoding)
+    ~output:(list Api_data.filter_encoding)
     Path.(api_root // "get_tokens" /: arg_token ())
 
 let timeline_name : (string, string) service1 =

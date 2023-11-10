@@ -1,17 +1,24 @@
 (library
- (name dbData)
- (modules dbData)
+ (name db_config)
+ (modules db_config)
+ (libraries
+  json-data-encoding
+  ezjsonm))
+
+(library
+ (name db_version)
+ (modules db_version)
+ (libraries ez_pgocaml db_config))
+
+(library
+ (name db_data)
+ (modules db_data)
  (libraries timeline_data calendar))
 
 (library
  (name database_interface)
  (modules monad_lwt db_intf)
- (libraries lwt.unix timeline_data calendar dbData))
-
-(library
- (name database_version)
- (modules dBVersions)
- (libraries ez_pgocaml config))
+ (libraries lwt.unix timeline_data calendar db_data))
 
 (library
  (name database_reader_lib)
@@ -19,7 +26,14 @@
  (preprocessor_deps (env_var PGDATABASE))
  (preprocess
   (pps pgocaml_ppx))
- (libraries timeline_data database_interface ez_pgocaml config lwt lwt.unix sha))
+ (libraries
+   timeline_data
+   db_config
+   database_interface
+   ez_pgocaml
+   lwt
+   lwt.unix
+   sha))
 
 (library
  (name database_writer_lib)
@@ -27,13 +41,17 @@
  (preprocessor_deps (env_var PGDATABASE))
  (preprocess
   (pps pgocaml_ppx))
- (libraries timeline_data database_interface ez_pgocaml config
+ (libraries
+   timeline_data
+   db_config
+   database_interface
+   ez_pgocaml
    database_reader_lib))
 
 (executable
  (name dBUpdater)
  (modules dBUpdater)
- (libraries database_version))
+ (libraries db_version))
 
 (executable
  (name cleaner)
@@ -42,7 +60,6 @@
  (preprocess
  (pps pgocaml_ppx))
  (libraries
-   ;; ocplib-json-typed
    json-data-encoding
    database_reader_lib
    database_writer_lib))

@@ -8,7 +8,7 @@
 (**************************************************************************)
 
 open Json_encoding
-open DbData
+open Db_data
 
 (* Redefinition of simple encodings for web *)
 let unit = obj1 (req "unit" unit)
@@ -16,9 +16,9 @@ let unit = obj1 (req "unit" unit)
 let string = obj1 (req "string" string)
 
 let title_api_result_encoding : ((int * Timeline_data.Data_types.title) option) Json_encoding.encoding =
-  option (tup2 int Data_encoding.title_encoding) 
+  option (tup2 int Data_encoding.title_encoding)
 
-let events_api_result_encoding = 
+let events_api_result_encoding =
   list (
   tup2
     int
@@ -26,23 +26,23 @@ let events_api_result_encoding =
   )
 
 let timeline_result_encoding =
-  tup3 
+  tup3
     title_api_result_encoding
     events_api_result_encoding
     bool
 
-let timeline_data_api_result_encoding = 
+let timeline_data_api_result_encoding =
   union [
-    case 
-     timeline_result_encoding 
-     (function 
-        | Timeline {title; events; edition_rights} -> Some (title, events, edition_rights) 
-        | _ -> None) 
+    case
+     timeline_result_encoding
+     (function
+        | Timeline {title; events; edition_rights} -> Some (title, events, edition_rights)
+        | _ -> None)
      (fun (title, events, edition_rights) -> Timeline {title; events; edition_rights});
-     case 
+     case
        unit
        (function NoTimeline -> Some () | _ -> None)
-       (fun () -> NoTimeline)   
+       (fun () -> NoTimeline)
   ]
 
 (* Updates require a "Modified" case *)
@@ -77,13 +77,13 @@ let kind_of_bool b =
 
 let filter_encoding =
   conv
-    (fun {timeline; kind; after; before; min_level; max_level; 
+    (fun {timeline; kind; after; before; min_level; max_level;
           pretty; categories; tags; confidential_rights} ->
          (timeline, bool_of_kind kind, after, before, min_level, max_level,
           pretty, categories, tags, confidential_rights))
-    (fun (timeline, kind, after, before, min_level, max_level, 
+    (fun (timeline, kind, after, before, min_level, max_level,
           pretty, categories, tags, confidential_rights) ->
-         {timeline; kind = kind_of_bool kind; after; before; min_level; max_level; 
+         {timeline; kind = kind_of_bool kind; after; before; min_level; max_level;
           pretty; categories; tags; confidential_rights})
     (obj10
        (req "timeline" string)
@@ -103,13 +103,13 @@ let admin_token = obj1 (req "admin" string)
 let any_token = obj1 (req "token" string)
 
 let update_event_encoding =
-  obj4 
+  obj4
     (req "event_id" int)
     (req "old" Data_encoding.title_encoding)
     (req "new" Data_encoding.title_encoding)
     (req "timeline_id" Json_encoding.string)
 
-let create_timeline_output_encoding = 
-  obj2 
+let create_timeline_output_encoding =
+  obj2
     (req "admin_tid" Json_encoding.string)
     (req "readonly_tid" Json_encoding.string)

@@ -44,7 +44,7 @@ let start () =
     |> EzAPIServerUtils.register S.update_timeline_name H.update_timeline_name
     |> EzAPIServerUtils.register S.version H.version
   in
-  let servers = [ !Config.API.api_port, EzAPIServerUtils.API dir ] in
+  let servers = [ Api_config.port (), EzAPIServerUtils.API dir ] in
   Lwt_main.run (
     Printexc.record_backtrace true;
     Printf.eprintf "Starting RPC servers on ports %s\n%!"

@@ -37,29 +37,26 @@ let encoding_of_service_io
     Ezjs_tyxml.log "ERROR: raw encoding not supported";
     assert false
 
-let api () =
-  let h = {
-    hu_host = !Config.API.api_host;
-    hu_port = begin
-      match !Config.API.api_root with
-      | None -> !Config.API.api_port
-      | Some _ -> 443
-    end;
-    hu_path = [];
-    hu_path_string = "";
-    hu_arguments = [];
-    hu_fragment = "" } in
-  Https h
-
 (* let api () =
+ *   (\* Todo: make it acutally configurable. *\)
  *   let h = {
- *     hu_host = "localhost";
- *     hu_port = 13579;
+ *     hu_host = Api_config.host ();
+ *     hu_port = Api_config.port ();
  *     hu_path = [];
  *     hu_path_string = "";
  *     hu_arguments = [];
  *     hu_fragment = "" } in
- *   Http h *)
+ *   Https h *)
+
+let api () =
+  let h = {
+    hu_host = "localhost";
+    hu_port = 13579;
+    hu_path = [];
+    hu_path_string = "";
+    hu_arguments = [];
+    hu_fragment = "" } in
+  Http h
 
 let output_encodings_from_apifun apifun =
   let api_error_encodings = EzAPI.Service.errors apifun in

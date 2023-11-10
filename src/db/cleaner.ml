@@ -8,13 +8,19 @@
 (**************************************************************************)
 
 open CalendarLib
+module C = Db_config
 
 let filename : string ref = ref ""
 let timelines_to_keep : string list ref = ref []
 
 let dbh () : _ PGOCaml.t PGOCaml.monad =
-  let open Config.DB in
-  PGOCaml.connect ?host ?password ?port ?user ~database ()
+  PGOCaml.connect
+    ?host:(C.host ())
+    ?password:(C.password ())
+    ?port:(C.port ())
+    ?user:(C.user ())
+    ~database:(C.database ())
+    ()
 
 let clean () =
   let dbh = dbh () in

@@ -1,4 +1,4 @@
 (executable
  (name vcs)
  (modules vcs)
- (libraries config calendar))
+ (libraries db_config calendar))

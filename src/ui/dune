@@ -15,7 +15,7 @@
    ezjs_utils.xhr
    ezjs_utils.loc
    ezjs_utils.lang
-   config
+   api_config
    ez_api.js
    api_services))
 
@@ -42,11 +42,11 @@
         ezjsonm
 	js_of_ocaml
 	js_of_ocaml-lwt
-   	config
+   	api_config
 	timeline_data
 	data_encoding
 	api_data
-	dbData
+	db_data
 	vue-jsoo
 	ezjs_utils.tyxml
 	ezjs_utils.xhr

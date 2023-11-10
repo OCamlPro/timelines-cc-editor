@@ -13,7 +13,7 @@
    * Use EzPG.Mtimes to add row_created_ and row_modified_ columns in a table;
 *)
 
-let default_database = Config.DB.database
+let default_database = Db_config.database
 
 let sql_downgrade_1_to_0 = [
   {| DROP TABLE sessions_; |};

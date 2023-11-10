@@ -7,18 +7,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module V = Db_version
-module C = Db_config
+val init : string -> unit
+val port : unit -> int
+val host : unit -> string
 
-let () =
-  (* We initialize the database config options. *)
-  C.init ();
-  (* We update the database. *)
-  EzPGUpdater.main
-    (C.database ())
-    ?host:(C.host ())
-    ?port:(C.port ())
-    ?user:(C.user ())
-    ?password:(C.password ())
-    ~upgrades:V.upgrades
-    ~downgrades:V.downgrades
+module Sendgrid :
+sig
+  val init : string -> unit
+  val key : unit -> string
+  val from : unit -> string
+  val from_alias : unit -> string option
+end
