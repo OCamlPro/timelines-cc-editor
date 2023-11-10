@@ -18,15 +18,13 @@ let to_text headline text =
 
 let short_title str =
   let allowed_char c =
-    let code = Char.code c in
-    if (code >= 65 && code <= 90)  || (* between 'A' and 'Z' *)
-       (code >= 97 && code <= 122) || (* between 'a' and 'z' *)
-       (code >= 48 && code <= 57)  (* between '0' and '9' *)
-    then c
-    else
-      match c with
-      | '.' | '-' | '_' -> c
-      | _ -> '-' in
+    match c with
+    | 'A' .. 'Z'
+    | 'a' .. 'z'
+    | '0' .. '9'
+    | '.' | '-' | '_' -> c
+    | _ -> '-'
+  in
   if str = "" then
     "__no_title__id__"
   else

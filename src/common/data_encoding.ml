@@ -30,7 +30,6 @@ let to_event
       | Some t -> t in
     to_text title text
   in
-
   let media = opt to_media media in
   {
     start_date;
@@ -47,8 +46,6 @@ let to_event
 
 let line_to_event line_id  (header : Header.t) line =
   let data = String.split_on_char '\t' line in
-  (*Format.printf "Splitted data = %a@."
-    (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ", ") (fun fmt -> Format.fprintf fmt "%s")) data;*)
   let data = Array.of_list data in
   let start_date =
     match Header.start_date header data with
@@ -68,12 +65,12 @@ let line_to_event line_id  (header : Header.t) line =
     | None, Some str ->
       try int_of_string str, false with
       | _ -> 0, false in
-  let end_date     = Utils.fopt Utils.string_to_date @@ Header.end_date  header data in
-  let typ          = Header.typ         header data in
-  let typ2         = Header.typ2        header data in
-  let media        = Header.media       header data in
-  let title        = Header.title       header data in
-  let text         = Header.text        header data in
+  let end_date     = Utils.fopt Utils.string_to_date @@ Header.end_date header data in
+  let typ          = Header.typ   header data in
+  let typ2         = Header.typ2  header data in
+  let media        = Header.media header data in
+  let title        = Header.title header data in
+  let text         = Header.text  header data in
   let unique_id    =
     match Header.unique_id header data with
     | None -> Format.sprintf "unique-id-%i" line_id
