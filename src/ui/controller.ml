@@ -1,12 +1,3 @@
-(**************************************************************************)
-(*                                                                        *)
-(*                 Copyright 2020-2023 OCamlPro                           *)
-(*                                                                        *)
-(*  All rights reserved. This file is distributed under the terms of the  *)
-(*  GNU General Public License version 3.0 as described in LICENSE        *)
-(*                                                                        *)
-(**************************************************************************)
-
 open Timeline_data
 open Data_types
 open Ui_common
@@ -45,7 +36,7 @@ let create_timeline ?email name descr cont =
       i1 ^ i2, Lang.t_ Text.s_default_title, None
     | _ -> name, name, Some name
   in
-  let title = Utils.to_title_event headline descr in
+  let title = Utils.to_title_event {headline; text = descr} in
   let error e = Lwt.return @@ Error e in
   Request.create_timeline ~error ?email timeline_id title true
     ( fun (admin,_) ->
@@ -105,7 +96,7 @@ let add_event
       event
       (fun s -> cont s; Lwt.return (Ok ()))
   with
-    IncorrectInput s -> 
+    IncorrectInput s ->
     Alert_vue.alert (Format.sprintf "Error: %s" s);
     Lwt.return (Error s)
 
@@ -175,7 +166,7 @@ let export_timeline ?(name="timeline") title events =
     | Some (_, t) -> Csv_utils.title_to_csv_line  t in
   let csv =
     title_line ::
-    (List.map (fun (_, e) -> Csv_utils.title_to_csv_line (Utils.event_to_metaevent e)) events) in
+    (List.map (fun (_, e) -> Csv_utils.event_to_csv_line e) events) in
   Ui_utils.download
     (name ^ ".csv")
     (Csv_utils.to_string csv)
@@ -188,10 +179,10 @@ let import_timeline tid is_public elt =
     if confirm then Lwt.return @@
       Ezjs_tyxml.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
         (fun file_content ->
-           let title, events = Csv_utils.from_string file_content in
+           let {title; events} = Csv_utils.from_string file_content in
            let title =
              match title with
-             | None -> Utils.to_title_event "Title" "Text"
+             | None -> Utils.to_title_event {headline = "Title"; text = "Text"}
              | Some t -> t in
            let _lwt =
              Request.import_timeline
@@ -199,7 +190,11 @@ let import_timeline tid is_public elt =
                ~args:[]
                tid title
                events is_public
-               (fun () -> Alert_vue.alert "Success!"; Ezjs_tyxml.reload (); finish (Ok ())) in ()
+               (fun () ->
+                  Alert_vue.alert "Success!";
+                  Ezjs_tyxml.reload ();
+                  finish (Ok ()))
+           in ()
       )
     else Lwt.return false)
 

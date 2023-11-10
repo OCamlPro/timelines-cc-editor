@@ -41,7 +41,7 @@ let event_in_filter (e : title) (f : Db_data.filter) =
   (* If there is a tag limitation, no tags are allowed *)
   begin match f.tags with
     | None -> true
-    | Some _ -> Utils.is_empty_list e.tags
+    | Some _ -> e.tags = []
   end &&
 
   (* Checking if category is OK *)
@@ -60,13 +60,13 @@ let event_in_filter (e : title) (f : Db_data.filter) =
 let add_event (e : event) (tid : string) =
   match Reader.filter_of_token tid with
   | Ok f ->
-    if event_in_filter (Utils.event_to_metaevent e) f then begin
+    if event_in_filter (Utils.event_to_title e) f then begin
       let full_id = f.Db_data.timeline in
       let start_date = e.start_date in
       let end_date = e.end_date in
       let headline = e.text.headline in
       let text = e.text.text in
-      let media = Utils.opt (fun m -> m.url) e.media in
+      let media = Option.map (fun m -> m.url) e.media in
       let group = e.group in
       let ponderation = Int32.of_int e.ponderation in
       let confidential = e.confidential in
@@ -119,13 +119,13 @@ let add_title (t : title) (tid : string) =
 let update_event (tid : string) (i: int) (e : event) =
   match Reader.timeline_of_event i, Reader.filter_of_token tid with
   | Some full_id, Ok f ->
-    if event_in_filter (Utils.event_to_metaevent e) f && full_id = f.timeline then begin
+    if event_in_filter (Utils.event_to_title e) f && full_id = f.timeline then begin
     let i = Int32.of_int i in
     let start_date = e.start_date in
     let end_date = e.end_date in
     let headline = e.text.headline in
     let text = e.text.text in
-    let media = Utils.opt (fun m -> m.url) e.media in
+    let media = Option.map (fun m -> m.url) e.media in
     let group = e.group in
     let ponderation = Int32.of_int e.ponderation in
     let confidential = e.confidential in
@@ -156,7 +156,7 @@ let update_title (tid : string) (i: int) (e : title) =
       let end_date = e.end_date in
       let headline = e.text.headline in
       let text = e.text.text in
-      let media = Utils.opt (fun m -> m.url) e.media in
+      let media = Option.map (fun m -> m.url) e.media in
       let group = e.group in
       let ponderation = Int32.of_int e.ponderation in
       let confidential = e.confidential in
@@ -229,8 +229,12 @@ let create_token
     if admin_rights then begin
       let new_id = generate_random_token () in
     let users = List.map (fun s -> Some s) users in
-    let tags : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) tags in
-    let categories : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) categories in
+      let tags : PGOCaml.string_array option =
+        Option.map (List.map Option.some) tags
+      in
+      let categories : PGOCaml.string_array option =
+        Option.map (List.map Option.some) categories
+      in
       match Reader.timeline_name tid with
       | Ok timeline_name ->
         [%pgsql dbh
@@ -445,9 +449,12 @@ let update_token
   else
     Reader.admin_rights ~error:Reader.unknown_token_error tid (fun admin_rights ->
         if admin_rights then begin
-          let users = List.map (fun s -> Some s) users in
-          let tags : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) tags in
-          let categories : PGOCaml.string_array option = Utils.opt (List.map (fun s -> Some s)) categories in
+          let users = List.map Option.some users in
+          let tags : PGOCaml.string_array option =
+            Option.map (List.map Option.some) tags
+          in
+          let categories : PGOCaml.string_array option =
+            Option.map (List.map Option.some) categories in
           let pretty =
             match pretty with
             | None -> begin

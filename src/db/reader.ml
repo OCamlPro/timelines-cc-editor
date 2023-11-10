@@ -93,7 +93,7 @@ module Reader_generic (M : MONAD) = struct
         text = {
           text;
           headline};
-        media = Utils.opt (fun url -> {url}) url;
+        media = Option.map (fun url -> {url}) url;
         group;
         confidential;
         ponderation = Int32.to_int ponderation;
@@ -302,12 +302,12 @@ module Reader_generic (M : MONAD) = struct
     let min_ponderation =
       match f.Db_data.min_level with
       | None -> min_ponderation
-      | Some p -> Utils.max32 p min_ponderation in
+      | Some p -> Int32.max p min_ponderation in
 
     let max_ponderation =
       match f.Db_data.max_level with
       | None -> max_ponderation
-      | Some p -> Utils.min32 p max_ponderation in
+      | Some p -> Int32.min p max_ponderation in
 
     let tags =
       let tagso =
@@ -386,7 +386,7 @@ module Reader_generic (M : MONAD) = struct
                   | None -> title := Some (id, event); acc
                   | Some _ -> raise Db_data.TwoTitles
                 else
-                match Utils.metaevent_to_event event with
+                match Utils.title_to_event event with
                 | Some e  -> (id, e) :: acc
                 | None -> acc
             ) [] l in

@@ -50,10 +50,10 @@ type 'start_date update_meta_event_res =
   | Success
   | Modified of 'start_date Timeline_data.Data_types.meta_event option
 
-let update_meta_event_res_encoding start_encoding =
+let update_meta_event_res_encoding env =
   union [
     case
-      (option (Data_encoding.meta_event_encoding start_encoding))
+      (option env)
       (function Modified e -> Some e | _ -> None) (fun e -> Modified e);
     case unit
       (function Success -> Some () | _ -> None)
@@ -64,9 +64,9 @@ type update_event_res = CalendarLib.Date.t update_meta_event_res
 type update_title_res = CalendarLib.Date.t option update_meta_event_res
 
 let update_event_res_encoding =
-  update_meta_event_res_encoding Data_encoding.date_encoding
+  update_meta_event_res_encoding Data_encoding.event_encoding
 let update_title_res_encoding =
-  update_meta_event_res_encoding (Data_encoding.(option date_encoding))
+  update_meta_event_res_encoding Data_encoding.title_encoding
 
 let bool_of_kind = function
   | View -> true

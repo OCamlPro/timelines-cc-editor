@@ -7,12 +7,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let full_data = "data.json"
+val date_encoding :
+  CalendarLib.Period.date_field CalendarLib.Date.date
+    Json_encoding.encoding
 
-let () =
-  let input_file =
-    try Sys.argv.(1) with
-      _ -> Format.printf "You must provide a data file"; exit 1 in
-  let timeline = Timeline_data.Csv_utils.from_file input_file in
-  let json = Json_encoding.construct Data_encoding.timeline_encoding timeline in
-  Data_encoding.write_json json full_data
+val event_encoding : Timeline_data.Data_types.event Json_encoding.encoding
+
+val title_encoding : Timeline_data.Data_types.title Json_encoding.encoding
+
+val timeline_encoding : Timeline_data.Data_types.timeline Json_encoding.encoding
+
+(** Writes the JSON in a file. *)
+val write_json : Json_repr.ezjsonm -> string -> unit

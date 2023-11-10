@@ -509,7 +509,8 @@ let showForm title events (self : 'a) (adding : bool) : unit =
       | Some (_, title) when title.unique_id = current_event_id -> title
       | _ ->
         let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) events in
-        Utils.event_to_metaevent e in
+        Utils.event_to_title e
+    in
     Ezjs_tyxml.log "Edition of event %a" Utils.pp_title current_event;
     updateVueFromEvent self current_event
   end;
@@ -603,7 +604,7 @@ let addEvent title events self adding : unit =
               Alert_vue.alert err;
               None
           end
-        | Some (i, e) -> Some (i, Utils.event_to_metaevent e) in
+        | Some (i, e) -> Some (i, Utils.event_to_title e) in
       match old_event with
       | None -> ()
       | Some (id, old_event) ->

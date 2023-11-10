@@ -258,7 +258,7 @@ let resize_tl_slide_content () =
 
 let init_slide_from_url ~whenOnSlide ~activate_keypress title events = begin
   let events =
-    let e = List.map (fun (i, e) -> i, (Utils.event_to_metaevent e)) events in
+    let e = List.map (fun (i, e) -> i, (Utils.event_to_title e)) events in
     match title with
     | None -> e
     | Some t -> t :: e

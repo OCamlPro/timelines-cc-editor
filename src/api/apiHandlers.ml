@@ -98,7 +98,7 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
                        | Ok _s -> ok Success
                        | Error s -> unknown_error s
                      end else begin
-                       match Utils.metaevent_to_event event with
+                       match Utils.title_to_event event with
                        | None ->
                          unknown_error "Cannot update an event with a missing start date"
                        | Some e ->
@@ -135,8 +135,12 @@ let timeline_data (req, tid) _ () =
 
   let start_date = Utils.fopt Utils.string_to_date start_date in
   let end_date = Utils.fopt Utils.string_to_date end_date in
-  let min_ponderation = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation in
-  let max_ponderation = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation in
+  let min_ponderation =
+    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation
+  in
+  let max_ponderation =
+    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation
+  in
   let tags =
     Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
   let confidential =
@@ -177,7 +181,7 @@ let timeline_data (req, tid) _ () =
             if edition_rights then
               title, events
             else
-              Timeline_data.Utils.opt remove_category title,
+              Option.map remove_category title,
               List.map remove_category events in
           EzAPIServerUtils.return (Ok (Db_data.Timeline {title; events; edition_rights}))
         | other -> EzAPIServerUtils.return other
@@ -284,7 +288,12 @@ let create_timeline (req, name) _ (title, public) =
           send_link ~lang ~readonly_tid ~email ~timeline_name:name ~admin_tid >>=
           function
           | Error (id, msg) ->
-            Lwt_io.printl (Format.asprintf "Error %i: %a" id Utils.pp_str_opt msg) >>=
+            Lwt_io.printl
+              (Format.asprintf
+                 "Error %i: %a"
+                 id
+                 (Utils.pp_opt Format.pp_print_string)
+                 msg) >>=
             fun () -> EzAPIServerUtils.return ok
           | Ok _ -> EzAPIServerUtils.return ok
     )
@@ -409,8 +418,12 @@ let decode_token_params req =
 
   let after = Utils.fopt Utils.string_to_date after in
   let before = Utils.fopt Utils.string_to_date before in
-  let min_level = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation in
-  let max_level = Utils.opt Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation in
+  let min_level =
+    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation
+  in
+  let max_level =
+    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation
+  in
   let tags =
     Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
   let categories = groups in

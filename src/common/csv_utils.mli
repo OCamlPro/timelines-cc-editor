@@ -7,12 +7,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let full_data = "data.json"
+exception Not_an_event of string
 
-let () =
-  let input_file =
-    try Sys.argv.(1) with
-      _ -> Format.printf "You must provide a data file"; exit 1 in
-  let timeline = Timeline_data.Csv_utils.from_file input_file in
-  let json = Json_encoding.construct Data_encoding.timeline_encoding timeline in
-  Data_encoding.write_json json full_data
+(** Transforms a title into a CSV line. *)
+val title_to_csv_line : Data_types.title -> string list
+
+(** Same, but for events. *)
+val event_to_csv_line : Data_types.event -> string list
+
+(** Returns a CSV as a string. *)
+val to_string : Csv.t -> string
+
+(** From a CSV string, returns the timeline title and events.
+    Raises Not_an_event if a line does not correspond to an event. *)
+val from_string : string -> Data_types.timeline
+
+(** Same, but for a file. *)
+val from_file : string -> Data_types.timeline
