@@ -252,30 +252,13 @@ let categories : (string, string list) service1 =
     ~output:(list string)
     Path.(api_root // "categories" /: arg_token ())
 
-let register_user : (string * string, unit) post_service0 =
+let register_user : (Db_data.user, unit) post_service0 =
   post_service
     ~errors
     ~name:"register_user"
-    ~input:(tup2 string string)
+    ~input:Api_data.user_encoding
     ~output:unit
     Path.(api_root // "register_user")
-
-let login : (string * string, string) post_service0 =
-  post_service
-    ~errors
-    ~name:"login"
-    ~input:(tup2 string string)
-    ~output:string
-    Path.(api_root // "login")
-
-let logout : (string * string, unit) post_service0 =
-  post_service
-    ~errors
-    ~name:"login"
-    ~input:(tup2 string string)
-    ~output:unit
-    Path.(api_root // "logout")
-
 
 let is_auth : (unit, bool) post_service0 =
   post_service
@@ -454,3 +437,19 @@ let version : string service0 =
     ~name:"version"
     ~output:string
     Path.(api_root // "version")
+
+let login : (Db_data.user, string) post_service0 =
+  post_service
+    ~errors
+    ~name:"login"
+    ~input:Api_data.user_encoding
+    ~output:string
+    Path.(api_root // "login")
+
+let logout : (string * string, unit) post_service0 =
+  post_service
+    ~errors
+    ~name:"login"
+    ~input:(tup2 string string)
+    ~output:unit
+    Path.(api_root // "logout")

@@ -244,24 +244,21 @@ let remove_timeline ~id cont =
     cont
 
 let register_user email password cont =
-  Ezjs_tyxml.log "Request register_user@.";
-  let hash = Ui_utils.hash password (* todo: change this *) in
-  Ezjs_tyxml.log "Hash: %s@." hash;
+  let pwdhash = Ui_utils.hash password (* todo: implement hash *) in
   post
     ~args:[]
     ApiServices.register_user.EzAPI.s
     []
-    (email, hash)
+    {email; pwdhash}
     cont
 
 let login email password cont =
-  let hash = Ui_utils.hash password (* todo: change this *) in
-  Ezjs_tyxml.log "Hash: %s@." hash;
+  let pwdhash = Ui_utils.hash password (* todo: implement hash *) in
   post
     ~args:[]
     ApiServices.login.EzAPI.s
     []
-    (email, hash)
+    {email; pwdhash}
     cont
 
 let is_auth cont =

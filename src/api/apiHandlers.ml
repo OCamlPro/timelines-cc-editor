@@ -243,20 +243,9 @@ let categories (req, id) _ () =
       ((Reader.categories rights id) >>= ok)
     )
 
-let register_user _ _ (email, pwdhash) =
+let register_user _ _ user =
   Lwt_io.printl "CALL register_user" >>= fun () ->
-  EzAPIServerUtils.return (Writer.register_user email pwdhash)
-
-
-let login _ _ (email, pwdhash) =
-  Lwt_io.printl "CALL login" >>= fun () ->
-  Reader.Login.login email pwdhash >>= function
-  | None -> unauthorized ()
-  | Some s -> ok s
-
-let logout _ _ (email, cookie) =
-  Lwt_io.printl "CALL logout" >>= fun () ->
-  Reader.Login.logout email cookie >>= ok
+  EzAPIServerUtils.return (Writer.register_user user)
 
 let create_timeline_lwt req auth title name public =
   match get_auth_email req with
@@ -359,7 +348,6 @@ let timeline_users (req,tid) _ () =
       Reader.timeline_users tid >>= fun l -> ok l
   )
 
-
 let remove_user req _ () =
   Lwt_io.printl "CALL remove_user" >>= fun () ->
   if_ ~error:unauthorized is_auth req (fun () ->
@@ -444,3 +432,13 @@ let update_timeline_name req _ tid =
 let version _ _ () =
   Lwt_io.printl "CALL version" >>= fun () ->
   ok "0.1"
+
+let login _ _ user =
+  Lwt_io.printl "CALL login" >>= fun () ->
+  Reader.Login.login user >>= function
+  | None -> unauthorized ()
+  | Some s -> ok s
+
+let logout _ _ (email, cookie) =
+  Lwt_io.printl "CALL logout" >>= fun () ->
+  Reader.Login.logout email cookie >>= ok

@@ -371,7 +371,7 @@ let allow_user_to_timeline (email : string) (timeline_id : string) =
     | None -> Error "User does not exist!"
   else Error "Timeine does not exist."
 
-let register_user email pwdhash =
+let register_user Db_data.{email; pwdhash} =
   match Reader.user_exists email with
   | Some _ ->
     Error ("User " ^ email ^ " already exists")

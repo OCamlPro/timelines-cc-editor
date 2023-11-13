@@ -10,9 +10,9 @@
 open Json_encoding
 open Db_data
 
-type db_event_id = int
 type event_id = string
 type timeline_id = string
+type token = string
 
 (* Redefinition of simple encodings for web *)
 let unit = obj1 (req "unit" unit)
@@ -113,9 +113,20 @@ let update_event_encoding =
     (req "event_id" db_event_id_encoding)
     (req "old" Data_encoding.title_encoding)
     (req "new" Data_encoding.title_encoding)
-    (req "timeline_id" Json_encoding.string)
+    (req "timeline_id" string)
 
 let create_timeline_output_encoding =
   obj2
-    (req "admin_tid" Json_encoding.string)
-    (req "readonly_tid" Json_encoding.string)
+    (req "admin_tid" string)
+    (req "readonly_tid" string)
+
+let user_encoding =
+  conv
+    (fun {email; pwdhash} -> (email, pwdhash))
+    (fun (email, pwdhash) -> {email; pwdhash})
+    (
+      obj2
+        (req "email" string)
+        (req "pwdhash" string)
+    )
+

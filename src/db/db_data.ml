@@ -32,3 +32,10 @@ type timeline_data_output =
       edition_rights : bool
     }
   | NoTimeline
+
+type db_event_id = int
+
+type user = {
+  email: string;
+  pwdhash: string;
+}

@@ -551,7 +551,7 @@ module Reader_generic (M : MONAD) = struct
       with_dbh >>> fun dbh ->
       [%pgsql dbh "DELETE from sessions_ where user_id_=$id"]
 
-    let login email pwdhash =
+    let login Db_data.{email; pwdhash} =
       with_dbh >>> fun dbh ->
       [%pgsql dbh "SELECT id_, pwhash_ FROM users_ WHERE email_=$email"] >>=
       function
