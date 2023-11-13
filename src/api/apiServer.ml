@@ -12,10 +12,7 @@ module S = Api_services.ApiServices
 
 let start () =
   let dir =
-    EzAPIServerUtils.empty (*
-    |> EzAPIServerUtils.register S.event  H.event
-    |> EzAPIServerUtils.register S.events H.events
-    |> EzAPIServerUtils.register S.title H.title *)
+    EzAPIServerUtils.empty
     |> EzAPIServerUtils.register S.add_event H.add_event
     |> EzAPIServerUtils.register S.update_event H.update_event
     |> EzAPIServerUtils.register S.timeline_data H.timeline_data
@@ -26,7 +23,6 @@ let start () =
     |> EzAPIServerUtils.register S.logout H.logout
     |> EzAPIServerUtils.register S.is_auth H.is_auth
     |> EzAPIServerUtils.register S.has_admin_rights H.has_admin_rights
-    |> EzAPIServerUtils.register S.export_database H.export_database
     |> EzAPIServerUtils.register S.create_timeline H.create_timeline
     |> EzAPIServerUtils.register S.import_timeline H.import_timeline
     |> EzAPIServerUtils.register S.user_timelines H.user_timelines

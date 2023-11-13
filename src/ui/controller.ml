@@ -1,6 +1,16 @@
-open Timeline_data
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open Data_types
 open Ui_common
+module Csv_utils = Utils.Csv_utils
+module Misc = Utils.Misc
 
 exception IncorrectInput of string
 let incorrect_input s = raise (IncorrectInput s)
@@ -36,7 +46,7 @@ let create_timeline ?email name descr cont =
       i1 ^ i2, Lang.t_ Text.s_default_title, None
     | _ -> name, name, Some name
   in
-  let title = Utils.to_title_event {headline; text = descr} in
+  let title = Misc.to_title_event {headline; text = descr} in
   let error e = Lwt.return @@ Error e in
   Request.create_timeline ~error ?email timeline_id title true
     ( fun (admin,_) ->
@@ -70,7 +80,7 @@ let add_event
           incorrect_input "Headline & unique-id cannot be empty at the same time"
         else headline
       | _ -> unique_id in
-    let tags = String.split_on_char ',' (Utils.trim tags) in
+    let tags = String.split_on_char ',' (Misc.trim tags) in
     let media =
       match media with
       | "" -> None
@@ -121,7 +131,7 @@ let update_event
         incorrect_input "Headline & unique-id cannot be empty at the same time"
       else headline
     | _ -> unique_id in
-  let tags = String.split_on_char ',' (Utils.trim tags) in
+  let tags = String.split_on_char ',' (Misc.trim tags) in
   let media =
     match media with
     | "" -> None
@@ -182,7 +192,7 @@ let import_timeline tid is_public elt =
            let {title; events} = Csv_utils.from_string file_content in
            let title =
              match title with
-             | None -> Utils.to_title_event {headline = "Title"; text = "Text"}
+             | None -> Misc.to_title_event {headline = "Title"; text = "Text"}
              | Some t -> t in
            let _lwt =
              Request.import_timeline

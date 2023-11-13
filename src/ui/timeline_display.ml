@@ -7,7 +7,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Timeline_data
 open Data_types
 open Js_of_ocaml_tyxml.Tyxml_js.Html
 open Ui_common
@@ -15,6 +14,7 @@ open Ui_common
 module Dom = Js_of_ocaml.Dom
 module Dom_html = Js_of_ocaml.Dom_html
 module Manip = Ezjs_tyxml.Manip
+module Misc = Utils.Misc
 module Js = Js_of_ocaml.Js
 module Timeline = Ezjs_timeline.Timeline
 
@@ -79,14 +79,14 @@ let display_timeline ?(view=false) title events =
   let () = Timeline.make "timeline-embed" (SStr json) in
   Ezjs_tyxml.log "Timeline display done"
 
-let url_position order (rev_order : string Utils.IntMap.t) =
+let url_position order (rev_order : string Misc.IntMap.t) =
   Ezjs_tyxml.log "Url position";
   let path = Ui_utils.get_fragment () in
   Ezjs_tyxml.log "Url position: %s" path;
-  match Utils.StringMap.find_opt path order with
+  match Misc.StringMap.find_opt path order with
   | None -> begin
     Ezjs_tyxml.log "Path %s has not been found, assuming first slide" path;
-    match Utils.IntMap.find_opt 0 rev_order with
+    match Misc.IntMap.find_opt 0 rev_order with
     | None -> Ezjs_tyxml.log "Timeline has no event"; failwith "Timeline has no event"
     | Some i -> 0, Some i
   end
@@ -107,15 +107,15 @@ let add_handlers_to_markers ~(whenOnSlide:string option -> unit) order rev_order
   Ezjs_tyxml.log "Add links to markers";
   let marker_order =
     let id_to_markerid i = i ^ "-marker" in
-    Utils.StringMap.fold
-      (fun key bnd acc -> Utils.StringMap.add (id_to_markerid key) (key, bnd) acc)
+    Misc.StringMap.fold
+      (fun key bnd acc -> Misc.StringMap.add (id_to_markerid key) (key, bnd) acc)
       order
-      Utils.StringMap.empty in
+      Misc.StringMap.empty in
   let markers = Manip.by_class "tl-timemarker" in
   List.iter (
     fun elt ->
       let id = Js.to_string @@ (Manip.get_elt "id" elt)##.id in
-      match Utils.StringMap.find_opt id marker_order with
+      match Misc.StringMap.find_opt id marker_order with
       | None ->
         Ezjs_tyxml.log "Marker with id %s not found" id
       | Some (orig_id, (marker_pos, event)) ->
@@ -179,7 +179,7 @@ let add_handlers_to_arrows
   let push_next () =
       Ezjs_tyxml.log "Push next";
       let current_pos,_ = url_position order rev_order in
-      match Utils.IntMap.find_opt (current_pos + 1) rev_order with
+      match Misc.IntMap.find_opt (current_pos + 1) rev_order with
       | None ->
         Ezjs_tyxml.log "Cannot find event at position %i" (current_pos + 1);
         whenOnSlide None;
@@ -193,7 +193,7 @@ let add_handlers_to_arrows
   let push_prev () =
       Ezjs_tyxml.log "Push prev";
       let current_pos,_ = url_position order rev_order in
-      match Utils.IntMap.find_opt (current_pos - 1) rev_order with
+      match Misc.IntMap.find_opt (current_pos - 1) rev_order with
       | None ->
         Ezjs_tyxml.log "Cannot find event at position %i" (current_pos - 1);
         whenOnSlide None;
@@ -258,7 +258,7 @@ let resize_tl_slide_content () =
 
 let init_slide_from_url ~whenOnSlide ~activate_keypress title events = begin
   let events =
-    let e = List.map (fun (i, e) -> i, (Utils.event_to_title e)) events in
+    let e = List.map (fun (i, e) -> i, (Misc.event_to_title e)) events in
     match title with
     | None -> e
     | Some t -> t :: e
@@ -274,13 +274,13 @@ let init_slide_from_url ~whenOnSlide ~activate_keypress title events = begin
       | None ->
         Ezjs_tyxml.log "Cannot find corresponding slide !";
         (cpt+1,
-         Utils.StringMap.add id (cpt, None) acc_ord,
-         Utils.IntMap.add cpt id acc_rev_ord)
+         Misc.StringMap.add id (cpt, None) acc_ord,
+         Misc.IntMap.add cpt id acc_rev_ord)
       | Some (_, e) -> (* db_id is the integer ID of the event *)
         (cpt+1,
-         Utils.StringMap.add id (cpt, Some e) acc_ord,
-         Utils.IntMap.add cpt id acc_rev_ord)
-      ) (0, Utils.StringMap.empty, Utils.IntMap.empty) slides
+         Misc.StringMap.add id (cpt, Some e) acc_ord,
+         Misc.IntMap.add cpt id acc_rev_ord)
+      ) (0, Misc.StringMap.empty, Misc.IntMap.empty) slides
   in
   let () = go_to_right_slide       ~whenOnSlide order rev_order in
   let () = add_handlers_to_markers ~whenOnSlide order rev_order in

@@ -14,7 +14,6 @@ type filter = {
   kind : kind;       (* Readonly (View) or Edition ? *)
   pretty : string option; (* A pretty identifier *)
   confidential_rights: bool;
- 
  (* Each field is optional : None means no filtering *)
   after: CalendarLib.Date.t option;
   before: CalendarLib.Date.t option;
@@ -26,10 +25,10 @@ type filter = {
 
 exception TwoTitles
 
-type timeline_data_output = 
+type timeline_data_output =
   | Timeline of {
-      title : (int * Timeline_data.Data_types.title) option;
-      events : (int * Timeline_data.Data_types.event) list;
+      title : (int * Data_types.title) option;
+      events : (int * Data_types.event) list;
       edition_rights : bool
     }
   | NoTimeline

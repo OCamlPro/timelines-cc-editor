@@ -35,8 +35,6 @@ val pp_title : Format.formatter -> Data_types.title -> unit
 
 val hd_opt : 'a list -> 'a option
 
-val fopt : ('a -> 'b option) -> 'a option -> 'b option
-
 val list_init : int -> (int -> 'a) -> 'a list
 
 val trim : string -> string

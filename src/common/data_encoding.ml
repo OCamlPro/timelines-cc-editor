@@ -7,7 +7,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Timeline_data
 open Data_types
 
 let date_encoding =
@@ -19,7 +18,7 @@ let date_encoding =
            CalendarLib.Date.(int_of_month @@ month date),
            Some (CalendarLib.Date.(day_of_month date))
          ))
-      (fun (year, month, day) -> Utils.to_date year (Some month) day)
+      (fun (year, month, day) -> Utils.Misc.to_date year (Some month) day)
       (obj3
          (req "year" int)
          (req "month" int)

@@ -11,11 +11,11 @@ val date_encoding :
   CalendarLib.Period.date_field CalendarLib.Date.date
     Json_encoding.encoding
 
-val event_encoding : Timeline_data.Data_types.event Json_encoding.encoding
+val event_encoding : Data_types.event Json_encoding.encoding
 
-val title_encoding : Timeline_data.Data_types.title Json_encoding.encoding
+val title_encoding : Data_types.title Json_encoding.encoding
 
-val timeline_encoding : Timeline_data.Data_types.timeline Json_encoding.encoding
+val timeline_encoding : Data_types.timeline Json_encoding.encoding
 
 (** Writes the JSON in a file. *)
 val write_json : Json_repr.ezjsonm -> string -> unit

@@ -13,12 +13,12 @@
 (library
  (name db_data)
  (modules db_data)
- (libraries timeline_data calendar))
+ (libraries data_types calendar))
 
 (library
  (name database_interface)
  (modules monad_lwt db_intf)
- (libraries lwt.unix timeline_data calendar db_data))
+ (libraries lwt.unix data_types calendar db_data))
 
 (library
  (name database_reader_lib)
@@ -27,7 +27,8 @@
  (preprocess
   (pps pgocaml_ppx))
  (libraries
-   timeline_data
+   data_types
+   utils
    db_config
    database_interface
    ez_pgocaml
@@ -42,7 +43,8 @@
  (preprocess
   (pps pgocaml_ppx))
  (libraries
-   timeline_data
+   data_types
+   utils
    db_config
    database_interface
    ez_pgocaml

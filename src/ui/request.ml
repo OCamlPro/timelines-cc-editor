@@ -9,7 +9,6 @@
 
 open Js_of_ocaml.Url
 open Lwt
-open Timeline_data
 
 module J = Json_schema
 

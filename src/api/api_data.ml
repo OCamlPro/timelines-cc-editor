@@ -10,12 +10,18 @@
 open Json_encoding
 open Db_data
 
+type db_event_id = int
+type event_id = string
+type timeline_id = string
+
 (* Redefinition of simple encodings for web *)
 let unit = obj1 (req "unit" unit)
 
 let string = obj1 (req "string" string)
 
-let title_api_result_encoding : ((int * Timeline_data.Data_types.title) option) Json_encoding.encoding =
+let db_event_id_encoding = int
+
+let title_api_result_encoding : ((int * Data_types.title) option) Json_encoding.encoding =
   option (tup2 int Data_encoding.title_encoding)
 
 let events_api_result_encoding =
@@ -48,7 +54,7 @@ let timeline_data_api_result_encoding =
 (* Updates require a "Modified" case *)
 type 'start_date update_meta_event_res =
   | Success
-  | Modified of 'start_date Timeline_data.Data_types.meta_event option
+  | Modified of 'start_date Data_types.meta_event option
 
 let update_meta_event_res_encoding env =
   union [
@@ -104,7 +110,7 @@ let any_token = obj1 (req "token" string)
 
 let update_event_encoding =
   obj4
-    (req "event_id" int)
+    (req "event_id" db_event_id_encoding)
     (req "old" Data_encoding.title_encoding)
     (req "new" Data_encoding.title_encoding)
     (req "timeline_id" Json_encoding.string)

@@ -9,8 +9,6 @@
 
 open Sendgrid_encoding
 
-module StringMap = Map.Make(String)
-
 type lang =
   | En
   | Fr

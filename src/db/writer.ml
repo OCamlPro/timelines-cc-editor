@@ -7,11 +7,11 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Timeline_data
 open Data_types
 open Database_reader_lib
 
 module C = Db_config
+module Misc = Utils.Misc
 
 let dbh : _ PGOCaml.t PGOCaml.monad =
   PGOCaml.connect
@@ -60,7 +60,7 @@ let event_in_filter (e : title) (f : Db_data.filter) =
 let add_event (e : event) (tid : string) =
   match Reader.filter_of_token tid with
   | Ok f ->
-    if event_in_filter (Utils.event_to_title e) f then begin
+    if event_in_filter (Misc.event_to_title e) f then begin
       let full_id = f.Db_data.timeline in
       let start_date = e.start_date in
       let end_date = e.end_date in
@@ -70,7 +70,7 @@ let add_event (e : event) (tid : string) =
       let group = e.group in
       let ponderation = Int32.of_int e.ponderation in
       let confidential = e.confidential in
-      let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
+      let unique_id = Misc.check_unique_id Reader.used_unique_id e.unique_id in
       let last_update = e.last_update in
       let tags = List.map (fun s -> Some s) e.tags in
       try
@@ -99,7 +99,7 @@ let add_title (t : title) (tid : string) =
       let full_id = f.timeline in
       let headline = t.text.headline in
       let text = t.text.text in
-      let unique_id = Utils.check_unique_id Reader.used_unique_id t.unique_id in
+      let unique_id = Misc.check_unique_id Reader.used_unique_id t.unique_id in
       match Reader.has_title tid with
       | Ok false ->
         let () =
@@ -119,7 +119,7 @@ let add_title (t : title) (tid : string) =
 let update_event (tid : string) (i: int) (e : event) =
   match Reader.timeline_of_event i, Reader.filter_of_token tid with
   | Some full_id, Ok f ->
-    if event_in_filter (Utils.event_to_title e) f && full_id = f.timeline then begin
+    if event_in_filter (Misc.event_to_title e) f && full_id = f.timeline then begin
     let i = Int32.of_int i in
     let start_date = e.start_date in
     let end_date = e.end_date in
@@ -129,7 +129,7 @@ let update_event (tid : string) (i: int) (e : event) =
     let group = e.group in
     let ponderation = Int32.of_int e.ponderation in
     let confidential = e.confidential in
-    let unique_id = Utils.check_unique_id Reader.used_unique_id e.unique_id in
+    let unique_id = Misc.check_unique_id Reader.used_unique_id e.unique_id in
     let last_update = e.last_update in
     let tags = List.map (fun s -> Some s) e.tags in
       let () =

@@ -8,11 +8,11 @@
 (**************************************************************************)
 
 
-open Timeline_data.Data_types
+open Data_types
 open Database_interface.Db_intf
-open Timeline_data
 
 module C = Db_config
+module Misc = Utils.Misc
 
 let verbose_mode = ref false
 let verbose_counter = ref 0
@@ -232,7 +232,6 @@ module Reader_generic (M : MONAD) = struct
     | [] -> return None
     | hd :: _ -> return (Some hd)
 
-
   let is_admin_filter f tid : bool = f.Db_data.timeline = tid
 
   let admin_rights ~error (timeline_id : string) cont = (* error = If token does not exist *)
@@ -292,12 +291,12 @@ module Reader_generic (M : MONAD) = struct
     let start_date =
       match f.Db_data.after with
       | None -> start_date
-      | Some d -> Utils.max_date start_date d in
+      | Some d -> Misc.max_date start_date d in
 
     let end_date =
       match f.Db_data.before with
       | None -> end_date
-      | Some d -> Utils.min_date end_date d in
+      | Some d -> Misc.min_date end_date d in
 
     let min_ponderation =
       match f.Db_data.min_level with
@@ -313,7 +312,7 @@ module Reader_generic (M : MONAD) = struct
       let tagso =
       match f.tags with
         | None -> tags
-        | Some t -> Utils.intersect_list tags t in
+        | Some t -> Misc.intersect_list tags t in
       List.map (fun s -> Some s) tagso in
 
     let groups =
@@ -323,7 +322,7 @@ module Reader_generic (M : MONAD) = struct
         Format.eprintf "Category filters registered: %a@."(Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt "//") (fun fmt -> Format.fprintf fmt "%s")) c;
         match groups with
         | [] -> c
-        | _ -> Utils.intersect_list groups c in
+        | _ -> Misc.intersect_list groups c in
 
     let confidential = with_confidential && f.confidential_rights in
 
@@ -386,7 +385,7 @@ module Reader_generic (M : MONAD) = struct
                   | None -> title := Some (id, event); acc
                   | Some _ -> raise Db_data.TwoTitles
                 else
-                match Utils.title_to_event event with
+                match Misc.title_to_event event with
                 | Some e  -> (id, e) :: acc
                 | None -> acc
             ) [] l in
@@ -416,19 +415,19 @@ module Reader_generic (M : MONAD) = struct
       else
         let s =
           match title with
-          | None | Some (_, {group = None; _}) -> Utils.StringSet.empty
-          | Some (_, {group = Some g; _}) -> Utils.StringSet.singleton g in
+          | None | Some (_, {group = None; _}) -> Misc.StringSet.empty
+          | Some (_, {group = Some g; _}) -> Misc.StringSet.singleton g in
         let s =
           List.fold_left
             (fun acc (_, {group; _}) ->
               match group with
                | None -> acc
-               | Some g -> Utils.StringSet.add g acc)
+               | Some g -> Misc.StringSet.add g acc)
             s
             events
         in
         return @@
-        Utils.StringSet.fold
+        Misc.StringSet.fold
           (fun s acc -> s :: acc)
           s
           []

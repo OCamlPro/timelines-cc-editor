@@ -52,15 +52,15 @@ let meta_event_to_csv_line pp_start
       tags
     } : string list = [
     aspf pp_start start_date;
-    aspf (Utils.pp_opt pp_date) end_date;
+    aspf (Misc.pp_opt pp_date) end_date;
     spf (quote_to_doublequote text.headline);
     spf (quote_to_doublequote text.text);
-    aspf (Utils.pp_opt (fun fmt m -> Format.pp_print_string fmt m.Data_types.url)) media;
-    aspf (Utils.pp_opt Format.pp_print_string) group;
+    aspf (Misc.pp_opt (fun fmt m -> Format.pp_print_string fmt m.Data_types.url)) media;
+    aspf (Misc.pp_opt Format.pp_print_string) group;
     string_of_bool confidential;
     string_of_int ponderation;
     spf unique_id;
-    aspf (Utils.pp_opt pp_date) last_update;
+    aspf (Misc.pp_opt pp_date) last_update;
     Format.asprintf
       "\"%a\""
       (Format.pp_print_list
@@ -69,7 +69,7 @@ let meta_event_to_csv_line pp_start
       tags
   ]
 
-let title_to_csv_line = meta_event_to_csv_line (Utils.pp_opt pp_date)
+let title_to_csv_line = meta_event_to_csv_line (Misc.pp_opt pp_date)
 
 let event_to_csv_line = meta_event_to_csv_line pp_date
 
@@ -79,8 +79,8 @@ let csv_line_to_meta_event uids = function
     media :: group ::
     confidential :: ponderation ::
     unique_id :: rest ->
-    let start_date = Utils.string_to_date start_date in
-    let end_date = Utils.string_to_date end_date in
+    let start_date = Misc.string_to_date start_date in
+    let end_date = Misc.string_to_date end_date in
     let text =
       Data_types.{headline; text} in
     let media = if media = "" then None else Some Data_types.{url = media} in
@@ -93,12 +93,12 @@ let csv_line_to_meta_event uids = function
         | "" -> headline
         | _ -> unique_id
       in
-      Utils.check_unique_id (fun s -> List.mem s uids) id
+      Misc.check_unique_id (fun s -> List.mem s uids) id
     in
     let last_update, rest =
       match rest with
         [] -> None, []
-      | d :: rest -> Utils.string_to_date d, rest in
+      | d :: rest -> Misc.string_to_date d, rest in
 
     let tags =
       match rest with
@@ -143,9 +143,9 @@ let from_chan chan =
       while true do
         let l = Csv.next chan in
         let me = csv_line_to_meta_event !uids l in
-        match Utils.title_to_event me with
+        match Misc.title_to_event me with
         | None ->
-          not_an_event "Event (%a) is a title, expected an event." Utils.pp_title me
+          not_an_event "Event (%a) is a title, expected an event." Misc.pp_title me
         | Some e ->
           elist := e :: !elist;
           uids  := e.unique_id :: !uids

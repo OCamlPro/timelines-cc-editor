@@ -43,7 +43,8 @@
 	js_of_ocaml
 	js_of_ocaml-lwt
    	api_config
-	timeline_data
+	data_types
+	utils
 	data_encoding
 	api_data
 	db_data

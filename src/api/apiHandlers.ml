@@ -10,36 +10,49 @@
 open Api_data
 open Database_reader_lib
 open Database_writer_lib
-open Timeline_data
 open Data_types
-
-module StringMap = Map.Make(String)
-
-module Reader = Reader.Reader_generic (Database_interface.Monad_lwt)
+open Lwt.Infix
 
 module Emails = Email.Emails
+module StringMap = EzAPIServerUtils.StringMap
+module Reader = Reader.Reader_generic (Database_interface.Monad_lwt)
+module Misc = Utils.Misc
 
-let (>>=) = Lwt.(>>=)
+type 'a ans =  ('a, string) result EzAPIServerUtils.Answer.t Lwt.t
+
+type ('input, 'res) handler0 =
+  EzAPI.Req.t -> EzAPI.Security.basic list -> 'input -> 'res ans
+
+type ('a, 'input, 'res) handler1 =
+  (EzAPI.Req.t * 'a) ->
+  EzAPI.Security.basic list ->
+  'input ->
+  'res ans
 
 let unauthorized () = EzAPIServerUtils.return (Error ("Error 403"))
 let not_found s = EzAPIServerUtils.return (Error ("Error 404: " ^ s))
 let unknown_error s = EzAPIServerUtils.return (Error ("Error: " ^ s))
 let ok e = EzAPIServerUtils.return (Ok e)
 
+let get_unique_from_req key req =
+  match StringMap.find_opt key req.EzAPI.Req.req_params with
+  | None | Some [] -> None
+  | Some (k :: _) -> Some k
+
+let get_auth_email = get_unique_from_req "auth_email"
+
+let get_auth_pwd = get_unique_from_req "auth_data"
+
 let is_auth req cont =
-  let email =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params in
-  let salted_pwd =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_data" req.req_params in
+  let email = get_auth_email req in
+  let salted_pwd = get_auth_pwd req in
   match email, salted_pwd with
   | Some email, Some pwd ->
     Reader.is_auth email pwd >>= cont
   | _ -> cont false
 
 let has_admin_rights (req, tid) cont =
-  match
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params
-  with
+  match get_auth_email req with
   | None -> cont false
   | Some e -> Reader.has_admin_rights e tid >>= cont
 
@@ -63,8 +76,9 @@ let add_event (req, timeline_id) _ event =
     )
   )
 
-let update_event req _ ((id : int), (old_event : title), (event : title), (timeline_id : string)) :
-  (date option update_meta_event_res, sub_event_type) result EzAPIServerUtils.Answer.t Lwt.t =
+let update_event
+    req _ ((id : int), (old_event : title), (event : title), (timeline_id : string)) :
+  date option update_meta_event_res ans =
   Lwt_io.printl "CALL update_event" >>= (fun () ->
     Reader.timeline_of_event id >>= (function
     | None -> not_found "[update_event] Event associated to no timeline"
@@ -75,7 +89,7 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
           edition_rights
           (req, tid)
           (fun () ->
-             Format.printf "Updating event %i with %a@." id Utils.pp_title event;
+             Format.printf "Updating event %i with %a@." id Misc.pp_title event;
              (* Check if the old event has been modified *)
              Reader.event id >>= (function
                  | None ->
@@ -83,8 +97,8 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
                    ok (Modified None)
                  | Some should_be_old_event ->
                    Format.printf "Event in the db: %a@. Expected event: %a@."
-                     Utils.pp_title should_be_old_event
-                     Utils.pp_title old_event
+                     Misc.pp_title should_be_old_event
+                     Misc.pp_title old_event
                    ;
                    if old_event = should_be_old_event then begin
                      (* Todo: merge modifications *)
@@ -98,7 +112,7 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
                        | Ok _s -> ok Success
                        | Error s -> unknown_error s
                      end else begin
-                       match Utils.title_to_event event with
+                       match Misc.title_to_event event with
                        | None ->
                          unknown_error "Cannot update an event with a missing start date"
                        | Some e ->
@@ -117,36 +131,49 @@ let update_event req _ ((id : int), (old_event : title), (event : title), (timel
       )
     )
 
-let timeline_data (req, tid) _ () =
-  Lwt_io.printl "CALL timeline_data" >>= (fun () ->
-  let start_date =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.EzAPI.Req.req_params in
-  let end_date =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
+let decode_token_params req =
+  let after = get_unique_from_req "after" req in
+  let before = get_unique_from_req "before" req in
   let groups = StringMap.find_opt "group" req.req_params in
-  let min_ponderation =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
-  let max_ponderation =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "max_level"  req.req_params in
-  let confidential =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "confidential"  req.req_params in
-  let tags =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "tags"  req.req_params in
-
-  let start_date = Utils.fopt Utils.string_to_date start_date in
-  let end_date = Utils.fopt Utils.string_to_date end_date in
-  let min_ponderation =
-    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation
+  let min_ponderation = get_unique_from_req "min_level" req in
+  let max_ponderation = get_unique_from_req "max_level" req in
+  let confidential = get_unique_from_req "confidential" req in
+  let tags = get_unique_from_req "tags"  req in
+  let readonly = get_unique_from_req "readonly" req in
+  let pretty = get_unique_from_req "pretty" req in
+  let after = Option.bind after Misc.string_to_date in
+  let before = Option.bind before Misc.string_to_date in
+  let min_level =
+    Option.map Int32.of_int @@ Option.bind min_ponderation int_of_string_opt
   in
-  let max_ponderation =
-    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation
+  let max_level =
+    Option.map Int32.of_int @@ Option.bind max_ponderation int_of_string_opt
   in
   let tags =
-    Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
+    Option.bind
+      tags
+      (fun str -> if str = "" then None else Some (String.split_on_char ',' str))
+  in
+  let categories = groups in
   let confidential =
     match confidential with
     | Some "false" -> false
     | _ -> true in
+  let readonly =
+    match readonly with
+    | Some "false" -> false
+    | _ -> true in
+  (after, before, min_level, max_level, tags, categories, confidential, readonly, pretty)
+
+let timeline_data (req, tid) _ () =
+  Lwt_io.printl "CALL timeline_data" >>= (fun () ->
+      let (
+        start_date, end_date,
+        min_ponderation, max_ponderation,
+        tags, groups,
+        confidential, _readonly,
+        _pretty
+      ) = decode_token_params req in
   edition_rights (req, tid) (fun has_rights ->
       begin
         if confidential then
@@ -176,7 +203,7 @@ let timeline_data (req, tid) _ () =
         function
         | Ok (Timeline {title; events; edition_rights}) ->
           (* Todo: parametrize the removal of categories *)
-          let remove_category (i, e) = (i, {e with Timeline_data.Data_types.group = None}) in
+          let remove_category (i, e) = (i, {e with Data_types.group = None}) in
           let title, events =
             if edition_rights then
               title, events
@@ -231,27 +258,8 @@ let logout _ _ (email, cookie) =
   Lwt_io.printl "CALL logout" >>= fun () ->
   Reader.Login.logout email cookie >>= ok
 
-let export_database (_req, timeline_id) _ () =
-  Lwt_io.printl "CALL export_database" >>= fun () ->
-  Reader.timeline_data ~with_confidential:true ~tid:timeline_id () >>= (function
-    | Ok (Timeline {title; events; _}) -> begin
-      try
-        let events = List.map snd events in
-        let title =
-          match title with
-          | None -> None
-          | Some (_, t) -> Some t in
-        let json =
-          Json_encoding.construct Data_encoding.timeline_encoding Data_types.{title; events} in
-        EzAPIServerUtils.return @@ Ok (Data_encoding.write_json json "www/database.json")
-      with Failure s -> EzAPIServerUtils.return (Error s)
-    end
-    | Ok NoTimeline -> EzAPIServerUtils.return (Error "Invalid token")
-    | Error e -> EzAPIServerUtils.return (Error e)
-    )
-
 let create_timeline_lwt req auth title name public =
-  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params with
+  match get_auth_email req with
   | None ->
     Writer.create_public_timeline title name
   | Some email ->
@@ -273,18 +281,22 @@ let send_link ~lang ~readonly_tid ~email ~timeline_name ~admin_tid =
 
 let create_timeline (req, name) _ (title, public) =
   Lwt_io.printl "CALL create_database" >>= fun () ->
-  let name' = Utils.trim name in
+  let name' = Misc.trim name in
   is_auth req (fun auth ->
     match create_timeline_lwt req auth title name' public with
       | Error _ as e -> EzAPIServerUtils.return e
       | (Ok (admin_tid, readonly_tid)) as ok ->
-        match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "email" req.EzAPI.Req.req_params with
-        | None ->
+        match StringMap.find_opt "email" req.EzAPI.Req.req_params with
+        | None | Some [] ->
           Lwt_io.printl "No email provided, returning" >>= fun () ->
           EzAPIServerUtils.return ok
-        | Some email ->
+        | Some (email :: _) ->
           Lwt_io.printl ("Sending to " ^ email) >>= fun () ->
-          let lang = Utils.fopt Utils.hd_opt @@ StringMap.find_opt "lang" req.EzAPI.Req.req_params in
+          let lang =
+            Option.bind
+              (StringMap.find_opt "lang" req.EzAPI.Req.req_params)
+              Misc.hd_opt
+          in
           send_link ~lang ~readonly_tid ~email ~timeline_name:name ~admin_tid >>=
           function
           | Error (id, msg) ->
@@ -292,7 +304,7 @@ let create_timeline (req, name) _ (title, public) =
               (Format.asprintf
                  "Error %i: %a"
                  id
-                 (Utils.pp_opt Format.pp_print_string)
+                 (Misc.pp_opt Format.pp_print_string)
                  msg) >>=
             fun () -> EzAPIServerUtils.return ok
           | Ok _ -> EzAPIServerUtils.return ok
@@ -300,7 +312,7 @@ let create_timeline (req, name) _ (title, public) =
 
 let import_timeline (req, name) _ (title, events, public) =
   Lwt_io.printl "CALL import_database" >>= fun () ->
-  let name = Utils.trim name in
+  let name = Misc.trim name in
   is_auth req (fun auth ->
     match create_timeline_lwt req auth title name public with
   | Error e -> EzAPIServerUtils.return (Error e)
@@ -326,7 +338,7 @@ let import_timeline (req, name) _ (title, events, public) =
 let user_timelines req _ () =
   Lwt_io.printl "CALL user_timelines" >>= fun () ->
   if_ is_auth ~error:unauthorized req (fun () ->
-    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.req_params with
+    match get_auth_email req with
     | None ->
       unknown_error "[user_timelines] Error: email should be in params"
     | Some email ->
@@ -351,7 +363,7 @@ let timeline_users (req,tid) _ () =
 let remove_user req _ () =
   Lwt_io.printl "CALL remove_user" >>= fun () ->
   if_ ~error:unauthorized is_auth req (fun () ->
-    match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "auth_email" req.EzAPI.Req.req_params with
+    match get_auth_email req with
     | None ->
       unknown_error "[user_timelines] Error: email should be in params"
     | Some email -> EzAPIServerUtils.return @@ Writer.remove_user email
@@ -362,80 +374,6 @@ let remove_timeline (req,tid) _ () =
   if_ ~error:unauthorized edition_rights (req,tid) (fun () ->
     EzAPIServerUtils.return @@ Writer.remove_timeline tid
   )
-
-(*
-let view (req, tid) _ () =
-  Lwt_io.printl "CALL view" >>= (fun () ->
-      let start_date =
-        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "start_date" req.req_params in
-      let end_date =
-        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "end_date"   req.req_params in
-      let groups = StringMap.find_opt "group" req.req_params in
-      let min_ponderation =
-        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
-      let max_ponderation =
-        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "max_level"  req.req_params in
-      let tags =
-        Utils.fopt Utils.hd_opt @@ StringMap.find_opt "tags"  req.req_params in
-
-      let start_date = Utils.fopt Utils.string_to_date start_date in
-      let end_date = Utils.fopt Utils.string_to_date end_date in
-      let min_ponderation = Utils.fopt int_of_string_opt min_ponderation in
-      let max_ponderation = Utils.fopt int_of_string_opt max_ponderation in
-      let tags =
-        Utils.fopt
-          (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
-      Reader.view
-        ~tid
-        ?start_date
-        ?end_date
-        ?groups
-        ?min_ponderation
-        ?max_ponderation
-        ?tags
-      >>= EzAPIServerUtils.return
-    )
-*)
-
-let decode_token_params req =
-  let after =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "after" req.EzAPI.Req.req_params in
-  let before =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "before"   req.req_params in
-  let groups = StringMap.find_opt "group" req.req_params in
-  let min_ponderation =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "min_level"  req.req_params in
-  let max_ponderation =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "max_level"  req.req_params in
-  let confidential =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "confidential"  req.req_params in
-  let tags =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "tags"  req.req_params in
-  let readonly =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "readonly" req.req_params in
-  let pretty =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.req_params in
-
-  let after = Utils.fopt Utils.string_to_date after in
-  let before = Utils.fopt Utils.string_to_date before in
-  let min_level =
-    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt min_ponderation
-  in
-  let max_level =
-    Option.map Int32.of_int @@ Utils.fopt int_of_string_opt max_ponderation
-  in
-  let tags =
-    Utils.fopt (fun str -> if str = "" then None else Some (String.split_on_char ',' str)) tags in
-  let categories = groups in
-  let confidential =
-    match confidential with
-    | Some "false" -> false
-    | _ -> true in
-  let readonly =
-    match readonly with
-    | Some "false" -> false
-    | _ -> true in
-  (after, before, min_level, max_level, tags, categories, confidential, readonly, pretty)
 
 let create_token (req, tid) _ () =
   let after, before, min_level, max_level, tags, categories, confidential, readonly, pretty =
@@ -450,12 +388,15 @@ let create_token (req, tid) _ () =
     tid
 
 let update_token_pretty (req, token) _ tid =
-  let pretty =
-    Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.EzAPI.Req.req_params in
+  let pretty = get_unique_from_req "pretty" req in
   EzAPIServerUtils.return @@ Writer.update_token_pretty ~pretty ~token tid
 
 let update_token_readonly (req, token) _ tid =
-  let _,_,_,_,_,_,_,readonly, _ = decode_token_params req in
+  let readonly =
+    match get_unique_from_req "readonly" req with
+    | Some "false" -> false
+    | _ -> true
+  in
   EzAPIServerUtils.return @@
   Writer.update_token_readonly ~readonly ~token tid
 
@@ -494,7 +435,7 @@ let has_admin_rights (req, tid) _ () =
   has_admin_rights (req, tid) ok
 
 let update_timeline_name req _ tid =
-  match Utils.fopt Utils.hd_opt @@ StringMap.find_opt "pretty" req.EzAPI.Req.req_params with
+  match get_unique_from_req "pretty" req with
   | None -> EzAPIServerUtils.return (Error "No name given")
   | Some new_name ->
     EzAPIServerUtils.return @@ Writer.update_timeline_name new_name tid
@@ -503,10 +444,3 @@ let update_timeline_name req _ tid =
 let version _ _ () =
   Lwt_io.printl "CALL version" >>= fun () ->
   ok "0.1"
-
-(*
-let reinitialize _ events =
-  Writer.remove_events ();
-  List.iter Writer.add_event events;
-  EzAPIServerUtils.return true
-*)

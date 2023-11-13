@@ -24,7 +24,8 @@
  (name email)
  (modules sendgrid_encoding sendgrid_xhr emails)
  (libraries
-   timeline_data
+   data_types
+   utils
    data_encoding
    ez_api.cohttp_lwt
    api_config
@@ -36,7 +37,8 @@
  (libraries
    ez_api
    ez_api.encoding
-   timeline_data
+   data_types
+   utils
    api_data
    api_config
    ))
@@ -52,7 +54,8 @@
    api_data
    database_reader_lib
    database_writer_lib
-   timeline_data
+   data_types
+   utils
    data_encoding
    api_services
    ))

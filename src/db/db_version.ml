@@ -136,7 +136,7 @@ let sql_downgrade_10_to_9 = [
   {| ALTER TABLE timeline_ids_ DROP COLUMN tags_ |};
   {| ALTER TABLE timeline_ids_ DROP COLUMN confidential_ |};
   {| ALTER TABLE timeline_ids_ DROP COLUMN after_ |};
-  {| ALTER TABLE timeline_ids_ DROP COLUMN before_ |};  
+  {| ALTER TABLE timeline_ids_ DROP COLUMN before_ |};
 ]
 
 let sql_upgrade_9_to_10 = [

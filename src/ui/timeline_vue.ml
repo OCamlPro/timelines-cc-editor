@@ -7,7 +7,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Timeline_data
 open Data_types
 open Lwt
 
@@ -18,6 +17,7 @@ open Text
 
 module Dom_html = Js_of_ocaml.Dom_html
 module Js = Js_of_ocaml.Js
+module Misc = Utils.Misc
 
 class type jsEvent = object
   method date     : Js.js_string Js.t Js.readonly_prop
@@ -509,9 +509,9 @@ let showForm title events (self : 'a) (adding : bool) : unit =
       | Some (_, title) when title.unique_id = current_event_id -> title
       | _ ->
         let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) events in
-        Utils.event_to_title e
+        Misc.event_to_title e
     in
-    Ezjs_tyxml.log "Edition of event %a" Utils.pp_title current_event;
+    Ezjs_tyxml.log "Edition of event %a" Misc.pp_title current_event;
     updateVueFromEvent self current_event
   end;
   ()
@@ -551,8 +551,8 @@ let addEvent title events self adding : unit =
   if timeline = "" then
     Alert_vue.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
   else begin
-    let start_date  = Utils.string_to_date @@ Js.to_string self##.startDateFormValue in
-    let end_date    = Utils.string_to_date @@ Js.to_string self##.endDateFormValue   in
+    let start_date  = Misc.string_to_date @@ Js.to_string self##.startDateFormValue in
+    let end_date    = Misc.string_to_date @@ Js.to_string self##.endDateFormValue   in
     let media        = Js.to_string self##.mediaFormValue      in
     let headline     = Js.to_string self##.headlineFormValue   in
     let text         = Js.to_string self##.textFormValue       in
@@ -604,7 +604,7 @@ let addEvent title events self adding : unit =
               Alert_vue.alert err;
               None
           end
-        | Some (i, e) -> Some (i, Utils.event_to_title e) in
+        | Some (i, e) -> Some (i, Misc.event_to_title e) in
       match old_event with
       | None -> ()
       | Some (id, old_event) ->
@@ -857,7 +857,7 @@ let switchToDefaultInput self =
 
 let updateDefaultId self =
   let title = Js.to_string self##.headlineFormValue in
-  let uid = Js.string @@ Utils.short_title title in
+  let uid = Js.string @@ Misc.short_title title in
   if self##.uniqueIdFormValue = self##.uniqueIdFormValueDefault then begin
     self##.uniqueIdFormValue := uid
   end;

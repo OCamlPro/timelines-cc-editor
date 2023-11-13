@@ -1,7 +1,13 @@
 (library
- (name timeline_data)
- (modules data_types utils csv_utils)
- (libraries calendar csv))
+ (name data_types)
+ (modules data_types)
+ (libraries calendar)
+)
+
+(library
+ (name utils)
+ (modules misc csv_utils)
+ (libraries calendar csv data_types))
 
 (library
  (name data_encoding)
@@ -10,7 +16,9 @@
    ;;ocplib-json-typed
    json-data-encoding
    ;;yojson
-   timeline_data))
+   data_types
+   utils
+))
 
 (library
  (name xhr_lwt)

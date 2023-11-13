@@ -156,10 +156,6 @@ let hd_opt = function
     [] -> None
   | hd :: _ -> Some hd
 
-let fopt f = function
-    None -> None
-  | Some e -> f e
-
 let list_init n f =
   let rec aux n acc =
     if n < 0 then raise (Invalid_argument "Utils.list_init")

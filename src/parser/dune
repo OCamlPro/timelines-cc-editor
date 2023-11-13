@@ -1,5 +1,5 @@
 (executable
  (name csv_parser)
  (modules csv_parser)
- (libraries timeline_data data_encoding))
+ (libraries data_types utils data_encoding))
 
