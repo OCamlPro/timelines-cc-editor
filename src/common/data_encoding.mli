@@ -7,18 +7,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let init token name title events =
-  Ui_common.Ui_utils.update_page_title name;
-  let () =
-    match token with
-    | None -> ()
-    | Some t -> Timeline_cookies.add_timeline name t true in
-  Ezjs_tyxml.(hide (find_component "alert-div"));
-  Ui_common.Ui_utils.slow_hide (Ezjs_tyxml.find_component "page_content-loading");
-  Ezjs_tyxml.(show (find_component "page_content"));
-  Timeline_display.display_timeline ~view:true title events;
-  Timeline_display.init_slide_from_url
-    ~whenOnSlide:(fun _ -> ())
-    ~activate_keypress:(fun _ -> true)
-    title
-    events
+val date_encoding :
+  CalendarLib.Period.date_field CalendarLib.Date.date
+    Json_encoding.encoding
+
+val event_encoding : Data_types.event Json_encoding.encoding
+
+val title_encoding : Data_types.title Json_encoding.encoding
+
+val timeline_encoding : Data_types.timeline Json_encoding.encoding
+
+(** Writes the JSON in a file. *)
+val write_json : Json_repr.ezjsonm -> string -> unit

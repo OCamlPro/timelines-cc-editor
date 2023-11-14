@@ -1,6 +1,13 @@
-open Sendgrid_encoding
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
 
-module StringMap = StringCompat.StringMap
+open Sendgrid_encoding
 
 type lang =
   | En
@@ -20,7 +27,10 @@ let person_from_email email = Sendgrid_encoding.{
 
 let mail_from_email_subject_content email subject content = {
   person = [person_from_email email];
-  from = email_from_string ?name:!Config.Sendgrid.from_alias !Config.Sendgrid.from;
+  from =
+    email_from_string
+      ?name:(Api_config.Sendgrid.from_alias ())
+      (Api_config.Sendgrid.from ());
   subject = Some subject;
   content = Some [{
     content_type = "text/plain";
@@ -28,23 +38,23 @@ let mail_from_email_subject_content email subject content = {
   }];
   template_id = None;
   more_fields = None
-} 
+}
 
 let creation_email
-    ?(lang=En)
+    ~lang
     ~readonly_tid
     ~admin_tid
     ~email
     ~timeline_name
-    : unit Sendgrid_encoding.mail =
+  : unit Sendgrid_encoding.mail =
   let admin_url =
     Format.sprintf "%s/edit?timeline=%s-%s"
-      !Config.API.api_host
+      (Api_config.host ())
       timeline_name
       admin_tid in
   let view_url =
     Format.sprintf "%s/view?timeline=%s-%s"
-      !Config.API.api_host
+      (Api_config.host ())
       timeline_name
       readonly_tid in
   match lang with

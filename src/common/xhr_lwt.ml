@@ -90,24 +90,10 @@ let post_raw ~base ?args ?(content_type="application/json") url contents =
   try Xhr.perform ~content_type ~contents url2 >>= handle_response
   with _ -> return (Error (Xhr_err (make_frame ~url ("No response from server for " ^ url))))
 
-(*
-type 'a encoding =
-  | Raw of ('a -> string) * (string -> 'a)
-  | Enc of 'a Json_encoding.encoding
-
-let destruct enc s = match enc with
-  | Raw (_, of_string) -> of_string @@ String.sub s 1 (String.length s - 3)
-  | Enc enc -> EzEncoding.destruct enc s
-
-let construct enc o = match enc with
-  | Raw (to_string, _) -> Printf.sprintf "%S" (to_string o)
-  | Enc enc -> EzEncoding.construct enc o *)
-
-let cook ?(eprint = Format.eprintf) encs = 
+let cook ?(eprint = Format.eprintf) encs =
   (function
     | Ok res -> begin
-        let yoj = Yojson.Safe.from_string res in
-        let js = Json_repr.from_yojson yoj in
+        let js = Ezjsonm.from_string res in
         let res =
           List.fold_left
             (fun acc enc ->
@@ -122,13 +108,13 @@ let cook ?(eprint = Format.eprintf) encs =
                    None
             )
             None
-            encs    
+            encs
         in
         match res with
         | None ->
           return (Error (Str_err "Error: cannot destruct value"))
         | Some res -> return (Ok res)
-      end      
+      end
     | Error e ->
       let code, error = error_content e in
       eprint "[Xhr_lwt.post] Error %i: %s@." code error; return (Error e))
@@ -145,4 +131,4 @@ let post ~base ?(eprint = Format.eprintf) ?args ?content_type input_enc output_e
 
 let pp_err fmt e =
   let code, err = error_content e in
-  Format.fprintf fmt "Error %i: %s" code err 
+  Format.fprintf fmt "Error %i: %s" code err

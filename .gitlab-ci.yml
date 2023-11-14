@@ -13,13 +13,14 @@ workflow:
 # Customize the build rules and the artifacts here
 build:
   stage: build
-  image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.10
+  image: registry.ocamlpro.com/ocamlpro/ocaml-docker-images:4.14
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - sudo apk add pkgconf && opam option --global 'depext-bypass+=["pkgconfig"]'
     - sudo apk add bash
-    - "[ -d _opam ] || opam switch create . ocaml.4.07.1 --deps-only --locked"
+    - /usr/bin/git ls-files
+    - "opam switch create . ocaml.4.14.1 --deps-only --locked -v"
   script:
     - opam exec -- ocp-build init
     - opam exec -- sh build_deps.sh

@@ -1,4 +1,12 @@
-open Timeline_data
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open Data_types
 open Lwt
 
@@ -7,7 +15,9 @@ open Ui_utils
 open Lang
 open Text
 
+module Dom_html = Js_of_ocaml.Dom_html
 module Js = Js_of_ocaml.Js
+module Misc = Utils.Misc
 
 class type jsEvent = object
   method date     : Js.js_string Js.t Js.readonly_prop
@@ -40,7 +50,7 @@ class type filter = object
 end
 
 let filter_to_jsfilter =
-  let i = ref 0 in fun DbData.{timeline; kind; pretty; after;
+  let i = ref 0 in fun Db_data.{timeline; kind; pretty; after;
           before; min_level; max_level;
           categories; tags; confidential_rights} : filter Js.t ->
   let readonly =
@@ -258,7 +268,7 @@ let page_vue
     (categories : (string * bool) list)
     (title : (int * title) option)
     (events : (int * event) list)
-    (tokens : DbData.filter list)
+    (tokens : Db_data.filter list)
   : data Js.t =
   let categories : categoryFilter Js.t Js.js_array Js.t =
     Ui_utils.list_to_jsarray @@
@@ -280,7 +290,7 @@ let page_vue
         | Some (_, {ponderation; _}) -> ponderation in
       List.fold_left
         (fun max (_, {ponderation; _}) ->
-         Js_utils.log "PONDERATION: %i" ponderation;
+         Ezjs_tyxml.log "PONDERATION: %i" ponderation;
          if ponderation > max then ponderation else max)
          title_pond
          events
@@ -449,8 +459,8 @@ let updateVueFromEvent self e =
 
   let () = (* group *)
     match e.group with
-    | None -> Js_utils.log "Event has no category"; self##.categoriesFormValue := jss ""
-    | Some g -> Js_utils.log "Current category is %s" g; self##.categoriesFormValue := jss g in
+    | None -> Ezjs_tyxml.log "Event has no category"; self##.categoriesFormValue := jss ""
+    | Some g -> Ezjs_tyxml.log "Current category is %s" g; self##.categoriesFormValue := jss g in
 
   let tags_str =
     Format.pp_print_list
@@ -470,13 +480,13 @@ let updateVueFromEvent self e =
   ()
 
 let showMenu (self : 'a) : unit =
-  Js_utils.Manip.addClass (Js_utils.find_component "navPanel") "visible";
+  Ezjs_tyxml.Manip.addClass (Ezjs_tyxml.find_component "navPanel") "visible";
   self##.openedMenu := Js._true
 
 let showForm title events (self : 'a) (adding : bool) : unit =
   showMenu self;
   self##.openedForm := Js._true;
-  Js_utils.Manip.addClass (Js_utils.find_component "formPanel") "visible";
+  Ezjs_tyxml.Manip.addClass (Ezjs_tyxml.find_component "formPanel") "visible";
   self##.addingNewEvent := (Js.bool adding);
   if adding then begin
     updateVueFromEvent self {
@@ -499,14 +509,15 @@ let showForm title events (self : 'a) (adding : bool) : unit =
       | Some (_, title) when title.unique_id = current_event_id -> title
       | _ ->
         let _, e = List.find (fun (_, {unique_id; _}) -> unique_id = current_event_id) events in
-        Utils.event_to_metaevent e in
-    Js_utils.log "Edition of event %a" Utils.pp_title current_event;
+        Misc.event_to_title e
+    in
+    Ezjs_tyxml.log "Edition of event %a" Misc.pp_title current_event;
     updateVueFromEvent self current_event
   end;
   ()
 
 let hideForm self =
-  Js_utils.Manip.removeClass (Js_utils.find_component "formPanel") "visible";
+  Ezjs_tyxml.Manip.removeClass (Ezjs_tyxml.find_component "formPanel") "visible";
   self##.addingNewEvent := Js._false;
   self##.openedForm := Js._false
 
@@ -532,7 +543,7 @@ let updateTimelineTitle (self : 'a) : unit =
 
 let hideMenu (self : 'a) : unit =
   hideForm self;
-  Js_utils.Manip.removeClass (Js_utils.find_component "navPanel") "visible";
+  Ezjs_tyxml.Manip.removeClass (Ezjs_tyxml.find_component "navPanel") "visible";
   self##.openedMenu := Js._false
 
 let addEvent title events self adding : unit =
@@ -540,8 +551,8 @@ let addEvent title events self adding : unit =
   if timeline = "" then
     Alert_vue.alert @@ Lang.t_ Text.s_alert_no_timeline_selected
   else begin
-    let start_date  = Utils.string_to_date @@ Js.to_string self##.startDateFormValue in
-    let end_date    = Utils.string_to_date @@ Js.to_string self##.endDateFormValue   in
+    let start_date  = Misc.string_to_date @@ Js.to_string self##.startDateFormValue in
+    let end_date    = Misc.string_to_date @@ Js.to_string self##.endDateFormValue   in
     let media        = Js.to_string self##.mediaFormValue      in
     let headline     = Js.to_string self##.headlineFormValue   in
     let text         = Js.to_string self##.textFormValue       in
@@ -556,7 +567,7 @@ let addEvent title events self adding : unit =
     let ponderation  = self##.ponderationFormValue             in
     let confidential = Js.to_bool self##.confidentialFormValue in
     if adding then begin
-      Js_utils.log "Adding event";
+      Ezjs_tyxml.log "Adding event";
       let _l : 'a Lwt.t =
         Controller.add_event
           ~start_date
@@ -577,7 +588,7 @@ let addEvent title events self adding : unit =
                  timeline
                  s
              );
-             if Ui_utils.is_localhost () then Js_utils.reload ()
+             if Ui_utils.is_localhost () then Ezjs_tyxml.reload ()
           )
       in ()
     end
@@ -593,7 +604,7 @@ let addEvent title events self adding : unit =
               Alert_vue.alert err;
               None
           end
-        | Some (i, e) -> Some (i, Utils.event_to_metaevent e) in
+        | Some (i, e) -> Some (i, Misc.event_to_title e) in
       match old_event with
       | None -> ()
       | Some (id, old_event) ->
@@ -670,7 +681,7 @@ let import self =
   Controller.import_timeline
     timeline_id
     true
-    (Js_utils.find_component "import-form")
+    (Ezjs_tyxml.find_component "import-form")
 
 let addEditionToken self =
   Controller.addToken
@@ -693,17 +704,17 @@ let setTokenAsEdition self token =
 let editAlias self filter = (*
   match Js.Optdef.to_option filter##.editing with
   | None -> (* Entering edition mode *)
-    Js_utils.log "New alias treatment: entering edition mode";
+    Ezjs_tyxml.log "New alias treatment: entering edition mode";
     filter##.editing := Js.Optdef.return filter##.pretty
   | Some _f -> (* Sending new pretty alias *) *)
-    Js_utils.log "New alias treatment";
+    Ezjs_tyxml.log "New alias treatment";
     let pretty =
       let p =  Js.to_string filter##.pretty in
       if p = "" then begin
-        Js_utils.log "Removing alias";
+        Ezjs_tyxml.log "Removing alias";
         None
       end else begin
-        Js_utils.log "New alias: %s" p;
+        Ezjs_tyxml.log "New alias: %s" p;
         Some p
       end in
     let tid = Js.to_string self##.currentTimeline in
@@ -737,24 +748,24 @@ let copyLink self readonly filter_id =
       readonly
       timeline_name
       filter_id in
-  Js_utils.Clipboard.set_copy ();
-  Js_utils.Clipboard.copy link;
+  Ezjs_tyxml.Clipboard.set_copy ();
+  Ezjs_tyxml.Clipboard.copy link;
   Alert_vue.alert "Link copied to clipboard"
 
 let center_slide_content () =
   List.iter
-    (fun elt -> Js_utils.Manip.SetCss.width elt "100%")
-    (Js_utils.Manip.by_class "tl-slide-content")
+    (fun elt -> Ezjs_tyxml.Manip.SetCss.width elt "100%")
+    (Ezjs_tyxml.Manip.by_class "tl-slide-content")
 
 (* Timeline initializer *)
 let display_timeline self title events =
   Timeline_display.display_timeline title events;
   let whenOnSlide = function
     | None ->
-      Js_utils.log "Error during slide change, assuming not changed"
+      Ezjs_tyxml.log "Error during slide change, assuming not changed"
     | Some s ->
       self##.currentEvent := jss s;
-      Js_utils.log "Current event is %s" s in
+      Ezjs_tyxml.log "Current event is %s" s in
   Timeline_display.init_slide_from_url
     ~whenOnSlide
     ~activate_keypress:(fun () -> not @@ Js.to_bool self##.openedForm)
@@ -795,14 +806,14 @@ let filter self =
     Request.timeline_data ~args tid
       (function
          | Error s ->
-           Js_utils.log "Error while requesting timeline_data: %s. Reloading page" s;
-           Js_utils.reload ();
+           Ezjs_tyxml.log "Error while requesting timeline_data: %s. Reloading page" s;
+           Ezjs_tyxml.reload ();
            Lwt.return ()
          | Ok (Timeline {title; events; edition_rights=_}) ->
            display_timeline self title events; Lwt.return ()
          | Ok NoTimeline ->
-           Js_utils.log "Timeline has not been found after filtering, maybe someone deleted it? Reloading page to be sure.";
-           Js_utils.reload ();
+           Ezjs_tyxml.log "Timeline has not been found after filtering, maybe someone deleted it? Reloading page to be sure.";
+           Ezjs_tyxml.reload ();
            Lwt.return ()
 )
   with Failure s -> Alert_vue.alert s
@@ -828,25 +839,25 @@ let removeTimeline self tid =
            Timeline_cookies.remove_timeline tids;
            if tid = self##.currentTimeline then
              Ui_utils.goto_page "/"
-           else Js_utils.reload ()
+           else Ezjs_tyxml.reload ()
         )
     else Lwt.return (Ok ()))
 
 let switchToMainInput self =
-  Js_utils.(hide (find_component "unique-id-default-form"));
-  Js_utils.(show (find_component "unique-id-form"));
+  Ezjs_tyxml.(hide (find_component "unique-id-default-form"));
+  Ezjs_tyxml.(show (find_component "unique-id-form"));
   self##.uniqueIdFormValue := self##.uniqueIdFormValueDefault
 
 let switchToDefaultInput self =
   if Js.to_string self##.uniqueIdFormValue = "" then begin
     self##.uniqueIdFormValue := self##.uniqueIdFormValueDefault;
-    Js_utils.(show (find_component "unique-id-default-form"));
-    Js_utils.(hide (find_component "unique-id-form"));
+    Ezjs_tyxml.(show (find_component "unique-id-default-form"));
+    Ezjs_tyxml.(hide (find_component "unique-id-form"));
   end
 
 let updateDefaultId self =
   let title = Js.to_string self##.headlineFormValue in
-  let uid = Js.string @@ Utils.short_title title in
+  let uid = Js.string @@ Misc.short_title title in
   if self##.uniqueIdFormValue = self##.uniqueIdFormValueDefault then begin
     self##.uniqueIdFormValue := uid
   end;
@@ -856,7 +867,7 @@ let first_connexion self : unit Lwt.t =
   let msg =
     Format.sprintf "%s\n\n%s\n\n%s"
       (Lang.t_ Text.s_alert_timeline_creation1)
-      (Js.to_string Ocp_js.Dom_html.window##.location##.href)
+      (Js.to_string Dom_html.window##.location##.href)
       (Lang.t_ Text.s_alert_timeline_creation2) in
   Alert_vue.alert_lwt msg >|= (fun () ->
   showForm None [] self true)
@@ -865,15 +876,15 @@ let init
     ~(args: Args.t)
     ~(on_page: on_page)
     ~(categories : (string * bool) list)
-    ~(tokens : DbData.filter list) =
-  Js_utils.log "Creating vue@.";
-  Js_utils.log "Tokens: %i@." (List.length tokens);
+    ~(tokens : Db_data.filter list) =
+  Ezjs_tyxml.log "Creating vue@.";
+  Ezjs_tyxml.log "Tokens: %i@." (List.length tokens);
   let name, id, events, title =
     match on_page with
     | Timeline {name; id; events; title} -> name, id, events, title
     | No_timeline {name; id} -> name, id, [], None in
   let data = page_vue id name args categories title events tokens in
-  Js_utils.log "Adding methods@.";
+  Ezjs_tyxml.log "Adding methods@.";
   Vue.add_method0 "showMenu" showMenu;
   Vue.add_method0 "hideMenu" hideMenu;
   Vue.add_method1 "showForm" (showForm title events);
@@ -898,10 +909,10 @@ let init
   Vue.add_method0 "updateDefaultId" updateDefaultId;
   Vue.add_method0 "updateTimelineTitle" updateTimelineTitle;
 
-  Js_utils.log "Adding components@.";
-  Js_utils.log "Initializing vue@.";
+  Ezjs_tyxml.log "Adding components@.";
+  Ezjs_tyxml.log "Initializing vue@.";
   let vue = Vue.init ~data ~show:true () in
-  let () = Ui_utils.slow_hide (Js_utils.find_component "page_content-loading") in
+  let () = Ui_utils.slow_hide (Ezjs_tyxml.find_component "page_content-loading") in
   let () = FilterNavs.init () in
   let () =
     match on_page with
@@ -909,11 +920,11 @@ let init
       Alert_vue.alert (Lang.t_ s_alert_timeline_not_found);
       Ui_utils.goto_page "/"
     | Timeline {title; events; id; name} ->
-      Js_utils.log "Adding timeline to cookies@.";
+      Ezjs_tyxml.log "Adding timeline to cookies@.";
       let () = Timeline_cookies.add_timeline name id false in
-      Js_utils.log "Update page title";
+      Ezjs_tyxml.log "Update page title";
       update_page_title name;
-      Js_utils.log "Displaying timeline@.";
+      Ezjs_tyxml.log "Displaying timeline@.";
       match events with
       | [] -> ignore @@ first_connexion vue
       | _ -> display_timeline vue title events

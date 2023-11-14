@@ -1,4 +1,4 @@
-_obuild
+_build
 csv-parser
 www/data.json
 _opam
@@ -8,3 +8,4 @@ www/index.html
 www/view/index.html
 www/assets/js.ocp-timeline.js
 www/assets/js/ocptimeline-js.js
+*~

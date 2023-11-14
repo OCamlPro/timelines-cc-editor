@@ -1,6 +1,16 @@
-open Timeline_data
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open Data_types
 open Ui_common
+module Csv_utils = Utils.Csv_utils
+module Misc = Utils.Misc
 
 exception IncorrectInput of string
 let incorrect_input s = raise (IncorrectInput s)
@@ -36,7 +46,7 @@ let create_timeline ?email name descr cont =
       i1 ^ i2, Lang.t_ Text.s_default_title, None
     | _ -> name, name, Some name
   in
-  let title = Utils.to_title_event headline descr in
+  let title = Misc.to_title_event {headline; text = descr} in
   let error e = Lwt.return @@ Error e in
   Request.create_timeline ~error ?email timeline_id title true
     ( fun (admin,_) ->
@@ -70,7 +80,7 @@ let add_event
           incorrect_input "Headline & unique-id cannot be empty at the same time"
         else headline
       | _ -> unique_id in
-    let tags = String.split_on_char ',' (Utils.trim tags) in
+    let tags = String.split_on_char ',' (Misc.trim tags) in
     let media =
       match media with
       | "" -> None
@@ -96,7 +106,7 @@ let add_event
       event
       (fun s -> cont s; Lwt.return (Ok ()))
   with
-    IncorrectInput s -> 
+    IncorrectInput s ->
     Alert_vue.alert (Format.sprintf "Error: %s" s);
     Lwt.return (Error s)
 
@@ -121,7 +131,7 @@ let update_event
         incorrect_input "Headline & unique-id cannot be empty at the same time"
       else headline
     | _ -> unique_id in
-  let tags = String.split_on_char ',' (Utils.trim tags) in
+  let tags = String.split_on_char ',' (Misc.trim tags) in
   let media =
     match media with
     | "" -> None
@@ -147,7 +157,7 @@ let update_event
     ~old_event ~new_event
     ~timeline_id (function
     | Success ->
-      Js_utils.reload (); Lwt.return (Ok ())
+      Ezjs_tyxml.reload (); Lwt.return (Ok ())
     | Modified _t ->
       Alert_vue.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
     )
@@ -157,7 +167,7 @@ let removeEvent ~id ~timeline_id =
   Alert_vue.confirm (Lang.t_ Text.s_confirm_remove_event) >>= (fun confirm ->
   if confirm then
     Request.remove_event ~error ~id:(string_of_int id) ~timeline_id
-      (fun () -> Js_utils.reload (); return (Ok ()))
+      (fun () -> Ezjs_tyxml.reload (); return (Ok ()))
   else return (Ok ()))
 
 let export_timeline ?(name="timeline") title events =
@@ -166,23 +176,23 @@ let export_timeline ?(name="timeline") title events =
     | Some (_, t) -> Csv_utils.title_to_csv_line  t in
   let csv =
     title_line ::
-    (List.map (fun (_, e) -> Csv_utils.title_to_csv_line (Utils.event_to_metaevent e)) events) in
+    (List.map (fun (_, e) -> Csv_utils.event_to_csv_line e) events) in
   Ui_utils.download
     (name ^ ".csv")
     (Csv_utils.to_string csv)
 
 let import_timeline tid is_public elt =
   let open Lwt in
-  Js_utils.log "Importing timeline";
+  Ezjs_tyxml.log "Importing timeline";
   Alert_vue.confirm "You are about to replace your timeline by the current one. Are you sure?" >>=
   (fun confirm ->
     if confirm then Lwt.return @@
-      Js_utils.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
+      Ezjs_tyxml.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
         (fun file_content ->
-           let title, events = Csv_utils.from_string file_content in
+           let {title; events} = Csv_utils.from_string file_content in
            let title =
              match title with
-             | None -> Utils.to_title_event "Title" "Text"
+             | None -> Misc.to_title_event {headline = "Title"; text = "Text"}
              | Some t -> t in
            let _lwt =
              Request.import_timeline
@@ -190,7 +200,11 @@ let import_timeline tid is_public elt =
                ~args:[]
                tid title
                events is_public
-               (fun () -> Alert_vue.alert "Success!"; Js_utils.reload (); finish (Ok ())) in ()
+               (fun () ->
+                  Alert_vue.alert "Success!";
+                  Ezjs_tyxml.reload ();
+                  finish (Ok ()))
+           in ()
       )
     else Lwt.return false)
 

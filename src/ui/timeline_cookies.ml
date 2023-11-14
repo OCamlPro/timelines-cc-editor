@@ -1,5 +1,16 @@
-open Json_encoding
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
+module JE = Json_encoding
 open Ui_common
+
+module Cookie = Ezjs_cookie
 
 type timeline = {
   id : string;
@@ -14,27 +25,35 @@ type t =
 (* Todo: lazyfication *)
 
 let timeline_encoding =
-  conv
-    (fun {id; readonly; name} -> (id, readonly, name))
-    (fun (id, readonly, name) -> {id; readonly; name})
-    (obj3
-      (req "url" string)
-      (req "readonly" bool)
-      (req "name" string))
+  JE.(
+    conv
+      (fun {id; readonly; name} -> (id, readonly, name))
+      (fun (id, readonly, name) -> {id; readonly; name})
+      (obj3
+         (req "url" string)
+         (req "readonly" bool)
+         (req "name" string))
+  )
 
-let disabled_encoding = obj1 (req "disabled" unit)
+let disabled_encoding = JE.(obj1 (req "disabled" unit))
 
 let encoding =
-  union [
-    case
-      (list timeline_encoding)
-      (function | DisabledCookies -> None | EnabledCookies l -> Some l)
-      (fun l -> EnabledCookies l);
-    case
-      disabled_encoding
-      (function | DisabledCookies -> Some () | _ -> None)
-      (fun () -> DisabledCookies)
-  ]
+  JE.(
+    union [
+      case
+        (list timeline_encoding)
+        (function | DisabledCookies -> None | EnabledCookies l -> Some l)
+        (fun l -> EnabledCookies l);
+      case
+        disabled_encoding
+        (function | DisabledCookies -> Some () | _ -> None)
+        (fun () -> DisabledCookies)
+    ]
+  )
+
+let to_string ck =
+  let json = JE.construct encoding ck in
+  Format.asprintf "%a" (Json_repr.pp ~compact:true (module Json_repr.Ezjsonm)) json
 
 let reset () =
   Cookie.set ~path:"/" "timelines" "{}";
@@ -44,14 +63,13 @@ let reset () =
 let get_timelines () =
   try
     List.iter
-      (fun (k, _) -> Js_utils.log "Key %s" k) (Cookie.all ());
+      (fun (k, _) -> Ezjs_tyxml.log "Key %s" k) (Cookie.all ());
     let tls = List.assoc_opt "timelines" (Cookie.all ()) in
     match tls with
     | None -> [], true
     | Some str ->
-      let json = Yojson.Safe.from_string str in
-      let json = Json_repr.from_yojson json in
-      match destruct encoding json with
+      let json = Ezjsonm.from_string str in
+      match JE.destruct encoding json with
       | EnabledCookies l -> l, true
       | DisabledCookies -> [], false
   with _ ->
@@ -70,11 +88,7 @@ let add_timeline name id readonly =
         else
           old_timeline :: replace_or_add tl in
     let new_tls = replace_or_add tls in
-    let str =
-      Yojson.Safe.to_string @@
-      Json_repr.to_yojson @@
-      construct encoding (EnabledCookies new_tls) in
-    Cookie.set ~path:"/" "timelines" str
+    Cookie.set ~path:"/" "timelines" (to_string (EnabledCookies new_tls))
 
 let rename_timeline new_name id =
   let tls, enabled = get_timelines () in
@@ -87,11 +101,7 @@ let rename_timeline new_name id =
         else
           old_timeline :: loop tl in
     let new_tls = loop tls in
-    let str =
-      Yojson.Safe.to_string @@
-      Json_repr.to_yojson @@
-      construct encoding (EnabledCookies new_tls) in
-    Cookie.set ~path:"/" "timelines" str
+    Cookie.set ~path:"/" "timelines" (to_string (EnabledCookies new_tls))
 
 let remove_timeline id =
   let tls, enabled = get_timelines () in
@@ -104,24 +114,13 @@ let remove_timeline id =
       else
         old_timeline :: remove tl in
   let new_tls = remove tls in
-  let str =
-    Yojson.Safe.to_string @@
-    Json_repr.to_yojson @@
-    construct encoding (EnabledCookies new_tls) in
-  Cookie.set ~path:"/" "timelines" str
+  Cookie.set ~path:"/" "timelines" (to_string (EnabledCookies new_tls))
 
 let enable () =
-  let str =
-    Yojson.Safe.to_string @@
-    Json_repr.to_yojson @@
-    construct encoding (EnabledCookies []) in
-  Cookie.set ~path:"/" "timelines" str
+  Cookie.set ~path:"/" "timelines" (to_string (EnabledCookies []))
 
 let disable () =
-  let str =
-    Yojson.Safe.to_string @@
-    Json_repr.to_yojson @@
-    construct encoding (DisabledCookies) in
+  let str = to_string DisabledCookies in
   Cookie.set ~path:"/" "timelines" str;
   Cookie.set ~path:"/edit" "timelines" str;
   Cookie.set ~path:"/view" "timelines" str

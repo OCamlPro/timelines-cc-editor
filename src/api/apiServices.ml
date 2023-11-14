@@ -1,23 +1,28 @@
-open EzAPI
-open Timeline_data
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open Json_encoding
-open Api_data.ApiData
+open Api_data
+open EzAPI
 
 let tup1_int = EzEncoding.tup1_int
 
-let arg_default id = arg_int id (-1)
+let arg_default id = Arg.int id ~example:(-1)
 
-let arg_token () = arg_string "timeline-id" "timeline-id"
+let arg_token () = Arg.string "timeline-id" ~example:"timeline-id"
 
-type nonrec 'a service0 = ('a, string, basic_security) service0
-type nonrec ('a, 'b) service1 = ('a, 'b, string, basic_security) service1
-type nonrec ('a, 'b) post_service0 = ('a, 'b, string, basic_security) post_service0
-type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, basic_security) post_service1
+type nonrec 'a service0 = ('a, string, Security.basic) service0
+type nonrec ('a, 'b) service1 = ('a, 'b, string, Security.basic) service1
+type nonrec ('a, 'b) post_service0 = ('a, 'b, string, Security.basic) post_service0
+type nonrec ('a, 'b, 'c) post_service1 = ('a, 'b, 'c, string, Security.basic) post_service1
 
-let api_root =
-  match !Config.API.api_root with
-  | None -> Path.root
-  | Some p -> Path.(root // p) 
+let api_root = Path.(root // "api")
 
 (*
 let arg_address_key = arg_default "address_key"
@@ -46,124 +51,137 @@ let arg_mmsi = arg_string "mmsi" ""
 
 let arg_name = arg_string "name" "" *)
 
-let unit = Api_data.ApiData.unit
+let unit = Api_data.unit
 
-let group_param = {
-  param_value = "group";
+let group_param = Param.{
+  param_id = "group";
   param_name  = Some "group";
   param_descr = Some "Category";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["OCaml"; "Software"]
+  param_examples = ["OCaml"; "Software"];
+  param_schema = None;
 }
 
-let email_param = {
-  param_value = "email";
+let email_param = Param.{
+  param_id = "email";
   param_name  = Some "email";
   param_descr = Some "Email";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["your@provider.mail"]
+  param_examples = ["your@provider.mail"];
+  param_schema = None;
 }
 
-let lang_param = {
-  param_value = "lang";
+let lang_param = Param.{
+  param_id = "lang";
   param_name  = Some "lang";
   param_descr = Some "Language";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["fr"; "en"]
+  param_examples = ["fr"; "en"];
+  param_schema = None;
 }
 
-let group_list_param = {
-  param_value = "group_list";
+let group_list_param = Param.{
+  param_id = "group_list";
   param_name  = Some "group_list";
   param_descr = Some "Categories";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["OCaml"; "Software,OCaml"]
+  param_examples = ["OCaml"; "Software,OCaml"];
+  param_schema = None;
 }
 
-let tags_param = {
-  param_value = "tags";
+let tags_param = Param.{
+  param_id = "tags";
   param_name  = Some "tags";
   param_descr = Some "Tags";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["ocaml"; "tag1,tag2"]
+  param_examples = ["ocaml"; "tag1,tag2"];
+  param_schema = None;
 }
 
-let date_param name = {
-  param_value = "date";
+let date_param name = Param.{
+  param_id = "date";
   param_name  = Some name;
   param_descr = Some "Date";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["01-01-1111"; "05-12-1991"]
+  param_examples = ["01-01-1111"; "05-12-1991"];
+  param_schema = None;
 }
 
-let ponderation_param name = {
-  param_value = "ponderation";
+let ponderation_param name = Param.{
+  param_id = "ponderation";
   param_name  = Some name;
   param_descr = Some "Ponderation";
   param_type = PARAM_INT;
   param_required = false;
-  param_examples = ["0"; "9"]
+  param_examples = ["0"; "9"];
+  param_schema = None;
 }
 
-let confid_param = {
-  param_value = "confidential";
+let confid_param = Param.{
+  param_id = "confidential";
   param_name  = Some "confidential";
   param_descr = Some "confidential";
   param_type = PARAM_BOOL;
   param_required = false;
-  param_examples = ["false"; "true"]  
+  param_examples = ["false"; "true"];
+  param_schema = None;
 }
 
-let readonly_param = {
-  param_value = "readonly";
+let readonly_param = Param.{
+  param_id = "readonly";
   param_name  = Some "readonly";
   param_descr = Some "readonly";
   param_type = PARAM_BOOL;
   param_required = false;
-  param_examples = ["false"; "true"]  
+  param_examples = ["false"; "true"];
+  param_schema = None;
 }
 
-let event_id = {
-  param_value = "event_id";
+let event_id = Param.{
+  param_id = "event_id";
   param_name  = Some "event_id";
   param_descr = Some "EventId";
   param_type = PARAM_INT;
   param_required = true;
-  param_examples = ["0"; "9"; "42"]
+  param_examples = ["0"; "9"; "42"];
+  param_schema = None;
 }
 
-let pretty_name_param = {
-  param_value = "pretty";
+let pretty_name_param = Param.{
+  param_id = "pretty";
   param_name  = Some "pretty";
   param_descr = Some "Pretty name";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["Me"; "Your best friend"]
+  param_examples = ["Me"; "Your best friend"];
+  param_schema = None;
 }
 
-let auth_params = {
-  param_value = "auth_email";
+let auth_params = Param.{
+  param_id = "auth_email";
   param_name  = Some "auth_email";
   param_descr = Some "Email";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = ["my-email@provider.com"]
+  param_examples = ["my-email@provider.com"];
+  param_schema = None;
 } :: {
-  param_value = "auth_data";
+  param_id = "auth_data";
   param_name  = Some "auth_data";
   param_descr = Some "Key";
   param_type = PARAM_STRING;
   param_required = false;
-  param_examples = []
+  param_examples = [];
+  param_schema = None;
 } :: []
 
-let filter_params = [ 
+let filter_params = [
   date_param "after";
   date_param "before";
   group_param;
@@ -178,44 +196,22 @@ let param_number =
 let param_page =
   Param.int ~name:"page" ~descr:"Offset in number of pages" "p"
 
-(*
-let event : (int, Data_types.title) service1 =
-  service
-    ~params:auth_params
-    ~name:"event"
-    ~output:(Data_encoding.title_encoding)
-    Path.(api_root // "event" /: (arg_default "event_key"))
-
-let events : (string, (int * Data_types.event) list) service1 =
-  service
-    ~params:auth_params
-    ~name:"events"
-    ~output:(list (tup2 int Data_encoding.event_encoding))
-    Path.(api_root // "events" /: arg_token ())
-let title : (string, (int * Data_types.title) option) service1 =
-  service
-    ~params:auth_params
-    ~name:"title"
-    ~output:title_api_result_encoding
-    Path.(api_root // "title" /: arg_token ()) *)
-
 let api_error_output =
-  EzAPI.ErrCase {
+  EzAPI.Err.Case {
     code = 500;
     name = "Api Error";
     encoding = (Json_encoding.(obj1 (req "error" string)));
     select = (fun s -> Some s);
-    deselect = (fun s -> s)             
+    deselect = Fun.id
   }
 
-let error_outputs = [
+let errors = [
   api_error_output
-] 
-  
+]
 
 let add_event : (string, Data_types.event, string) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"add_event"
     ~input:Data_encoding.event_encoding
@@ -224,7 +220,7 @@ let add_event : (string, Data_types.event, string) post_service1 =
 
 let update_event : (int * Data_types.title * Data_types.title * string, update_title_res) post_service0 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"update_event"
     ~input:(tup4 tup1_int Data_encoding.title_encoding Data_encoding.title_encoding string)
@@ -232,9 +228,9 @@ let update_event : (int * Data_types.title * Data_types.title * string, update_t
     Path.(api_root // "update_event")
 
 let timeline_data :
-  (string, DbData.timeline_data_output) service1 =
+  (string, Db_data.timeline_data_output) service1 =
   service
-    ~error_outputs
+    ~errors
     ~name:"timeline_data"
     ~output:timeline_data_api_result_encoding
     ~params:(auth_params @ filter_params)
@@ -242,7 +238,7 @@ let timeline_data :
 
 let remove_event : (string, unit) service1 =
   service
-    ~error_outputs
+    ~errors
     ~params:(event_id :: auth_params)
     ~name:"remove_event"
     ~output:unit
@@ -250,40 +246,23 @@ let remove_event : (string, unit) service1 =
 
 let categories : (string, string list) service1 =
   service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"categories"
     ~output:(list string)
     Path.(api_root // "categories" /: arg_token ())
 
-let register_user : (string * string, unit) post_service0 =
+let register_user : (Db_data.user, unit) post_service0 =
   post_service
-    ~error_outputs
+    ~errors
     ~name:"register_user"
-    ~input:(tup2 string string)
+    ~input:Api_data.user_encoding
     ~output:unit
     Path.(api_root // "register_user")
 
-let login : (string * string, string) post_service0 =
-  post_service
-    ~error_outputs
-    ~name:"login"
-    ~input:(tup2 string string)
-    ~output:string
-    Path.(api_root // "login")
-
-let logout : (string * string, unit) post_service0 =
-  post_service
-    ~error_outputs
-    ~name:"login"
-    ~input:(tup2 string string)
-    ~output:unit
-    Path.(api_root // "logout")
-
-
 let is_auth : (unit, bool) post_service0 =
   post_service
-    ~error_outputs
+    ~errors
     ~name:"is_auth"
     ~input:unit
     ~output:bool
@@ -291,7 +270,7 @@ let is_auth : (unit, bool) post_service0 =
 
 let has_admin_rights : (string, unit, bool) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"has_admin_rights"
     ~input:unit
@@ -300,7 +279,7 @@ let has_admin_rights : (string, unit, bool) post_service1 =
 
 let export_database : (string, unit) service1 =
   service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"export_database"
     ~output:unit
@@ -308,16 +287,16 @@ let export_database : (string, unit) service1 =
 
 let create_timeline : (string, (Data_types.title * bool), string * string) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:(email_param :: lang_param :: auth_params)
     ~name:"create_timeline"
     ~input:(tup2 Data_encoding.title_encoding bool)
-    ~output:Api_data.ApiData.create_timeline_output_encoding
+    ~output:Api_data.create_timeline_output_encoding
     Path.(api_root // "create_timeline" /: arg_token ())
 
 let import_timeline : (string, (Data_types.title * Data_types.event list * bool), unit) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"import_timeline"
     ~input:(tup3 Data_encoding.title_encoding (list Data_encoding.event_encoding) bool)
@@ -326,7 +305,7 @@ let import_timeline : (string, (Data_types.title * Data_types.event list * bool)
 
 let user_timelines : (unit, string list) post_service0 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"user_timeline"
     ~input:unit
@@ -335,7 +314,7 @@ let user_timelines : (unit, string list) post_service0 =
 
 let allow_user : (string * string, unit) post_service0 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"allow_user"
     ~input:(tup2 string string)
@@ -344,7 +323,7 @@ let allow_user : (string * string, unit) post_service0 =
 
 let timeline_users : (string, unit, string list) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"timeline_user"
     ~input:unit
@@ -353,7 +332,7 @@ let timeline_users : (string, unit, string list) post_service1 =
 
 let remove_user : (unit, unit) post_service0 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"remove_user"
     ~input:unit
@@ -362,7 +341,7 @@ let remove_user : (unit, unit) post_service0 =
 
 let remove_timeline : (string, unit, unit) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:auth_params
     ~name:"remove_timeline"
     ~input:unit
@@ -371,7 +350,7 @@ let remove_timeline : (string, unit, unit) post_service1 =
 
 let create_token : (string, unit, string) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:(auth_params @ filter_params @ [
         readonly_param;
         pretty_name_param
@@ -383,7 +362,7 @@ let create_token : (string, unit, string) post_service1 =
 
 let update_token_pretty : (string, string, unit) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:(auth_params @ [
         pretty_name_param
       ])
@@ -394,7 +373,7 @@ let update_token_pretty : (string, string, unit) post_service1 =
 
 let update_token_readonly : (string, string, unit) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:(auth_params @ [
         readonly_param;
       ])
@@ -405,7 +384,7 @@ let update_token_readonly : (string, string, unit) post_service1 =
 
 let update_token : (string, string, unit) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:(auth_params @ filter_params @ [
         readonly_param;
         pretty_name_param
@@ -417,32 +396,32 @@ let update_token : (string, string, unit) post_service1 =
 
 let remove_token : (string, string, unit) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:[]
     ~name:"remove_token"
     ~input:admin_token (* The admin token *)
     ~output:unit
     Path.(api_root // "remove_token" /: arg_token ())
 
-let get_tokens : (string, unit, DbData.filter list) post_service1 =
+let get_tokens : (string, unit, Db_data.filter list) post_service1 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:[]
     ~name:"get_tokens"
     ~input:unit
-    ~output:(list Api_data.ApiData.filter_encoding)
+    ~output:(list Api_data.filter_encoding)
     Path.(api_root // "get_tokens" /: arg_token ())
 
 let timeline_name : (string, string) service1 =
   service
-    ~error_outputs
+    ~errors
     ~name:"timeline_name"
     ~output:string
     Path.(api_root // "timeline_name" /: arg_token ())
 
 let update_timeline_name : (string, unit) post_service0 =
   post_service
-    ~error_outputs
+    ~errors
     ~params:(auth_params @ [
         pretty_name_param
       ])
@@ -454,7 +433,23 @@ let update_timeline_name : (string, unit) post_service0 =
 (* Miscelaneous *)
 let version : string service0 =
   service
-    ~error_outputs
+    ~errors
     ~name:"version"
     ~output:string
     Path.(api_root // "version")
+
+let login : (Db_data.user, string) post_service0 =
+  post_service
+    ~errors
+    ~name:"login"
+    ~input:Api_data.user_encoding
+    ~output:string
+    Path.(api_root // "login")
+
+let logout : (string * string, unit) post_service0 =
+  post_service
+    ~errors
+    ~name:"login"
+    ~input:(tup2 string string)
+    ~output:unit
+    Path.(api_root // "logout")

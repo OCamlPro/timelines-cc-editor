@@ -1,3 +1,12 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 module type MONAD =
 sig
   type 'a t
@@ -34,8 +43,8 @@ module Default_monad = struct
   let fail = raise
   let catch f fexn = try f () with e -> fexn e
 
-  type in_channel = Pervasives.in_channel
-  type out_channel = Pervasives.out_channel
+  type in_channel = Stdlib.in_channel
+  type out_channel = Stdlib.out_channel
   let open_connection = Unix.open_connection
   let output_char = output_char
   let output_binary_int = output_binary_int

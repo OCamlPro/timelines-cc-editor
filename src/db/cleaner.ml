@@ -1,13 +1,28 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open CalendarLib
+module C = Db_config
 
 let filename : string ref = ref ""
 let timelines_to_keep : string list ref = ref []
 
 let dbh () : _ PGOCaml.t PGOCaml.monad =
-  let open Config.DB in
-  PGOCaml.connect ?host ?password ?port ?user ~database ()
+  PGOCaml.connect
+    ?host:(C.host ())
+    ?password:(C.password ())
+    ?port:(C.port ())
+    ?user:(C.user ())
+    ~database:(C.database ())
+    ()
 
-let clean () =    
+let clean () =
   let dbh = dbh () in
   let to_remove =
     [%pgsql dbh "SELECT id_, last_update_ FROM timeline_ids_ WHERE id_=alias_"] in
@@ -19,9 +34,9 @@ let clean () =
          [%pgsql dbh "UPDATE timeline_ids_ SET last_update_=$today WHERE alias_=$id"]
        | Some last_update -> (* if no modification, then discard timeline *)
          let period = Date.sub today last_update in
-         if 
-           Date.Period.compare period (Date.Period.month 1) >= 0 && 
-           not (List.mem id !timelines_to_keep) 
+         if
+           Date.Period.compare period (Date.Period.month 1) >= 0 &&
+           not (List.mem id !timelines_to_keep)
          then begin
            Format.eprintf "Removing timeline %s@." id;
            ignore @@ Database_writer_lib.Writer.remove_timeline id
@@ -33,15 +48,15 @@ let clean () =
 let load_keep () = try
     let l =
       let chan = open_in !filename in
-      let str = 
+      let str =
         let res = ref "" in
-        let () = 
+        let () =
           try while true do
               res := !res ^ (input_line chan)
             done with End_of_file -> () in
         !res in
-      let json = Json_repr.from_yojson @@ Yojson.Safe.from_string str in
-      Json_encoding.(destruct (list string) json) 
+      let json = Ezjsonm.from_string str in
+      Json_encoding.(destruct (list string) json)
     in
     List.iter
       (Format.eprintf "Keeping timeline %s@.")

@@ -1,10 +1,19 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 
 (* Some rules:
    * Names that we introduce should end with '_' (it is a standard SQL rule);
    * Use EzPG.Mtimes to add row_created_ and row_modified_ columns in a table;
 *)
 
-let default_database = Config.DB.database
+let default_database = Db_config.database
 
 let sql_downgrade_1_to_0 = [
   {| DROP TABLE sessions_; |};
@@ -127,7 +136,7 @@ let sql_downgrade_10_to_9 = [
   {| ALTER TABLE timeline_ids_ DROP COLUMN tags_ |};
   {| ALTER TABLE timeline_ids_ DROP COLUMN confidential_ |};
   {| ALTER TABLE timeline_ids_ DROP COLUMN after_ |};
-  {| ALTER TABLE timeline_ids_ DROP COLUMN before_ |};  
+  {| ALTER TABLE timeline_ids_ DROP COLUMN before_ |};
 ]
 
 let sql_upgrade_9_to_10 = [

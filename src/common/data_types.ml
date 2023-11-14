@@ -1,3 +1,12 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 type date = CalendarLib.Date.t
 
 type text = {
@@ -5,21 +14,10 @@ type text = {
   text : string
 }
 
-(* Format évènement:
-   * Debut année
-   * Debut mois
-   * Fin année
-   * Fin mois
-   * Type (logiciel, personne, client, + OCaml, blockchain, partenariat/écosystème, etc.)
-   * Type 2 (à déterminer)
-   * Pondération (0 = confidentiel à masquer)
-   * Lien (blogpost, github, lien video etc.)
-   * Titre
-   * Narration (optionnel)   *)
-
 type main_event_type = string
 
 type sub_event_type = string
+
 type level = int
 
 type media = {

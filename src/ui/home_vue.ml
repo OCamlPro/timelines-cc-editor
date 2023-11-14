@@ -1,3 +1,12 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open Ui_common
 open Ui_utils
 open Text
@@ -65,7 +74,7 @@ let createTimeline (self : data Vue_js.vue) =
         let () = Timeline_cookies.add_timeline name id false in
         let id = Ui_utils.timeline_arg_from_id ~name id in
         let new_page = Format.sprintf "/edit?timeline=%s" id in
-        Js_utils.log "Going to %s" new_page;
+        Ezjs_tyxml.log "Going to %s" new_page;
         Ui_utils.goto_page new_page
       )
     )
@@ -75,7 +84,7 @@ let enableCookies self =
   self##.cookiesEnabled := Js._true
 
 let disableCookies self =
-  if Js_utils.confirm (Lang.t_ s_confirm_disable_cookies) then begin
+  if Ezjs_tyxml.confirm (Lang.t_ s_confirm_disable_cookies) then begin
     Timeline_cookies.disable ();
     self##.cookiesEnabled := Js._false
   end
@@ -126,5 +135,5 @@ let init () =
   Vue.add_method0 "disableCookies" disableCookies;
 
   let _obj = Vue.init ~show:true ~data () in
-  Ui_utils.slow_hide (Js_utils.find_component "page_content-loading");
+  Ui_utils.slow_hide (Ezjs_tyxml.find_component "page_content-loading");
   ()

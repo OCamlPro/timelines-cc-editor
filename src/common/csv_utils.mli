@@ -7,18 +7,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let init token name title events =
-  Ui_common.Ui_utils.update_page_title name;
-  let () =
-    match token with
-    | None -> ()
-    | Some t -> Timeline_cookies.add_timeline name t true in
-  Ezjs_tyxml.(hide (find_component "alert-div"));
-  Ui_common.Ui_utils.slow_hide (Ezjs_tyxml.find_component "page_content-loading");
-  Ezjs_tyxml.(show (find_component "page_content"));
-  Timeline_display.display_timeline ~view:true title events;
-  Timeline_display.init_slide_from_url
-    ~whenOnSlide:(fun _ -> ())
-    ~activate_keypress:(fun _ -> true)
-    title
-    events
+exception Not_an_event of string
+
+(** Transforms a title into a CSV line. *)
+val title_to_csv_line : Data_types.title -> string list
+
+(** Same, but for events. *)
+val event_to_csv_line : Data_types.event -> string list
+
+(** Returns a CSV as a string. *)
+val to_string : Csv.t -> string
+
+(** From a CSV string, returns the timeline title and events.
+    Raises Not_an_event if a line does not correspond to an event. *)
+val from_string : string -> Data_types.timeline
+
+(** Same, but for a file. *)
+val from_file : string -> Data_types.timeline

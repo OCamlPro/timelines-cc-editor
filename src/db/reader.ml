@@ -1,9 +1,19 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
 
-open Timeline_data.Data_types
+
+open Data_types
 open Database_interface.Db_intf
-open Timeline_data
-open DbData
-  
+
+module C = Db_config
+module Misc = Utils.Misc
+
 let verbose_mode = ref false
 let verbose_counter = ref 0
 
@@ -48,8 +58,13 @@ module Reader_generic (M : MONAD) = struct
     let dispose conn =
       PGOCaml.close conn in
     M.pool_create ~check ~validate ~dispose 20 (fun () ->
-      let open Config.DB in
-      PGOCaml.connect ?host ?port ?user ?password ~database ())
+      PGOCaml.connect
+        ?host:(C.host ())
+        ?port:(C.port ())
+        ?user:(C.user ())
+        ?password:(C.password ())
+        ~database:(C.database ())
+        ())
 
   let with_dbh f = M.pool_use dbh_pool f
 
@@ -59,12 +74,12 @@ module Reader_generic (M : MONAD) = struct
     match line with
       (id, start_date, end_date, headline, text, url, group, confidential,
        ponderation, unique_id, last_update, tags, is_title) ->
-      let tags = 
-        match tags with 
+      let tags =
+        match tags with
           | None -> []
-          | Some p -> 
+          | Some p ->
             List.fold_left
-              (fun acc -> 
+              (fun acc ->
                  function
                    | None -> acc
                    | Some tag -> tag :: acc)
@@ -78,16 +93,16 @@ module Reader_generic (M : MONAD) = struct
         text = {
           text;
           headline};
-        media = Utils.opt (fun url -> {url}) url;
+        media = Option.map (fun url -> {url}) url;
         group;
         confidential;
         ponderation = Int32.to_int ponderation;
         unique_id;
-        last_update; 
+        last_update;
         tags
       }
 
-  let has_admin_rights (email : string) (tid : string) = 
+  let has_admin_rights (email : string) (tid : string) =
     with_dbh >>> fun dbh ->
     [%pgsql dbh "SELECT timelines_ FROM users_ WHERE email_=$email"] >>=
     fun l ->
@@ -124,7 +139,7 @@ module Reader_generic (M : MONAD) = struct
     | []      -> return None
     | id :: _ -> return (Some id)
 
-  (* DO NOT EXPORT: contains the admin key of the timeline *) 
+  (* DO NOT EXPORT: contains the admin key of the timeline *)
   let filter_of_token (tid : string) =
     with_dbh >>> fun dbh ->
       [%pgsql dbh
@@ -132,38 +147,38 @@ module Reader_generic (M : MONAD) = struct
                 confidential_, after_, before_, readonly_ \
          FROM timeline_ids_ WHERE id_=$tid"] >>= function
     | [] -> return (Error "Token does not exist")
-    | (Some timeline, pretty, min_level, max_level, categories, tags, 
-       confidential_rights, after, before, readonly) :: _ -> 
-       let kind = if readonly then View else Edit in 
-       let tags = 
-         match tags with 
+    | (Some timeline, pretty, min_level, max_level, categories, tags,
+       confidential_rights, after, before, readonly) :: _ ->
+       let kind = if readonly then Db_data.View else Edit in
+       let tags =
+         match tags with
          | None -> None
          | Some p -> Some (
            List.fold_left
-             (fun acc -> 
+             (fun acc ->
                 function
                 | None -> acc
                 | Some tag -> tag :: acc)
              []
              p) in
-       let categories = 
-         match categories with 
+       let categories =
+         match categories with
          | None -> None
          | Some p -> Some (
            List.fold_left
-             (fun acc -> 
+             (fun acc ->
                 function
                 | None -> acc
                 | Some tag -> tag :: acc)
              []
              p) in
-       return (Ok { 
-          timeline; pretty; min_level; max_level; categories; tags; 
+       return (Ok Db_data.{
+          timeline; pretty; min_level; max_level; categories; tags;
           confidential_rights; after; before; kind})
     | _ -> assert false
 
   let unknown_token_error () = Error "Token does not exist"
-  
+
   let with_filter ~error (tid : string) cont =
     filter_of_token tid >>= function
     | Ok f -> cont f
@@ -185,9 +200,9 @@ module Reader_generic (M : MONAD) = struct
 (*
   let events (tid : string) =
     with_dbh >>> fun dbh ->
-    with_filter ~error:(fun () -> return []) tid 
+    with_filter ~error:(fun () -> return []) tid
       (fun {timeline; after; before; min_level; max_level; categories; tags; confidential} ->
-        
+
     [%pgsql dbh "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
                 confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
                 FROM events_ WHERE \
@@ -207,7 +222,7 @@ module Reader_generic (M : MONAD) = struct
 
   (* Do NOT export this function is API: admin check is not performed as
      calling this function is required to check admin in 'update_event'. Also, knowing
-     the timeline name from an id could lead to a very simple attack: 
+     the timeline name from an id could lead to a very simple attack:
        for i = 0 to max_int do remove_event (timeline_of_event id) id done *)
   let timeline_of_event (id : int) =
     let id = Int32.of_int id in
@@ -217,15 +232,14 @@ module Reader_generic (M : MONAD) = struct
     | [] -> return None
     | hd :: _ -> return (Some hd)
 
-
-  let is_admin_filter f tid : bool = f.timeline = tid 
+  let is_admin_filter f tid : bool = f.Db_data.timeline = tid
 
   let admin_rights ~error (timeline_id : string) cont = (* error = If token does not exist *)
     filter_of_token timeline_id >>= (function
         | Ok f ->
           cont (is_admin_filter f timeline_id)
         | Error _ -> return @@ error ())
-      
+
   let has_title (tid : string) =
     with_dbh >>> fun dbh ->
     with_filter ~error:(fun () -> return (Error "Unknown token")) tid (fun f ->
@@ -233,8 +247,8 @@ module Reader_generic (M : MONAD) = struct
         [%pgsql dbh "SELECT * FROM events_ WHERE timeline_id_ = $admin_tid AND is_title_"]
         >>= function | [] -> return (Ok false) | _ -> return (Ok true)
       )
-      
-       (* 
+
+       (*
   let title (tid : string) =
     with_dbh >>> fun dbh ->
     admin_rights ~error:(fun () -> return None) tid (fun f ->
@@ -248,12 +262,12 @@ module Reader_generic (M : MONAD) = struct
       let _, id, e = line_to_event l in
       return (Some (id, e))) *)
 
-  let timeline_name (id : string) = 
+  let timeline_name (id : string) =
     with_dbh >>> fun dbh ->
     [%pgsql dbh "SELECT main_title_ FROM timeline_ids_ WHERE id_ = $id"] >>= (function
         | [] -> return (Error "Timeline does not exist")
         | Some hd :: _ -> return (Ok hd)
-        | None :: _ -> return (Ok "")) 
+        | None :: _ -> return (Ok ""))
 
   let used_unique_id id =
     with_dbh >>> fun dbh ->
@@ -272,50 +286,50 @@ module Reader_generic (M : MONAD) = struct
       ?(groups=[])
       ?(tags=[])
       () =
-    with_filter ~error:(fun () -> return (Ok NoTimeline)) tid (fun f ->
-    let tid = f.timeline in
-    let start_date = 
-      match f.after with
+    with_filter ~error:(fun () -> return (Ok Db_data.NoTimeline)) tid (fun f ->
+    let tid = f.Db_data.timeline in
+    let start_date =
+      match f.Db_data.after with
       | None -> start_date
-      | Some d -> Utils.max_date start_date d in
-    
-    let end_date = 
-      match f.before with
+      | Some d -> Misc.max_date start_date d in
+
+    let end_date =
+      match f.Db_data.before with
       | None -> end_date
-      | Some d -> Utils.min_date end_date d in
-    
-    let min_ponderation = 
-      match f.min_level with
+      | Some d -> Misc.min_date end_date d in
+
+    let min_ponderation =
+      match f.Db_data.min_level with
       | None -> min_ponderation
-      | Some p -> Utils.max32 p min_ponderation in
+      | Some p -> Int32.max p min_ponderation in
 
     let max_ponderation =
-      match f.max_level with
+      match f.Db_data.max_level with
       | None -> max_ponderation
-      | Some p -> Utils.min32 p max_ponderation in
-    
+      | Some p -> Int32.min p max_ponderation in
+
     let tags =
       let tagso =
       match f.tags with
         | None -> tags
-        | Some t -> Utils.intersect_list tags t in
+        | Some t -> Misc.intersect_list tags t in
       List.map (fun s -> Some s) tagso in
 
     let groups =
-      match f.categories with
+      match f.Db_data.categories with
       | None -> Format.eprintf "No category filter@."; groups
       | Some c ->
         Format.eprintf "Category filters registered: %a@."(Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt "//") (fun fmt -> Format.fprintf fmt "%s")) c;
         match groups with
         | [] -> c
-        | _ -> Utils.intersect_list groups c in
+        | _ -> Misc.intersect_list groups c in
 
     let confidential = with_confidential && f.confidential_rights in
 
     Format.eprintf "Timeline %s with groups = %a@."
       tid
       (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ",") (fun fmt -> Format.fprintf fmt "%s")) groups;
-    
+
     with_dbh >>> fun dbh ->
     let req =
       match groups, tags with
@@ -366,28 +380,28 @@ module Reader_generic (M : MONAD) = struct
             List.fold_left (
               fun acc l ->
                 let is_title, id, event = line_to_event ~with_end_date:true l in
-                if is_title then 
+                if is_title then
                   match !title with
                   | None -> title := Some (id, event); acc
-                  | Some _ -> raise TwoTitles
+                  | Some _ -> raise Db_data.TwoTitles
                 else
-                match Utils.metaevent_to_event event with
+                match Misc.title_to_event event with
                 | Some e  -> (id, e) :: acc
                 | None -> acc
             ) [] l in
-          let edition_rights = 
-            match f.kind with 
+          let edition_rights =
+            match f.Db_data.kind with
             | View -> false
-            | Edit -> true in 
-          return (Ok (Timeline {title= !title; events; edition_rights}))
-        with TwoTitles -> return (Error "Two titles in database")
+            | Edit -> true in
+          return (Ok (Db_data.Timeline {title= !title; events; edition_rights}))
+        with Db_data.TwoTitles -> return (Error "Two titles in database")
       )
   )
 
   let timeline_exists (tid : string) =
     with_dbh >>> fun dbh ->
-    [%pgsql dbh "SELECT * from timeline_ids_ WHERE id_ = $tid"] >>= 
-      function 
+    [%pgsql dbh "SELECT * from timeline_ids_ WHERE id_ = $tid"] >>=
+      function
       | [] -> return false
       | _ -> return true
 
@@ -399,21 +413,21 @@ module Reader_generic (M : MONAD) = struct
       if not edition_rights then
         return []
       else
-        let s = 
+        let s =
           match title with
-          | None | Some (_, {group = None; _}) -> Utils.StringSet.empty
-          | Some (_, {group = Some g; _}) -> Utils.StringSet.singleton g in 
-        let s =   
+          | None | Some (_, {group = None; _}) -> Misc.StringSet.empty
+          | Some (_, {group = Some g; _}) -> Misc.StringSet.singleton g in
+        let s =
           List.fold_left
             (fun acc (_, {group; _}) ->
               match group with
                | None -> acc
-               | Some g -> Utils.StringSet.add g acc)
+               | Some g -> Misc.StringSet.add g acc)
             s
             events
         in
         return @@
-        Utils.StringSet.fold
+        Misc.StringSet.fold
           (fun s acc -> s :: acc)
           s
           []
@@ -428,7 +442,7 @@ module Reader_generic (M : MONAD) = struct
         (fun acc ->
            function
            | None -> acc
-           | Some l -> 
+           | Some l ->
              List.fold_left
                (fun acc -> function | None -> acc | Some e -> e :: acc)
                acc
@@ -445,7 +459,7 @@ module Reader_generic (M : MONAD) = struct
         (fun acc ->
            function
            | None -> acc
-           | Some l -> 
+           | Some l ->
              List.fold_left
                (fun acc -> function | None -> acc | Some e -> e :: acc)
                acc
@@ -453,7 +467,7 @@ module Reader_generic (M : MONAD) = struct
         )
         []
         l
-  
+
   let is_public (tid : string) =
     with_dbh >>> fun dbh ->
     [%pgsql dbh "SELECT public_ FROM timeline_ids_ WHERE id_=$tid"] >>=
@@ -495,38 +509,38 @@ module Reader_generic (M : MONAD) = struct
            confidential_, after_, before_, readonly_ \
            FROM timeline_ids_ WHERE alias_=$tid"] >>=
         fun l ->
-        let l = 
-          List.map 
-            (fun (id, pretty, min_level, max_level, categories, tags, 
-                  confidential_rights, after, before, readonly) -> 
-              let kind = if readonly then View else Edit in
+        let l =
+          List.map
+            (fun (id, pretty, min_level, max_level, categories, tags,
+                  confidential_rights, after, before, readonly) ->
+              let kind = if readonly then Db_data.View else Edit in
 
-              let tags = 
-                match tags with 
+              let tags =
+                match tags with
                 | None -> None
                 | Some p -> Some (
                     List.fold_left
-                      (fun acc -> 
+                      (fun acc ->
                          function
                          | None -> acc
                          | Some tag -> tag :: acc)
                       []
                       p) in
 
-              let categories = 
-                match categories with 
+              let categories =
+                match categories with
                 | None -> None
                 | Some p -> Some (
                     List.fold_left
-                      (fun acc -> 
+                      (fun acc ->
                          function
                          | None -> acc
                          | Some tag -> tag :: acc)
                       []
                       p) in
 
-              {  (* Exporting a filter with the non admin ID. *)
-                timeline = id; pretty; min_level; max_level; categories; 
+              Db_data.{  (* Exporting a filter with the non admin ID. *)
+                timeline = id; pretty; min_level; max_level; categories;
                 tags; confidential_rights; after; before; kind}) l
         in return @@ Ok l
       end else
@@ -537,7 +551,7 @@ module Reader_generic (M : MONAD) = struct
       with_dbh >>> fun dbh ->
       [%pgsql dbh "DELETE from sessions_ where user_id_=$id"]
 
-    let login email pwdhash =
+    let login Db_data.{email; pwdhash} =
       with_dbh >>> fun dbh ->
       [%pgsql dbh "SELECT id_, pwhash_ FROM users_ WHERE email_=$email"] >>=
       function
