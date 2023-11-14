@@ -34,10 +34,10 @@ wrap-remove-commands:
    From here, "make init" should do the trick. If you want to customize
    your installation, here are the steps.
 
-  You need a switch 4.07.1 (for ocp-build). You are strongly advised to
+  You need a switch 4.14.1. You are strongly advised to
   create a new switch for the installation.
 
-  $ opam switch create timeline 4.07.1
+  $ opam switch create timeline 4.14.1
 
   Before installing and compiling all dependencies, you need to disable
   the sandbox mode of opam. Check the file `~/.opam/config`, and comment
