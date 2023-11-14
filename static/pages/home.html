@@ -8,9 +8,10 @@
 <header id="header">
   <div class="inner">
     <a href="index.html" class="logo">{{logo}}</a>
-    <nav id="nav">
+  <!--  <nav id="nav">
       <a href="#create-timeline"><button class="special">{{navHome}}</button></a>
     </nav>
+      -->
   </div>
 </header>
 
@@ -18,44 +19,87 @@
 <section id="banner">
   <h1>{{title}}</h1>
   <p>{{subtitle}}</p>
+  <form id="create-form">
+    <div class="timeline-menu-home-token tooltip">
+      <img src="/images/list.svg">
+      <div class="tooltipcontent" style="width: 13em !important; left: 20px !important; top: 40px !important; margin-top: 10px; bottom: unset !important;">
+        <div class="tooltiptitle">Your timelines:</div>
+        <ul>
+          <li class="homecroptoken" v-for="item in cookieTimelines">
+            <div style='float: right; display: inline-block'>
+            <a
+            class="TooltipImgLink"
+            :href="item.url">
+            {{item.name}}</a>
+
+            <!--<img
+            class="imghometooltip"
+            src="/images/upload.svg">
+	    -->
+            <img
+            @click='removeTimelineFromCookies(item.id)'
+            src="/images/trash.svg"
+            style="cursor:pointer; width:1.3em !important"
+            >
+            </div>
+          </li>
+        </ul>
+
+<!--        <div><div class="buttontooltip">
+          <input
+           type="file"
+           style="opacity: 0; width: 100%; height: 24px; position: absolute; right: 0px; cursor: pointer; margin: 0px !important; padding: 0px">
+           Import a timeline
+         </div></div> -->
+
+         <div
+         class="buttontooltip"
+         v-if="cookiesEnabled"
+         @click="disableCookies()"
+         style="cursor: pointer"
+         title="This will remove your timelines' url/cookies from your browser's memory: make sure you saved your timelines' permalinks.">
+	    {{disableCookiesButtonText}}<sup style="cursor: pointer">ℹ︎</sup>
+	  </div>
+	  <div
+    class="buttontooltip"
+    v-else @click="enableCookies()"
+    style="cursor: pointer"
+    title="This will allows the use of cookies to show your timelines' url">
+	    {{enableCookiesButtonText}}<sup>ℹ︎</sup>
+
+	  </div>
+      </div>
+</div>
+	  <input
+	    class="HomePlaceholder"
+	    :placeholder="createNamePlaceholder"
+	    :title="createNameHelp"
+	    v-model="createNameValue"
+	    >
+	  <div class="button home" @click="createTimeline()">{{createButtonMessage}}</div>
+    </form>
+
 </section>
 
 <section id="one" class="wrapper">
   <div class="inner">
-    <div class="flex flex-2">
-      <article id="create-timeline">
-	<header>
-	  <h3>{{createTimelineTitle}}</h3>
-	</header>
-	<p>{{createDescr}}</p>
-	<form id="create-form">
-	  <input
-	    :placeholder="createNamePlaceholder"
-	    :title="createNameHelp"
-	    v-model="createNameValue"
-	    ><br/>
-	  <input
-	    type="text"
-	    :placeholder="createDescrPlaceholder"
-	    :title="createDescrHelp"
-	    v-model="createDescrValue">
-	  <div></div>
-	  <div
-	    class="button special"
-	    @click="createTimeline()">{{createButtonMessage}} {{createNameValue}}</div>
-	</form>
-      </article>
-      <article>
-	<header>
-	  <h3 >{{shareTitle}}</h3>
-	</header>
-	<p>{{shareDescr}}</p>
-	<form>
-	  <input :placeholder="shareNamePlaceholder" :title="shareNameHelp" v-model="shareNameValue">
-	  <div class="button special" @click=shareClick()>{{shareNameButton}}</div>
-	  <p>Link to share: {{shareURL}}</p>
-	</form>
-      </article>
-    </div>
+    <article>
+	  <header>
+	    <h3 >{{shareTitle}}</h3>
+	  </header>
+	  <p>{{shareDescr}}</p>
+    </article>
+    <article id="create-timeline">
+      <header>
+	    <h3>{{createTimelineTitle}}</h3>
+	  </header>
+	  <p>{{createDescr}}</p>
+    </article>
+    <!--<article>
+	  <header>
+	    <h3>{{securityTitle}}</h3>
+	  </header>
+	  <p>{{securityDescr}}</p>
+    </article>-->
   </div>
 </section>

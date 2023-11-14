@@ -11,35 +11,27 @@ init:
 	bash opam_build.sh
 	bash build_deps.sh
 
-build: parser db api js
+build: db-update
+	PGDATABASE=$(DATABASE) dune build
+	cp -f _build/default/src/api/api.exe api
+	cp -f _build/default/src/ui/ocptimeline_js.bc.js www/assets/js/ocptimeline-js.js
 
-include libs/ez-pgocaml/libs/ez-pgocaml/Makefile.ezpg
-
-db: db-update
-	PGDATABASE=$(DATABASE) ocp-build csv-dbparser
-	cp _obuild/csv-dbparser/csv-dbparser.asm csv-dbparser
-parser:
-	ocp-build csv-parser
-	cp _obuild/csv-parser/csv-parser.asm csv-parser
-
-api: db
-	PGDATABASE=$(DATABASE) ocp-build api-lib
-	ocp-build make api
-	cp _obuild/api/api.asm api
-
+db-update:
+	PGDATABASE=$(DATABASE) dune build src/db/dBUpdater.exe
+	_build/default/src/db/dBUpdater.exe
 js:
-	ocp-build ocptimeline-js
-	cp _obuild/ocptimeline-js/ocptimeline-js.js www/assets/js/
+	dune build src/ui/ocptimeline_js.bc.js --profile release
+	cp -f _build/default/src/ui/ocptimeline_js.bc.js www/assets/js/ocptimeline-js.js
 
 website:
 	bash generate_website.sh
 
 clean:
-	rm -rf _obuild/*
+	rm -rf _build/*
 	rm -f csv-parser
 	rm -f csv-dbparser
-	rm -f db-version.txt
 
 mr-proper: clean
 	opam switch remove . -y
 	dropdb $(DATABASE)
+

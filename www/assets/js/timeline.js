@@ -11866,13 +11866,11 @@ TL.TimeMarker = TL.Class.extend({
 
 	setWidth: function(w) {
 		if (this.data.end_date) {
-			this._el.container.style.width = w + "px";
-
+		    /*this._el.container.style.width = "100%";
+		        this._el.content_container.style.width = "100%";*/
 			if (w > this.options.marker_width_min) {
-				this._el.content_container.style.width = w + "px";
 				this._el.content_container.className = "tl-timemarker-content-container tl-timemarker-content-container-long";
 			} else {
-				this._el.content_container.style.width = this.options.marker_width_min + "px";
 				this._el.content_container.className = "tl-timemarker-content-container";
 			}
 		}
@@ -12139,13 +12137,12 @@ TL.TimeEra = TL.Class.extend({
 
 	setWidth: function(w) {
 		if (this.data.end_date) {
-			this._el.container.style.width = w + "px";
+		    /*this._el.container.style.width = "100%";
+		        this._el.content_container.style.width = "100%";*/
 
 			if (w > this.options.marker_width_min) {
-				this._el.content_container.style.width = w + "px";
 				this._el.content_container.className = "tl-timeera-content-container tl-timeera-content-container-long";
 			} else {
-				this._el.content_container.style.width = this.options.marker_width_min + "px";
 				this._el.content_container.className = "tl-timeera-content-container";
 			}
 		}
@@ -13332,14 +13329,14 @@ TL.Timeline = TL.Class.extend({
 			var _n = self.config.events.length - 1;
 			var lastSlide = self.config.title ? _n + 1 : _n;
 			var firstSlide = 0;
-
+		        var activate_keypress = !page_content.openedForm;
 			if (keyName == 'ArrowLeft'){
-				if (currentSlide!=firstSlide){
+				if (currentSlide!=firstSlide && activate_keypress){
 					self.goToPrev();
 				}
 			}
 			else if (keyName == 'ArrowRight'){
-				if (currentSlide!=lastSlide){
+				if (currentSlide!=lastSlide && activate_keypress){
 					self.goToNext();
 				}
 			}

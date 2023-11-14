@@ -1,0 +1,5 @@
+(executable
+ (name csv_parser)
+ (modules csv_parser)
+ (libraries data_types utils data_encoding))
+

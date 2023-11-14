@@ -1,0 +1,61 @@
+(library
+ (name api_config)
+ (modules api_config)
+ (libraries
+   ezjsonm
+   json-data-encoding
+  )
+)
+
+(executable
+ (name api)
+ (modules api)
+ (libraries api_lib))
+
+(library
+ (name api_data)
+ (modules api_data)
+ (libraries
+   data_encoding
+   db_data
+   ))
+
+(library
+ (name email)
+ (modules sendgrid_encoding sendgrid_xhr emails)
+ (libraries
+   data_types
+   utils
+   data_encoding
+   ez_api.cohttp_lwt
+   api_config
+   ))
+
+(library
+ (name api_services)
+ (modules apiServices)
+ (libraries
+   ez_api
+   ez_api.encoding
+   data_types
+   utils
+   api_data
+   api_config
+   ))
+
+(library
+ (name api_lib)
+ (modules apiHandlers apiServer)
+ (libraries
+   api_config
+   email
+   ez_api.server
+   ez_api.server_utils
+   api_data
+   database_reader_lib
+   database_writer_lib
+   data_types
+   utils
+   data_encoding
+   api_services
+   ))

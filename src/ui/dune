@@ -1,0 +1,56 @@
+(library
+ (name ui_common)
+ (modules ui_utils request lang text args navs)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries
+   js_of_ocaml
+   js_of_ocaml-tyxml
+   json-data-encoding
+   ezjsonm
+   xhr_lwt
+   data_encoding
+   api_data
+   ezjs_utils.tyxml
+   ezjs_utils.xhr
+   ezjs_utils.loc
+   ezjs_utils.lang
+   api_config
+   ez_api.js
+   api_services))
+
+(executable
+ (name ocptimeline_js)
+ (modes js)
+ (modules
+   dispatcher
+   controller
+   timeline_cookies
+   timeline_display
+   alert_vue
+   home_vue
+   timeline_vue
+   view_vue
+   pages
+   ocptimeline_js)
+;; (js_of_ocaml (flags (--opt 3)))
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries
+	ui_common
+   	json-data-encoding
+        ezjsonm
+	js_of_ocaml
+	js_of_ocaml-lwt
+   	api_config
+	data_types
+	utils
+	data_encoding
+	api_data
+	db_data
+	vue-jsoo
+	ezjs_utils.tyxml
+	ezjs_utils.xhr
+	ezjs_utils.loc
+	ezjs_utils.lang
+	ezjs_timeline))

@@ -1,88 +1,121 @@
-open Js_utils
-open Js_of_ocaml_tyxml.Tyxml_js.Html
-open Controller
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
 
-type dispatcher = args:(string * string) list -> (unit, unit Xhr_lwt.error) result Lwt.t
+open Ui_common
+
+type dispatcher = args:(string * string) list -> (unit, string) result Lwt.t
 
 let pages : (string, dispatcher) Hashtbl.t = Hashtbl.create 3
 
-let add_page path f = Hashtbl.add pages path f
+let add_page path f =
+  Hashtbl.add pages path f
 
-let finish () = Lwt.return (Ok ())
+let finish e = Lwt.return (Ok e)
 
 let rec dispatch ~path ~args =
+  Ezjs_tyxml.log "Path = %s" path;
   try
     match Hashtbl.find pages path with
     | exception Not_found -> dispatch ~path:"" ~args
-    | init -> init args
+    | init -> init ~args
   with exn ->
-    Js_utils.log "Exception in dispatch of %s: %s"
+    Ezjs_tyxml.log "Exception in dispatch of %s: %s"
       path
       (Printexc.to_string exn);
     raise exn
 
 let home_page ~args:_ =
+  Ezjs_tyxml.log "Loading home page";
   Home_vue.init ();
   finish ()
 
 let timeline_page ~args =
+  Ezjs_tyxml.log "Loading timeline page";
   match Args.get_timeline args with
   | None ->
-    Timeline_vue.(init ~on_page:No_timeline ~categories:[]);
+    Ezjs_tyxml.log "No id found";
+    Timeline_vue.(init ~args ~on_page:(No_timeline {name = ""; id = ""}) ~categories:[] ~tokens:[]);
     finish ()
   | Some tid ->
-    Request.timeline_data ~args tid (fun data ->
-      Request.title ~args tid (fun title ->
-        let _, events =
-          match data with
-          | Error s -> Js_utils.alert s;
-            None, []
-          | Ok t -> t in
-        let title =
-          match title with
-          | Error _ -> None
-          | Ok t -> Some t in
-        let on_page =
-          match data with
-          | Error _ -> Timeline_vue.No_timeline
-          | Ok t -> Timeline_vue.Timeline {title; events; name = tid} in
-        let categories =
-          List.fold_left
-            (fun acc (_, {Data_types.group; _}) ->
-               match group with
-               | None -> acc
-               | Some g -> Utils.StringSet.add g acc
-            )
-            Utils.StringSet.empty
-            events in
-        let categories =
-          let in_args = Args.get_categories args in            
-          Utils.StringSet.fold
-            (fun s acc -> (s, List.mem s in_args) :: acc)
-            categories
-            [] in
-        Timeline_vue.init ~categories ~on_page;
-        finish ()
+    Ezjs_tyxml.log "Id: %s" tid;
+    let _name, tid = Ui_utils.timeline_id_from_arg tid in
+    Request.get_tokens tid (fun tokens ->
+      Request.timeline_name tid (fun name ->
+        Request.timeline_data ~args tid (function
+        | Ok (Timeline {title; events; edition_rights}) -> begin
+          let name = Ui_utils.unURLize name in
+          if edition_rights then begin
+            Request.categories tid (fun categories ->
+              let on_page =
+                match title, events with
+                | None, [] -> Timeline_vue.No_timeline {name; id=tid}
+                | _ -> Timeline_vue.Timeline {title; events; name; id=tid} in
+              let categories =
+                let in_args = Args.get_categories args in
+                List.fold_left
+                  (fun acc s -> (s, List.mem s in_args) :: acc)
+                  []
+                  categories in
+              Timeline_vue.init ~args ~categories ~on_page ~tokens;
+              finish ()
+              )
+          end else begin
+            Ui_utils.goto_page (Format.sprintf "/view?timeline=%s-%s" name tid);
+            finish ()
+          end
+        end
+        | Ok NoTimeline -> begin
+            Ezjs_tyxml.alert "This timeline seems to have been deleted.";
+            Timeline_cookies.remove_timeline tid;
+            Ui_utils.goto_page "/";
+            finish ()
+          end
+        | Error s ->
+          Ezjs_tyxml.alert (Format.sprintf "ERROR: API Server seems to be down: %s" s);
+          Ui_utils.goto_page "/";
+          finish ()
+              )
           )
       )
 
 let view_page ~args =
   match Args.get_timeline args with
-  | None -> View_vue.init None []; finish ()
+  | None -> View_vue.init None "" None []; finish ()
   | Some tid ->
-    Request.view ~args tid (function
-      | Ok (title, events) ->
-        View_vue.init title events;
-        finish ()
+    let name, tid' = Ui_utils.timeline_id_from_arg tid in
+    Request.timeline_data ~args tid' (function
       | Error s ->
-        Js_utils.alert ("Error while requesting view: " ^ s);
-        View_vue.init None [];
+        Ezjs_tyxml.alert (Format.sprintf "ERROR: API Server seems to be down: %s" s);
+        Ui_utils.goto_page "/";
         finish ()
-      )
+      | Ok (Timeline {title; events; edition_rights}) ->
+        let want_to_edit () =
+          Ezjs_tyxml.confirm
+            "You have been granted edition rights. Do you wish to go to the edition page?" in
+        let () =
+          if edition_rights && want_to_edit () then
+            Ui_utils.goto_page (Format.sprintf "/edit?timeline=%s-%s" name tid')
+          else
+            View_vue.init (Some tid) name title events in
+        finish ()
+      | Ok NoTimeline ->
+        Ezjs_tyxml.alert "This timeline seems to have been deleted.";
+        Timeline_cookies.remove_timeline tid';
+        Ui_utils.goto_page "/";
+        finish ()
+    )
 
 let () =
   Dispatcher.dispatch := dispatch;
   add_page ""              home_page;
   add_page "home"          home_page;
-  add_page "timeline"      timeline_page;
-  add_page "view"          view_page
+  add_page "edit"      timeline_page;
+  add_page "edit/"     timeline_page;
+  add_page "view"          view_page;
+  add_page "view/"          view_page

@@ -1,0 +1,433 @@
+<!-- Header -->
+<header id="timeline-header">
+  <span class="title" v-show="!openedMenu">{{timelineName}}</span>
+  <input type="input" id="title" class="form-element-title" v-show="openedMenu" v-model="newTimelineName" title="Your changes will be saved once you quit the Edition Mode">
+  <span style="position: relative; float: right">
+    <span id="timeline-show" class="showFormSpan fa fa-bars fa-2x" @click="showMenu()"></span>
+  </span>
+</header>
+
+
+<!-- Timeline -->
+<div id="timeline-embed" style="position:absolute"></div>
+
+<div class="panel visible" id="navPanel">
+  <div  id="close" class="tooltip fa fa-times fa-2x" @click="hideMenu();updateTimelineTitle()"></div>
+  <div class="section" style="height:435px">
+
+
+    <!-- 1 BOUTON LIST CACHÉ CAR MIS SUR LA HOME
+	 <div class="timeline-menu-token tooltip fa fa-close fa-2x" style="display:none"></div>
+	 <div class="timeline-menu-token tooltip" v-show="cookieTimelines.length != 0">
+	   <img src="/images/list.svg">
+	   <p class="tooltipname">List</p>
+	   <div class="tooltipcontent">
+	     <div class="tooltiptitle">{{timelineListText}}</div>
+
+             <ul>
+               <li class="croptoken" v-for="item in cookieTimelines">
+		 <div style='float: left; display: inline-block'>
+		   <a class="TooltipImgLink" :href="item.url">
+		     <span v-show='item.filterId==currentTimeline'>(Here)</span>
+		     {{item.name}}
+		   </a>
+		   <img
+		     @click='removeTimeline(item.id)'
+		     src="/images/trash.svg">
+		 </div>
+
+	       </li>
+             </ul>
+	   </div>
+
+	 </div>
+	 -->
+
+	 <!-- MENU CREATE -->
+
+	 <div class="timeline-menu-token tooltip" @click="showForm(true)">
+	   <img src="/images/add.svg"><p class="tooltipname">Add<br>event</p>
+	 </div>
+	 <!-- FIN MENU CREATE -->
+
+	 <!-- MENU EDIT -->
+	 <div
+	   class="timeline-menu-token tooltip"
+	   v-show="events.length != 0"
+	   @click="showForm(false)">
+	   <img src="/images/edit.svg"><p class="tooltipname">Edit<br>event</p>
+	 </div>
+	 <!-- FIN MENU EDIT -->
+	 <!-- Filter -->
+
+	 <div
+	   class="timeline-menu-token tooltip"
+	   v-show="events.length != 0">
+	   <img src="/images/filter.svg"><p class="tooltipname">Filter</p>
+	   <div class="tooltipcontent tooltipcontentUP">
+	     <div class="panel-default filtering-form">
+	       <div class="navbar">
+
+		 <ul class="inline">
+		   <li id="filter-categories" class="active" >
+		     <div>Categories</div>
+		   </li>
+		   <li id="filter-ponderation">
+		     <div>Ponderation</div>
+		   </li>
+		   <li id="filter-other">
+		     <div>Other</div>
+		   </li>
+		 </ul>
+	       </div>
+	       <div id="filter-categories-content">
+		 <div>
+		   <div class="tooltiptitle">
+		     <img src="/images/list.svg" style="height: 1.5em; vertical-align:middle">Categories
+		     <p class="tooltipsmall">Select the categories you want to show</p>
+		   </div>
+		   <div v-for="category in categories">
+		     <div>
+		       <input type="checkbox" v-model="category.checked">{{category.catName}}
+		     </div>
+		   </div>
+		 </div>
+		 <div>
+		   <div class="tooltiptitle">
+		     <br><img src="/images/weight.svg" style="height: 1.5em; vertical-align:middle">
+		     Ponderation
+		     <p class="tooltipsmall">Show the events according to their weight.</p>
+		   </div>
+		   From <input type="number" v-model="minPonderationFilter">
+		   to <input type="number" v-model="maxPonderationFilter">
+		   <br>
+		 </div>
+		 <!-- CONFIDENTIAL
+		      <div> <br>
+			<div class="tooltiptitle">Confidential:</div>
+			<input type="checkbox" v-model="alsoConfidential">
+			{{confidentialFilterForm}}
+		      </div> --><br>
+	       </div>
+	       <div id="filter-ponderation-content" style="display:none">
+	       </div>
+
+	       <div id="filter-other-content" style="display:none">
+	       </div>
+
+	       <div class="buttontooltip" @click="filter()">{{filterButtonText}}</div>
+	     </div>
+	   </div>
+	 </div>
+	 <div class="navPanel1">
+	 </div>
+	 <div class="navPanel2">
+	   <!-- MENU HOME -->
+	   <div class="timeline-menu-token tooltip"> <a href="/">
+	       <img src="/images/home.svg"><p class="tooltipname">Home</p></a>
+	   </div>
+	   <!-- FIN MENU HOME -->
+
+
+	   <!-- MENU SHARE -->
+	   <div class="timeline-menu-token tooltip" v-show="filters.length != 0">
+	     <img src="/images/share.svg">
+	     <p class="tooltipname">Option</p>
+	     <div class="tooltipcontent tooltipcontentDOWN"
+		  style="width:20em">
+	       <div class="tooltiptitle">
+		 <img src="/images/contact.svg" style="height: 1.5em; vertical-align:middle"> Your links
+		 <p class="tooltipsmall">Share a custom link with Edit rights or not. The link will keep the filters as they were when you created it.</p>
+	       </div>
+	       <ul>
+		 <li class="croptoken" v-for="filter in filters">
+		   <div>
+
+		     <div>
+		       <span style="width: 55%; cursor: text; overflow: hidden; margin: 0px !important"
+			     class="form-element-ADD-text" v-show='!filter.isEditing'
+			     @click="filter.isEditing=true; filter.editing=filter.pretty"> {{filter.pretty}} </span>
+
+		       <input style="width: 55%; border-bottom: dashed; margin: 0px !important"
+			      type='text' class="form-element-ADD-text" v-model='filter.pretty' v-show='filter.isEditing'>
+		       <!-- <span v-show='filter.filterId==currentTimeline'>(You)</span> -->
+		     </div>
+
+		     <div style='float: left; display: inline-block; width: 40%; cursor: default'>
+		       <span class="tooltip" v-show="displayTokenFilter(filter)">
+			 <span class="tooltipcontent">
+			   <ul>
+			     <li>
+			       <span> {{confidentialFormTitle}}: {{filter.confidential_rights}}
+			       </span>
+			     </li>
+			     <li v-show="filter.filterCategories"> {{categoriesText}}:
+			       <ul>
+				 <li v-for="cat in filter.filterCategories">
+				   <span>{{cat}}</span>
+				 </li>
+			       </ul>
+			     </li>
+			     <li v-show="filter.min_level !== undefined || filter.max_level !== undefined">
+			       {{ponderationText}}: {{betweenText}} {{filter.min_level}} {{andText}} {{filter.max_level}}
+			     </li>
+			   </ul>
+			 </span>
+		       </span>
+		       <img
+			 src="/images/check.svg"
+			 @click="editAlias(filter)"
+			 @keyup.enter="editAlias(filter)"
+			 v-show="filter.isEditing"
+			 :title="filterEditAliasHelp"
+			 style="cursor: pointer; width:1.5em !important">
+		       <img
+			 src="/images/check.svg"
+			 v-show="!filter.isEditing"
+			 style="cursor: default; opacity:0 !important; width:1.5em !important; margin-right: 5px">
+
+		       <img
+			 @click='copyLink(filter.readonly, filter.filterId)'
+			 src="/images/link.svg"
+			 :title="filterCopyLinkHelp"
+			 style="cursor: pointer; width:1.5em !important; margin-right: 5px">
+
+		       <img
+			 v-show='filter.filterId == currentTimeline'
+			 src="/images/hand-write.svg"
+			 :title="filterAdminTokenHelp"
+			 style="cursor: default; width:1.5em !important">
+
+		       <span v-show='filter.filterId !== currentTimeline'>
+			 <img
+			   v-show='filter.readonly'
+			   @click='setTokenAsEdition(filter.filterId);'
+			   src="/images/hand-write.svg"
+			   :title="filterReadonlyTokenHelp"
+			   style="cursor: pointer; width:1.5em !important; opacity:0.3; margin-right: 5px">
+
+			 <img
+			   v-show='!filter.readonly'
+			   @click='setTokenAsReadOnly(filter.filterId);'
+			   src="/images/hand-write.svg"
+			   :title="filterAdminTokenHelp"
+			   style="cursor: pointer; width:1.5em !important; margin-right: 5px">
+		       </span>
+
+		       <img
+			 @click='removeToken(filter.filterId)'
+			 src="/images/trash.svg"
+			 :title="filterRemoveTokenHelp"
+			 style="cursor: pointer; width:1.5em !important; margin-right: 5px"
+			 v-show='filter.filterId !== currentTimeline'>
+		     </div>
+		   </div>
+		 </li>
+	       </ul>
+	       <div class="buttontooltip" @click="addEditionToken()"> {{addEditionTokenButton}}
+	       </div>
+
+	       <!-- Import/Export -->
+	       <br><div class="tooltiptitle">
+		 <img src="/images/createnext.svg" style="height: 1.5em; vertical-align:middle">Your data
+		 <p class="tooltipsmall">Export your data as a .csv file to save it before deleting a Timeline, or to edit it in a sheet before re-importing.</p>
+	       </div>
+	       <div class="buttontooltip" @click='removeTimeline(currentTimeline)'> Delete this Timeline</div>
+	       <div>
+		 <div class="buttontooltip" @click="exportTimeline()" style="width: 47% !important; float: left"> Export csv</div>
+		 <div class="buttontooltip" style="position: relative; width: 47% !important; float: right"> Import csv
+		   <input
+		     type="file"
+		     id="import-form"
+		     style="cursor:pointer"
+		     @change="importTimeline()"
+		     >
+		 </div>
+	       </div>
+	       <!-- Fin Import/Export -->
+             </div>
+	   </div>
+	 </div>
+  </div>
+
+  <!-- FIN MENU SHARE -->
+
+  <!-- MENU FILES
+
+       <div class="timeline-menu-token tooltip">
+	 <img src="/images/upload.svg">
+
+	 <p class="tooltipname">Files</p>
+	 <div class="tooltipcontent tooltipcontentDOWN">
+	   <div class="tooltiptitle">
+	     Export<br/>
+	     <div class="buttontooltip" @click="exportTimeline()">csv</div>
+	   </div>
+
+	   <div class="tooltiptitle">
+	     Import <br/>
+	     <div class="buttontooltip" style="position: relative">
+	       <input type="file" id="import-form" @change="importTimeline()">
+	       csv
+	     </div>
+	   </div>
+	 </div>
+       </div>
+
+       <!-- FIN MENU FILES -->
+</div>
+
+
+<!-- PANEL AJOUT EVENT Taken from https://codepen.io/jonnitto/project/editor/XRPjxx -->
+<div class="panel" id="formPanel">
+  <form class="form-card">
+    <fieldset class="form-fieldset">
+
+      <legend class="form-legend" style="width:100%;">
+	<span style="float: left">
+	  <span v-if="addingNewEvent">{{formNameAdding}}</span>
+	  <span v-else> {{formNameEditing}}</span>
+	</span>
+	<span style="float: right">
+	  <span @click=addEvent(addingNewEvent) class="clickable fa fa-save fa-lg" style="right: 40px">
+	    <p class="tooltipname">Save</p></span>
+	  <span v-show="!addingNewEvent" @click=removeFromForm() class="clickable fa fa-trash fa-lg" style="right: 80px"><p class="tooltipname">Delete</p></span>
+	  <span @click=hideForm() class="clickable fa fa-close fa-lg"><p class="tooltipname">Cancel</p></span>
+	</span>
+      </legend>
+
+
+      <!-- TITLE -->
+      <div class="form-element form-input">
+	<input
+	  id="start-date"
+	  class="form-element-ADD-text -hasvalue"
+	  :placeholder="new Date()"
+	  type="date"
+	  v-model="startDateFormValue"
+	  required/>
+	<input
+	  id="end-date"
+	  class="form-element-ADD-text -hasvalue"
+	  placeholder=" "
+	  type="date"
+	  title="The end date is optionnal."
+	  v-model="endDateFormValue" />
+	<input
+	  id="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9"
+	  class="form-element-ADD-text input-weight"
+	  placeholder="Weight"
+	  v-model.number="ponderationFormValue"
+	  title="Add a weight for this event in order to filter them for a Confidential purpose or to focus on a certain level of information."
+	  type="number" required/>
+	<img src="/images/weight.svg"
+	     title="Add a weight for this event in order to filter them for a Confidential purpose or to focus on a certain level of information."
+	     style="height:1.5em; cursor: help">
+	<label class="form-element-label" for="field-omv6eo-metm0n-5j55wv-w3wbws-6nm2b9">
+	</label>
+
+	<!-- CONFIDENTIAL : PAS PRÊT
+	     <label class="form-checkbox-label">
+	       <input
+		 class="form-checkbox-field"
+		 type="checkbox"
+		 v-model="confidentialFormValue"
+		 />
+	       <i class="form-checkbox-button"></i>
+	       <span>{{confidentialFormTitle}}</span>
+	     </label> -->
+	     <input
+	       id="title"
+	       class="form-element-ADD-title"
+	       :placeholder="headlineFormHelp"
+	       type="input"
+	       v-model="headlineFormValue"
+	       @keyup="updateDefaultId()"
+	       required/>
+	     <textarea
+	       id="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm"
+	       class="form-element-ADD-text"
+	       :placeholder="textFormHelp"
+	       v-model="textFormValue"
+               style="width: 98% !important; resize: vertical"></textarea>
+	     <input
+	       id="media"
+	       style="width:100%"
+	       class="form-element-ADD-text"
+	       :placeholder="mediaFormHelp"
+	       type="link"
+	       v-model="mediaFormValue"/>
+	     <select
+	       id="category-select-form"
+	       class="form-element-ADD-text"
+               style="margin-right: 5px !important"
+               title="Select a category for this event to sort them. You can choose to hide some categories in the Filter Menu."
+	       v-model="categoriesFormValue"
+               style="margin-left:1.5em">
+	       <option v-for="item in categories" :key="item.id" :value="item.catName">{{item.catName}}</option>
+	       <option value="" title="Yo">[No category]</option>
+               <option value="__other__category__" title="Select this option to create a new category" style="cursor: cell !important">[New category]</option>
+	     </select>
+	     <img src="/images/list.svg" style="height:1.3em; cursor: help; float: left"
+		  title="Select a category for this event to sort them. You can choose to hide some categories in the Filter Menu.">
+	     <input
+	       type="text"
+	       placeholder="Name this new category"
+	       class="form-element-category"
+               title="The new category will be saved when you save this event."
+	       v-model="otherCategoryFormValue"
+	       v-show="categoriesFormValue=='__other__category__'">
+      </div>
+    </fieldset>
+
+    <!-- TAGS
+	 <div class="form-element form-input">
+	   <input
+	     id="tags"
+	     class="form-element-field"
+	     placeholder=" "
+	     type="link"
+	     v-model="tagsFormValue"
+	     :placeholder="tagsFormHelp"
+	     required/>
+           <div class="form-element-bar"></div>
+           <label class="form-element-label" for="field-3naeph-0f3yuw-x153ph-dzmahy-qhkmgm">
+	     {{tagsFormTitle}}
+	   </label>
+	 </div> -->
+
+	 <!-- CONFIDENTIAL (FEATURE NON PRETE) -->
+	 <div class="form-checkbox form-checkbox-inline">
+
+
+	 </div>
+
+
+	 <!-- URL (FEATURE NON PRETE)
+	      <div class="form-element form-input">
+		<input
+		  id="unique-id-default-form"
+		  class="form-element-field"
+		  :placeholder="uniqueIdFormHelp"
+		  v-model="uniqueIdFormValueDefault"
+		  type="input"
+		  @click="switchToMainInput()"
+		  />
+		<input
+		  id="unique-id-form"
+		  class="form-element-field"
+		  :placeholder="uniqueIdFormHelp"
+		  v-model="uniqueIdFormValue"
+		  type="input"
+		  @change="switchToDefaultInput()"
+		  style="display:none"
+		  required/>
+		<div class="form-element-bar">
+		</div>
+		<label class="form-element-label" for="unique-id">{{uniqueIdFormTitle}}</label>
+
+	      </div> -->
+
+	      <!-- FIN DU FORMULAIRE -->
+  </form>
+</div>

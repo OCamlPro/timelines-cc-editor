@@ -1,3 +1,12 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open Lang
 
 let s_ez_timeline = ss_ "ezTimeline"
@@ -30,6 +39,8 @@ let s_min_ponderation = ss_ "minimalPonderation"
 let s_max_ponderation = ss_ "maximalPonderation"
 let s_from = ss_ "from"
 let s_to = ss_ "to"
+let s_between = ss_ "Between"
+let s_and = ss_ "and"
 let s_media = ss_ "media"
 let s_headline = ss_ "headline"
 let s_unique_id = ss_ "uniqueId"
@@ -47,7 +58,7 @@ let s_description_help = ss_ "descriptionFormHelp"
 let s_unique_id_help = ss_ "uniqueIdFormHelp"
 let s_category_help = ss_ "categoryFormHelp"
 let s_tags_help = ss_ "tagsFormHelp"
-let s_ponderation_help = ss_ "ponderationFormHelp"
+let s_ponderation_form_help = ss_ "ponderationFormHelp"
 let s_confidential_help = ss_ "confidentialFormHelp"
 
 let s_back = ss_ "back"
@@ -55,6 +66,7 @@ let s_remove_event = ss_ "removeEvent"
 let s_add_new_event = ss_ "addNewEvent"
 let s_edit_event = ss_ "editEvent"
 let s_export_help = ss_ "exportHelp"
+let s_import_help = ss_ "importHelp"
 
 let s_default_title = ss_ "defaultTimelineTitle"
 
@@ -65,7 +77,41 @@ let s_alert_error_view_token = ss_ "alertErrorViewToken"
 let s_alert_no_timeline_selected = ss_ "alertNoTimelineSelected"
 let s_alert_unknown_event = ss_ "alertUnknownEvent"
 let s_alert_title_deletion = ss_ "alertTitleDeletion"
-let s_alert_timeline_creation = ss_ "alertTimelineCreation"
+let s_alert_timeline_creation1 = ss_ "alertTimelineCreation1"
+let s_alert_timeline_creation2 = ss_ "alertTimelineCreation2"
 
 let s_confirm_remove_event = ss_ "confirmRemoveEvent"
+let s_confirm_remove_timeline = ss_ "confirmRemoveTimeline"
+let s_confirm_remove_token = ss_ "confirmRemoveToken"
 let s_new_category = ss_ "newCategory"
+
+let s_edition_link_text = ss_ "editionLinkText"
+let s_read_link_text = ss_ "readLinkText"
+
+let s_add_edition_token_button = ss_ "addEditionTokenButton"
+let s_add_readonly_token_button = ss_ "addReadonlyTokenButton"
+let s_confidential_filter_form = ss_ "confidentialFilterForm"
+
+let s_remove_timeline_text = ss_ "removeTimelineText"
+
+let s_timeline_list_text = ss_ "timelineListText"
+
+let s_security_title = ss_ "securityTitle"
+let s_security_descr = ss_ "securityDescr"
+let s_enable_cookies_button_text = ss_ "enableCookiesButtonText"
+let s_disable_cookies_button_text = ss_ "disableCookiesButtonText"
+let s_confirm_disable_cookies = ss_ "confirmDisableCookies"
+
+let s_email_placeholder = ss_ "emailPlaceholder"
+let s_email_help = ss_ "emailHelp"
+
+let s_save_title_button_text = ss_ "saveTitleButtonText"
+let s_alert_timeline_not_found = ss_ "alertTimelineNotFound"
+
+let s_prompt_ask_email = ss_ "promptAskEmail"
+
+let s_filter_edit_alias_help  = ss_ "filterEditAliasHelp"
+let s_filter_copy_link_help   = ss_ "filterCopyLinkHelp"
+let s_filter_admin_token_help = ss_ "filterAdminTokenHelp"
+let s_filter_readonly_token_help = ss_ "filterReadonlyTokenHelp"
+let s_filter_remove_token_help = ss_ "filterRemoveTokenHelp"

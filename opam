@@ -18,54 +18,58 @@ depexts: [
   "libgmp-dev"
 ]
 depends: [
-  "ocamlfind" { build }
-  "ocp-build" { = "next" }
-  "camlp4"
-  "calendar"
-  "bigstring" { >= "0.2" }
-  "ocplib-endian"
-  "digestif"
-  "hex"
-  "conf-pkg-config"
-  "conf-libcurl"
-  "ocurl" { >= "0.9.1" }
-  "zarith"
-  "lwt" { = "4.5.0" }
-  "lwt_log"
-  "extunix"
-  "menhir"
-  "ezjsonm"
-  "num"
-  "omd"
-  "ocplib-json-typed"
-  "ocplib-json-typed-bson"
-  "js_of_ocaml"
-  "js_of_ocaml-lwt"
-  "js_of_ocaml-tyxml"
-  "js_of_ocaml-ppx"
-  "js_of_ocaml-compiler"
-  "ppx_deriving"
+  "angstrom-unix"
   "base64" { >= "3.2.0" }
+  "bigstring" { >= "0.2" }
+  "calendar"
+  "conf-libcurl"
+  "conf-pkg-config"
+  "core"
   "cohttp-lwt" {>= "0.99.0" }
   "cohttp-lwt-unix"
-  "geoip"
-  "re"
-  "uutf"
-  "js_of_ocaml-toplevel"
-  "js_of_ocaml-ocamlbuild"
-  "js_of_ocaml-ppx"
-  "httpaf"
-  "httpaf-lwt-unix"
+  "cohttp-lwt-jsoo"
+  "csv"
+  "digestif"
+  "dune"
+  "extunix"
+  "ez_api"
+  "ez_pgocaml"
+  "ezjs_utils"
+  "ezjs_timeline"
+  "ezjsonm"
+  "faraday-async"
   "faraday-lwt"
   "faraday-lwt-unix"
-  "faraday-async"
-  "angstrom-unix"
-  "pgocaml" { = "3.2" }
+  "geoip"
+  "hex"
+  "httpaf"
+  "httpaf-lwt-unix"
+  "js_of_ocaml-compiler"
+  "js_of_ocaml-lwt"
+  "js_of_ocaml-ocamlbuild"
+  "js_of_ocaml-ppx"
+  "js_of_ocaml-tyxml"
+  "lwt"
+  "lwt_log"
+  "menhir"
+  "num"
+  "ocamlfind" { build }
+  "omd"
+  "ocplib-endian"
+  "ocurl" { >= "0.9.1" }
+  "pgocaml_ppx"
+  "re"
   "sha"
-  "extunix"
+  "tls"
+  "uutf"
+  "vue-jsoo"
+  "zarith"
 ]
 pin-depends: [
-  [ "ocp-build.next" "git+https://github.com/OCamlPro/ocp-build.git#next"]
+  [ "ez_pgocaml.1.0.1" "git+https://github.com/Stevendeo/ez-pgocaml.git#custom-db" ]
+  [ "ez_api.1.0" "git+https://github.com/Stevendeo/ez-api.git#get-service-path" ]
+  [ "ezjs_utils.1.0" "git+https://github.com/OCamlPro/ezjs.git" ]
+  [ "ezjs_timeline.1.0" "git+https://github.com/Stevendeo/ezjs_timeline.git#dep" ]
 ]
 build: [
   [ make "submodules" "all" ]

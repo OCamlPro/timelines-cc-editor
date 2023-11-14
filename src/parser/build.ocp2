@@ -1,6 +1,0 @@
-
-
-OCaml.program("csv-parser", ocaml + {
-   files = [ "main.ml" ];
-   requires = [ "timeline-data"; "data-encoding";];
-    });

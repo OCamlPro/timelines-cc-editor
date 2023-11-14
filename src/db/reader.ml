@@ -1,7 +1,18 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 
 open Data_types
-open Db_intf
-open Utils
+open Database_interface.Db_intf
+
+module C = Db_config
+module Misc = Utils.Misc
 
 let verbose_mode = ref false
 let verbose_counter = ref 0
@@ -12,7 +23,8 @@ let hash str = Sha512.(to_hex (string str))
 
 let salted_hash i str = hash ((Int32.to_string i) ^ str)
 
-module Reader_generic (M : Db_intf.MONAD) = struct
+
+module Reader_generic (M : MONAD) = struct
   module Monad = M
   open M
 
@@ -46,47 +58,53 @@ module Reader_generic (M : Db_intf.MONAD) = struct
     let dispose conn =
       PGOCaml.close conn in
     M.pool_create ~check ~validate ~dispose 20 (fun () ->
-      let open Config in
-      PGOCaml.connect ?host ?port ?user ?password ~database ())
+      PGOCaml.connect
+        ?host:(C.host ())
+        ?port:(C.port ())
+        ?user:(C.user ())
+        ?password:(C.password ())
+        ~database:(C.database ())
+        ())
 
   let with_dbh f = M.pool_use dbh_pool f
 
   let (>>>) f g = f g
 
-  let line_to_event ?(with_end_date=true) line : int * title =
+  let line_to_event ?(with_end_date=true) line : bool * int * title =
     match line with
       (id, start_date, end_date, headline, text, url, group, confidential,
-       ponderation, unique_id, last_update, tags) ->
-      let tags = 
-        match tags with 
+       ponderation, unique_id, last_update, tags, is_title) ->
+      let tags =
+        match tags with
           | None -> []
-          | Some p -> 
+          | Some p ->
             List.fold_left
-              (fun acc -> 
+              (fun acc ->
                  function
                    | None -> acc
                    | Some tag -> tag :: acc)
               []
               p
       in
+      is_title,
       Int32.to_int id, {
         start_date;
         end_date = if with_end_date then end_date else None;
         text = {
           text;
           headline};
-        media = opt (fun url -> {url}) url;
+        media = Option.map (fun url -> {url}) url;
         group;
         confidential;
         ponderation = Int32.to_int ponderation;
         unique_id;
-        last_update; 
+        last_update;
         tags
       }
 
-  let has_admin_rights (email : string) (tid : string) = 
+  let has_admin_rights (email : string) (tid : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT timelines_ FROM users_ WHERE email_=$email" >>=
+    [%pgsql dbh "SELECT timelines_ FROM users_ WHERE email_=$email"] >>=
     fun l ->
     return @@
     List.exists
@@ -97,11 +115,11 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let is_auth (email : string) (cookie : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
+    [%pgsql dbh "SELECT id_ FROM users_ WHERE email_=$email"] >>=
     function
     | [] -> return false
     | id :: _ ->
-      PGSQL(dbh) "SELECT cookie_ FROM sessions_ WHERE user_id_=$id" >>=
+      [%pgsql dbh "SELECT cookie_ FROM sessions_ WHERE user_id_=$id"] >>=
       function
       | [] -> return false
       | saved_cookie :: _ ->
@@ -109,183 +127,322 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let get_session (user_id : int32) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT cookie_ from sessions_ WHERE user_id_=$user_id" >>=
+    [%pgsql dbh "SELECT cookie_ from sessions_ WHERE user_id_=$user_id"] >>=
     function
     | [] -> return None
     | sess :: _ -> return (Some sess)
 
   let user_exists (email : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT id_ FROM users_ WHERE email_=$email" >>=
+    [%pgsql dbh "SELECT id_ FROM users_ WHERE email_=$email"] >>=
     function
     | []      -> return None
     | id :: _ -> return (Some id)
 
-  (* Check confidentiality before using this function *)
+  (* DO NOT EXPORT: contains the admin key of the timeline *)
+  let filter_of_token (tid : string) =
+    with_dbh >>> fun dbh ->
+      [%pgsql dbh
+        "SELECT alias_, pretty_, min_level_, max_level_, categories_, tags_, \
+                confidential_, after_, before_, readonly_ \
+         FROM timeline_ids_ WHERE id_=$tid"] >>= function
+    | [] -> return (Error "Token does not exist")
+    | (Some timeline, pretty, min_level, max_level, categories, tags,
+       confidential_rights, after, before, readonly) :: _ ->
+       let kind = if readonly then Db_data.View else Edit in
+       let tags =
+         match tags with
+         | None -> None
+         | Some p -> Some (
+           List.fold_left
+             (fun acc ->
+                function
+                | None -> acc
+                | Some tag -> tag :: acc)
+             []
+             p) in
+       let categories =
+         match categories with
+         | None -> None
+         | Some p -> Some (
+           List.fold_left
+             (fun acc ->
+                function
+                | None -> acc
+                | Some tag -> tag :: acc)
+             []
+             p) in
+       return (Ok Db_data.{
+          timeline; pretty; min_level; max_level; categories; tags;
+          confidential_rights; after; before; kind})
+    | _ -> assert false
+
+  let unknown_token_error () = Error "Token does not exist"
+
+  let with_filter ~error (tid : string) cont =
+    filter_of_token tid >>= function
+    | Ok f -> cont f
+    | Error _ -> error ()
+
+  (* Check confidentiality & filters before using this function. Best not to export it *)
   let event (id : int) =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
-      PGSQL(dbh)
+      [%pgsql dbh
       "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-               confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
-       WHERE (id_ = $id)" >>= function
+              confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ FROM events_ \
+       WHERE (id_ = $id)"] >>= function
     | res :: _ ->
-      let (_, event) = line_to_event res in
+      let (_, _, event) = line_to_event res in
       return (Some event)
     | _ -> return None
 
-  let events (with_confidential : bool) (tid : string) =
+(*
+  let events (tid : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ \
-                WHERE timeline_id_ = $tid AND ($with_confidential OR NOT confidential_) AND \
-                NOT is_title_ ORDER BY id_ DESC" >>=
+    with_filter ~error:(fun () -> return []) tid
+      (fun {timeline; after; before; min_level; max_level; categories; tags; confidential} ->
+
+    [%pgsql dbh "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
+                FROM events_ WHERE \
+                timeline_id_ = $timeline AND ($confidential OR NOT confidential_) AND \
+                NOT is_title_ ORDER BY id_ DESC"] >>=
     fun l ->
     return @@
     List.fold_left (fun acc l ->
-        let (id, e) = line_to_event l in
-        match Utils.metaevent_to_event @@ e with
+        let (_, id, e) = line_to_event l in
+        match metaevent_to_event @@ e with
         | None -> acc
         | Some e -> (id, e) :: acc)
       []
       l
+  )
+*)
 
-  (* Do not export this function is API: admin check is not performed as
-     calling this function is required to check admin in 'update_event' *)
+  (* Do NOT export this function is API: admin check is not performed as
+     calling this function is required to check admin in 'update_event'. Also, knowing
+     the timeline name from an id could lead to a very simple attack:
+       for i = 0 to max_int do remove_event (timeline_of_event id) id done *)
   let timeline_of_event (id : int) =
     let id = Int32.of_int id in
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT timeline_id_ FROM events_ WHERE id_=$id" >>=
+    [%pgsql dbh "SELECT timeline_id_ FROM events_ WHERE id_=$id"] >>=
     function
     | [] -> return None
     | hd :: _ -> return (Some hd)
 
+  let is_admin_filter f tid : bool = f.Db_data.timeline = tid
+
+  let admin_rights ~error (timeline_id : string) cont = (* error = If token does not exist *)
+    filter_of_token timeline_id >>= (function
+        | Ok f ->
+          cont (is_admin_filter f timeline_id)
+        | Error _ -> return @@ error ())
+
+  let has_title (tid : string) =
+    with_dbh >>> fun dbh ->
+    with_filter ~error:(fun () -> return (Error "Unknown token")) tid (fun f ->
+        let admin_tid = f.timeline in
+        [%pgsql dbh "SELECT * FROM events_ WHERE timeline_id_ = $admin_tid AND is_title_"]
+        >>= function | [] -> return (Ok false) | _ -> return (Ok true)
+      )
+
+       (*
   let title (tid : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh)
+    admin_rights ~error:(fun () -> return None) tid (fun f ->
+    [%pgsql dbh
       "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ from events_ \
-       WHERE timeline_id_ = $tid AND is_title_" >>=
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
+       FROM events_ WHERE timeline_id_ = $tid AND is_title_"] >>=
     function
     | [] -> return None
-    | l :: _ -> return (Some (line_to_event l))
+    | l :: _ ->
+      let _, id, e = line_to_event l in
+      return (Some (id, e))) *)
+
+  let timeline_name (id : string) =
+    with_dbh >>> fun dbh ->
+    [%pgsql dbh "SELECT main_title_ FROM timeline_ids_ WHERE id_ = $id"] >>= (function
+        | [] -> return (Error "Timeline does not exist")
+        | Some hd :: _ -> return (Ok hd)
+        | None :: _ -> return (Ok ""))
 
   let used_unique_id id =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT unique_id_ FROM events_ WHERE unique_id_ = $id" >>= (function
+    [%pgsql dbh "SELECT unique_id_ FROM events_ WHERE unique_id_ = $id"] >>= (function
         | [] -> return false
         | _ -> return true
       )
-
-  exception TwoTitles
 
   let timeline_data
       ~(with_confidential : bool)
       ~(tid : string)
       ?(start_date = CalendarLib.Date.make 1 1 1)
       ?(end_date = CalendarLib.Date.make 3268 1 1)
-      ?(min_ponderation = 0)
-      ?(max_ponderation = 1000)
+      ?(min_ponderation = Int32.zero)
+      ?(max_ponderation = Int32.max_int)
       ?(groups=[])
       ?(tags=[])
       () =
-    let min_ponderation = Int32.of_int min_ponderation in
-    let max_ponderation = Int32.of_int max_ponderation in
-    let tags = List.map (fun s -> Some s) tags in
-    
+    with_filter ~error:(fun () -> return (Ok Db_data.NoTimeline)) tid (fun f ->
+    let tid = f.Db_data.timeline in
+    let start_date =
+      match f.Db_data.after with
+      | None -> start_date
+      | Some d -> Misc.max_date start_date d in
+
+    let end_date =
+      match f.Db_data.before with
+      | None -> end_date
+      | Some d -> Misc.min_date end_date d in
+
+    let min_ponderation =
+      match f.Db_data.min_level with
+      | None -> min_ponderation
+      | Some p -> Int32.max p min_ponderation in
+
+    let max_ponderation =
+      match f.Db_data.max_level with
+      | None -> max_ponderation
+      | Some p -> Int32.min p max_ponderation in
+
+    let tags =
+      let tagso =
+      match f.tags with
+        | None -> tags
+        | Some t -> Misc.intersect_list tags t in
+      List.map (fun s -> Some s) tagso in
+
+    let groups =
+      match f.Db_data.categories with
+      | None -> Format.eprintf "No category filter@."; groups
+      | Some c ->
+        Format.eprintf "Category filters registered: %a@."(Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt "//") (fun fmt -> Format.fprintf fmt "%s")) c;
+        match groups with
+        | [] -> c
+        | _ -> Misc.intersect_list groups c in
+
+    let confidential = with_confidential && f.confidential_rights in
+
+    Format.eprintf "Timeline %s with groups = %a@."
+      tid
+      (Format.pp_print_list ~pp_sep:(fun fmt _ -> Format.fprintf fmt ",") (fun fmt -> Format.fprintf fmt "%s")) groups;
+
     with_dbh >>> fun dbh ->
     let req =
       match groups, tags with
       | [], [] -> begin
-          PGSQL(dbh)
+          [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
              FROM events_ WHERE \
-             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             ((start_date_ BETWEEN $start_date AND $end_date) OR start_date_ IS NULL) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
-             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid \
-             ORDER BY id_ ASC" end
+             ($confidential OR NOT confidential_) AND timeline_id_ = $tid \
+             ORDER BY id_ ASC"] end
       | _, [] ->
-        PGSQL(dbh)
+        [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
+                    confidential_, ponderation_, unique_id_, last_update_, tags_ , is_title_ \
+             FROM events_ WHERE \
              group_ IN $@groups AND \
-             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             ((start_date_ BETWEEN $start_date AND $end_date) OR start_date_ IS NULL) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
-             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid \
-             ORDER BY id_ ASC"
+             ($confidential OR NOT confidential_) AND timeline_id_ = $tid \
+             ORDER BY id_ ASC"]
       | [], _ ->
-        PGSQL(dbh)
+        [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
-             (start_date_ BETWEEN $start_date AND $end_date) AND \
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
+             FROM events_ WHERE \
+             ((start_date_ BETWEEN $start_date AND $end_date) OR start_date_ IS NULL) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
-             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
-             tags_ && $tags::varchar[] ORDER BY id_ ASC"
+             ($confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
+             tags_ && $tags::varchar[] ORDER BY id_ ASC"]
       | _ ->
-        PGSQL(dbh)
+        [%pgsql dbh
             "SELECT id_, start_date_, end_date_, headline_, text_, media_, group_, \
-                confidential_, ponderation_, unique_id_, last_update_, tags_ FROM events_ WHERE \
+                confidential_, ponderation_, unique_id_, last_update_, tags_, is_title_ \
+             FROM events_ WHERE \
              group_ IN $@groups AND \
-             (start_date_ BETWEEN $start_date AND $end_date) AND \
+             ((start_date_ BETWEEN $start_date AND $end_date) OR start_date_ IS NULL) AND \
              (ponderation_ BETWEEN $min_ponderation AND $max_ponderation) AND \
-             ($with_confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
-             tags_ && $tags::varchar[] ORDER BY id_ ASC"
+             ($confidential OR NOT confidential_) AND timeline_id_ = $tid AND \
+             tags_ && $tags::varchar[] ORDER BY id_ ASC"]
     in
     req >>= (fun l ->
+        Format.eprintf "Number of elements: %i@." (List.length l);
         try
           let title = ref None in
           let events =
             List.fold_left (
               fun acc l ->
-                let id, event = line_to_event ~with_end_date:true l in
-                match Utils.metaevent_to_event event with
-                | Some e -> (id, e) :: acc
-                | None -> (* Should be a title *)
+                let is_title, id, event = line_to_event ~with_end_date:true l in
+                if is_title then
                   match !title with
                   | None -> title := Some (id, event); acc
-                  | Some _ -> raise TwoTitles
-            ) [] l
-          in return (Ok (!title, events))
-        with TwoTitles -> return (Error "Two titles in database")
+                  | Some _ -> raise Db_data.TwoTitles
+                else
+                match Misc.title_to_event event with
+                | Some e  -> (id, e) :: acc
+                | None -> acc
+            ) [] l in
+          let edition_rights =
+            match f.Db_data.kind with
+            | View -> false
+            | Edit -> true in
+          return (Ok (Db_data.Timeline {title= !title; events; edition_rights}))
+        with Db_data.TwoTitles -> return (Error "Two titles in database")
       )
-
+  )
 
   let timeline_exists (tid : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT * from timeline_ids_ WHERE id_ = $tid" >>= 
-      function 
+    [%pgsql dbh "SELECT * from timeline_ids_ WHERE id_ = $tid"] >>=
+      function
       | [] -> return false
       | _ -> return true
 
   (* todo : full sql *)
   let categories (with_confidential : bool) (tid : string) =
-    events with_confidential tid >>= (fun l ->
+    timeline_data ~with_confidential ~tid () >>= (function
+    | Ok (Timeline {title; events; edition_rights}) ->
+      (* Temporary restriction : if no edition right, then no category *)
+      if not edition_rights then
+        return []
+      else
+        let s =
+          match title with
+          | None | Some (_, {group = None; _}) -> Misc.StringSet.empty
+          | Some (_, {group = Some g; _}) -> Misc.StringSet.singleton g in
         let s =
           List.fold_left
             (fun acc (_, {group; _}) ->
-               match group with
+              match group with
                | None -> acc
-               | Some g -> StringSet.add g acc)
-            StringSet.empty
-            l
+               | Some g -> Misc.StringSet.add g acc)
+            s
+            events
         in
         return @@
-        StringSet.fold
+        Misc.StringSet.fold
           (fun s acc -> s :: acc)
           s
           []
-      )
+    | _ -> return []
+    )
 
   let user_timelines (email : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT timelines_ FROM users_ WHERE email_=$email" >>=
+    [%pgsql dbh "SELECT timelines_ FROM users_ WHERE email_=$email"] >>=
     fun l -> return @@
       List.fold_left
         (fun acc ->
            function
            | None -> acc
-           | Some l -> 
+           | Some l ->
              List.fold_left
                (fun acc -> function | None -> acc | Some e -> e :: acc)
                acc
@@ -296,13 +453,13 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let timeline_users (tid : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT users_ FROM timeline_ids_ WHERE id_=$tid" >>=
+    [%pgsql dbh "SELECT users_ FROM timeline_ids_ WHERE id_=$tid"] >>=
     fun l -> return @@
       List.fold_left
         (fun acc ->
            function
            | None -> acc
-           | Some l -> 
+           | Some l ->
              List.fold_left
                (fun acc -> function | None -> acc | Some e -> e :: acc)
                acc
@@ -313,22 +470,22 @@ module Reader_generic (M : Db_intf.MONAD) = struct
 
   let is_public (tid : string) =
     with_dbh >>> fun dbh ->
-    PGSQL(dbh) "SELECT public_ FROM timeline_ids_ WHERE id_=$tid" >>=
+    [%pgsql dbh "SELECT public_ FROM timeline_ids_ WHERE id_=$tid"] >>=
       function
       | [] ->     return @@ Error ("Timeline do not exist")
       | b :: _ -> return @@ Ok b
-
+(*
   let view
     ?(start_date = CalendarLib.Date.make 1 1 1)
     ?(end_date = CalendarLib.Date.make 3268 1 1)
-    ?(min_ponderation = 0)
-    ?(max_ponderation = 100000)
+    ?(min_ponderation = Int32.zero)
+    ?(max_ponderation = Int32.max_int)
     ?(groups=[])
     ?(tags=[])
     ~(tid : string) =
     with_dbh >>> fun dbh ->
     let tid = Hex.to_string (`Hex tid) in
-    PGSQL(dbh) "SELECT id_ FROM timeline_ids_ WHERE digest(id_, 'sha256') = $tid" >>=
+    [%pgsql dbh "SELECT id_ FROM timeline_ids_ WHERE digest(id_, 'sha256') = $tid"] >>=
     function
     | [] -> return @@ Error ("Timeline do not exist")
     | tid :: _ ->
@@ -341,29 +498,62 @@ module Reader_generic (M : Db_intf.MONAD) = struct
         ~max_ponderation
         ~groups
         ~tags
-        ()
+        () *)
 
-  let get_view_token (tid : string) =
+  let get_tokens (tid : string) =
     with_dbh >>> fun dbh ->
-    timeline_exists tid >>=
-    fun exists ->
-    if exists then
-      PGSQL(dbh) "SELECT digest($tid, 'sha256')" >>=
-      function
-      | [] -> assert false
-      | Some hsh :: _ -> return @@ Ok (Hex.(show @@ of_string hsh))
-      | None :: _ -> return @@ Error "Get view token failed"
-    else
-      return @@ Error "Timeline do not exist"
+    admin_rights ~error:unknown_token_error tid (fun has_admin_rights ->
+      if has_admin_rights then begin
+        [%pgsql dbh
+          "SELECT id_, pretty_, min_level_, max_level_, categories_, tags_, \
+           confidential_, after_, before_, readonly_ \
+           FROM timeline_ids_ WHERE alias_=$tid"] >>=
+        fun l ->
+        let l =
+          List.map
+            (fun (id, pretty, min_level, max_level, categories, tags,
+                  confidential_rights, after, before, readonly) ->
+              let kind = if readonly then Db_data.View else Edit in
+
+              let tags =
+                match tags with
+                | None -> None
+                | Some p -> Some (
+                    List.fold_left
+                      (fun acc ->
+                         function
+                         | None -> acc
+                         | Some tag -> tag :: acc)
+                      []
+                      p) in
+
+              let categories =
+                match categories with
+                | None -> None
+                | Some p -> Some (
+                    List.fold_left
+                      (fun acc ->
+                         function
+                         | None -> acc
+                         | Some tag -> tag :: acc)
+                      []
+                      p) in
+
+              Db_data.{  (* Exporting a filter with the non admin ID. *)
+                timeline = id; pretty; min_level; max_level; categories;
+                tags; confidential_rights; after; before; kind}) l
+        in return @@ Ok l
+      end else
+        return @@ Ok [])
 
   module Login = struct
     let remove_session id =
       with_dbh >>> fun dbh ->
-      PGSQL(dbh) "DELETE from sessions_ where user_id_=$id"
+      [%pgsql dbh "DELETE from sessions_ where user_id_=$id"]
 
-    let login email pwdhash =
+    let login Db_data.{email; pwdhash} =
       with_dbh >>> fun dbh ->
-      PGSQL(dbh) "SELECT id_, pwhash_ FROM users_ WHERE email_=$email" >>=
+      [%pgsql dbh "SELECT id_, pwhash_ FROM users_ WHERE email_=$email"] >>=
       function
       | [] ->
         return None
@@ -376,11 +566,11 @@ module Reader_generic (M : Db_intf.MONAD) = struct
             let today = CalendarLib.Date.today () in
             let today_str = CalendarLib.Printer.DatePrinter.sprint "%d" today in
             let cookie = hash (today_str ^ challenger_hash) in
-            PGSQL(dbh) "INSERT INTO sessions_(user_id_, cookie_) VALUES($id, $cookie)" >>=
+            [%pgsql dbh "INSERT INTO sessions_(user_id_, cookie_) VALUES($id, $cookie)"] >>=
             fun _ -> return cookie in
           get_session id >>= (function
               | None -> insert ()
-              | Some i -> remove_session id >>= fun _ -> insert ()
+              | Some _sess -> remove_session id >>= fun _ -> insert ()
             ) >>= fun cookie ->
           return (Some cookie)
         end else begin
@@ -400,5 +590,5 @@ module Reader_generic (M : Db_intf.MONAD) = struct
   end
 end
 
-module Self = Reader_generic(Db_intf.Default_monad)
+module Self = Reader_generic(Default_monad)
 include Self

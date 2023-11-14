@@ -1,2 +1,0 @@
-(* Main *)
-let () = ApiServer.start ()

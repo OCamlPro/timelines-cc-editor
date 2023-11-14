@@ -1,5 +1,16 @@
-open Lwt
+(**************************************************************************)
+(*                                                                        *)
+(*                 Copyright 2020-2023 OCamlPro                           *)
+(*                                                                        *)
+(*  All rights reserved. This file is distributed under the terms of the  *)
+(*  GNU General Public License version 3.0 as described in LICENSE        *)
+(*                                                                        *)
+(**************************************************************************)
+
 open Data_types
+open Ui_common
+module Csv_utils = Utils.Csv_utils
+module Misc = Utils.Misc
 
 exception IncorrectInput of string
 let incorrect_input s = raise (IncorrectInput s)
@@ -7,30 +18,40 @@ let incorrect_input s = raise (IncorrectInput s)
 let finish =
   function
   | Ok _ -> Lwt.return (Ok ())
-  | Error s -> Js_utils.alert ("Error: " ^s); Lwt.return (Ok ())
+  | Error s -> Alert_vue.alert ("Error: " ^s); Lwt.return (Ok ())
 
-let create_timeline name descr =
-  let timeline_id, headline =
+let custom_error default err =
+  let pp code msg = Format.asprintf "Error %i: %s" code msg in
+  let msg =
+    match err with
+    | Request.Xhr (code, msg) -> pp code msg
+    | Api (code, msg) -> begin
+        match default with
+        | None -> pp code msg
+        | Some m -> m
+      end
+  in
+  Alert_vue.alert msg;
+  Lwt.return (Error msg)
+
+let error = custom_error None
+
+let create_timeline ?email name descr cont =
+  let timeline_id, headline, name =
     match name with
     | "" ->
       Random.self_init ();
       let i1 = Random.bits () |> string_of_int in
       let i2 = Random.bits () |> string_of_int in
-      i1 ^ i2, Lang.t_ Text.s_default_title
-    | _ -> name, name
+      i1 ^ i2, Lang.t_ Text.s_default_title, None
+    | _ -> name, name, Some name
   in
-  let title = Utils.to_title_event headline descr in
-  Request.create_timeline timeline_id title true (
-    fun res ->
-      let () = match res with
-        | Error _->
-          Js_utils.log "Error from timeline API"       
-        (* Todo: better error message *)
-        | Ok id ->
-          let new_page = Format.sprintf "/timeline?timeline=%s" id in
-          Js_utils.log "Going to %s" new_page;
-          Ui_utils.goto_page new_page
-      in finish res
+  let title = Misc.to_title_event {headline; text = descr} in
+  let error e = Lwt.return @@ Error e in
+  Request.create_timeline ~error ?email timeline_id title true
+    ( fun (admin,_) ->
+      cont ~name ~id:admin;
+      finish @@ Ok ()
     )
 
 let add_event
@@ -45,6 +66,7 @@ let add_event
     ~confidential
     ~tags
     ~timeline
+    cont
   =
   try
     let start_date =
@@ -58,7 +80,7 @@ let add_event
           incorrect_input "Headline & unique-id cannot be empty at the same time"
         else headline
       | _ -> unique_id in
-    let tags = String.split_on_char ',' (Utils.trim tags) in
+    let tags = String.split_on_char ',' (Misc.trim tags) in
     let media =
       match media with
       | "" -> None
@@ -79,15 +101,14 @@ let add_event
       last_update = Some (CalendarLib.Date.today ());
       tags
     } in
-    Request.add_event timeline event (function
-        | Ok _id -> Js_utils.reload (); Lwt.return (Ok ())
-        | Error s ->
-          Js_utils.alert (Format.sprintf "Error: %s" s);
-          Lwt.return (Error (Xhr_lwt.Str_err s)))
+    Request.add_event
+      ~error timeline
+      event
+      (fun s -> cont s; Lwt.return (Ok ()))
   with
-    IncorrectInput s -> 
-    Js_utils.alert (Format.sprintf "Error: %s" s);
-    Lwt.return (Error (Xhr_lwt.Str_err s))
+    IncorrectInput s ->
+    Alert_vue.alert (Format.sprintf "Error: %s" s);
+    Lwt.return (Error s)
 
 let update_event
     ~id
@@ -102,7 +123,7 @@ let update_event
     ~ponderation
     ~confidential
     ~tags
-    ~timeline =
+    ~timeline_id =
   let unique_id =
     match unique_id with
     | "" ->
@@ -110,7 +131,7 @@ let update_event
         incorrect_input "Headline & unique-id cannot be empty at the same time"
       else headline
     | _ -> unique_id in
-  let tags = String.split_on_char ',' (Utils.trim tags) in
+  let tags = String.split_on_char ',' (Misc.trim tags) in
   let media =
     match media with
     | "" -> None
@@ -131,258 +152,115 @@ let update_event
     last_update = Some (CalendarLib.Date.today ());
     tags
   } in
-  Request.update_event id ~old_event ~new_event (function
+  Request.update_event
+    ~error ~id
+    ~old_event ~new_event
+    ~timeline_id (function
     | Success ->
-      Js_utils.reload (); Lwt.return (Ok ())
-    | Modified t ->
-      Js_utils.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
-    | Failed s -> 
-      let error = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_edition_failed) s in
-      Js_utils.alert error;
-      Lwt.return (Error (Xhr_lwt.Str_err s))
+      Ezjs_tyxml.reload (); Lwt.return (Ok ())
+    | Modified _t ->
+      Alert_vue.alert (Lang.t_ Text.s_alert_edition_conflict); Lwt.return (Ok ())
     )
 
-let removeEvent i =
-  if Js_utils.confirm (Lang.t_ Text.s_confirm_remove_event) then
-    Request.remove_event (string_of_int i) (function
-        | Ok () -> Js_utils.reload (); Lwt.return (Ok ())
-        | Error s -> Js_utils.alert ("Error while removing event: " ^ s); Lwt.return (Error (Xhr_lwt.Str_err s))
+let removeEvent ~id ~timeline_id =
+  let open Lwt in
+  Alert_vue.confirm (Lang.t_ Text.s_confirm_remove_event) >>= (fun confirm ->
+  if confirm then
+    Request.remove_event ~error ~id:(string_of_int id) ~timeline_id
+      (fun () -> Ezjs_tyxml.reload (); return (Ok ()))
+  else return (Ok ()))
+
+let export_timeline ?(name="timeline") title events =
+  let title_line = match title with
+    | None -> []
+    | Some (_, t) -> Csv_utils.title_to_csv_line  t in
+  let csv =
+    title_line ::
+    (List.map (fun (_, e) -> Csv_utils.event_to_csv_line e) events) in
+  Ui_utils.download
+    (name ^ ".csv")
+    (Csv_utils.to_string csv)
+
+let import_timeline tid is_public elt =
+  let open Lwt in
+  Ezjs_tyxml.log "Importing timeline";
+  Alert_vue.confirm "You are about to replace your timeline by the current one. Are you sure?" >>=
+  (fun confirm ->
+    if confirm then Lwt.return @@
+      Ezjs_tyxml.Manip.upload_input ~btoa:false ~encoding:"UTF-8" elt
+        (fun file_content ->
+           let {title; events} = Csv_utils.from_string file_content in
+           let title =
+             match title with
+             | None -> Misc.to_title_event {headline = "Title"; text = "Text"}
+             | Some t -> t in
+           let _lwt =
+             Request.import_timeline
+               ~error:error
+               ~args:[]
+               tid title
+               events is_public
+               (fun () ->
+                  Alert_vue.alert "Success!";
+                  Ezjs_tyxml.reload ();
+                  finish (Ok ()))
+           in ()
       )
-  else Lwt.return (Ok ())
+    else Lwt.return false)
 
-let viewToken ?(args = []) vue tid =
-  let timeline_id_str, args =
-    match String.split_on_char '/' tid with
-    | [] -> assert false
-    | [tid] -> tid, args (* Not an URL *)
-    | _ -> begin (* This is an URL *)
-      match Ocp_js.Url.url_of_string tid with
-      | Some (Ocp_js.Url.Http h) | Some (Https h) -> begin
-        let args = h.Ocp_js.Url.hu_arguments in
-        match Args.get_timeline args with
-        | None -> 
-          Js_utils.log "Cannot read timeline ID on URL %s" tid; 
-          "", []
-        | Some tid -> tid, [] 
-      end
-      | _ -> (* Unknown URL *)
-        Js_utils.log "Cannot decode URL %s" tid; 
-        "", []
-    end
-  in
-  Request.get_view_token timeline_id_str 
-    (function
-      | Error s -> 
-        let msg = Format.sprintf "%s: %s" (Lang.t_ Text.s_alert_error_view_token) s in
-        Js_utils.alert msg; Lwt.return (Error (Xhr_lwt.Str_err s))
-      | Ok [] ->
-        Js_utils.alert (Lang.t_ Text.s_alert_no_view_token);
-        Lwt.return (Error (Xhr_lwt.Str_err "No token"))
-      | Ok (s::_) ->
-        let host, port =
-          match Jsloc.url () with
-          | Http hu | Https hu -> hu.hu_host, hu.hu_port
-          | File fu -> "localhost", 80
-        in
-        let str_port =
-          if port = 80 then "" else ":" ^ string_of_int port in
-        let url = 
-          Format.asprintf "%s%s/view?timeline=%s&%a" (Jsloc.host ()) str_port s Args.print args
-        in vue##.shareURL := Ocp_js.Js.string url;
-        Lwt.return (Ok ())
-       )
-
-let export_timeline title events =
-  let sep = "," in
-  let title =
-    match title with
-    | None -> sep
-    | Some (_, title) -> Data_encoding.title_to_csv ~sep title in
-  let header = Data_encoding.header ~sep in
-  let events =
-    List.fold_left
-      (fun acc event ->
-        acc ^ Data_encoding.event_to_csv ~sep event ^ ";\n")
-      ""
-      (snd @@ List.split events) in
-  let str =  (title ^ ";\n" ^ header ^ ";\n" ^ events) in
-  Ui_utils.download "timeline.csv" str
-
-(*open Data_types
-
-let finish () = Lwt.return (Ok ())
-
-let error s = Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: " ^ s)))
-
-let timeline_id_from_args = List.assoc_opt "timeline"
-
-let login log pwd =
-  ignore @@
-  Request.login log pwd (function
-    | Some auth_data -> begin
-        Js_utils.log "Login OK!@.";
-        Ui_utils.auth_session log auth_data;
-        Js_utils.reload ();
-        finish ()
-      end
-    | None -> begin
-        Js_utils.alert "Wrong login/password@.";
-        error ("Wrong login")
-      end)
-
-let logout () =
-  ignore @@
-  Request.logout
-    (fun _ ->
-       Ui_utils.logout_session ();
-       !Dispatcher.dispatch ~path:"" ~args:[] ()
-    )
-
-let register_account log pwd =
-  ignore @@
-  Request.register_user log pwd (function
-      | Ok () ->
-        Js_utils.alert "Account successfully registered! You can now log in.";
-        finish ()
-      | Error e ->
-        Js_utils.alert ("Error: " ^e);
-        error e
-    )
-
-let add_action args timeline event =
-  match Utils.metaevent_to_event event with
-  | None ->
-    Js_utils.alert "Start date is missing";
-    Lwt.return (Error (Xhr_lwt.Str_err "Start date is missing"));
-  | Some event ->
-    Js_utils.log "Adding event %a" Utils.pp_event event;
-    match timeline_id_from_args args with
-    | None ->
-      Lwt.return (Error (Xhr_lwt.Str_err ("Add new event action failed: no timeline specified")))
-    | Some timeline ->
-      Request.add_event ~args timeline event
-        (function
-          | Ok s ->
-            Js_utils.log "Event added";
-            !Dispatcher.dispatch ~path:"home" ~timeline ~args ()
-          | Error s ->
-            let err = "Add new event action failed: " ^ s in
-            Js_utils.alert err;
-            Lwt.return (Error (Xhr_lwt.Str_err err))
-        )
-
-let remove_action args i =
-  let c = Js_utils.confirm "Are you sure you want to remove this event ? This is irreversible." in
-  if c then
-    ignore @@
-    Request.remove_event
-      ~args
-      i
-      (fun _ ->
-         ignore @@ !Dispatcher.dispatch ~path:(Ui_utils.get_path ()) ~args:[] ();
-         finish ())
-  else ()
-
-let rec update_action
-    (compare :
-       int -> string list ->
-     date option meta_event option -> date option meta_event -> 'a Ocp_js.elt)
-    (i : int)
-    (categories : string list)
-    (old_event : title)
-    (new_event : title)
-    cont =
-  Js_utils.log "Update... %a -> %a" Utils.pp_title old_event Utils.pp_title new_event;
-  begin
-    Request.update_event i ~old_event ~new_event (
-      function
-      | Success -> cont ()
-      | Failed s -> begin
-          Js_utils.log "Update failed: %s" s;
-          Lwt.return
-            (Error (Xhr_lwt.Str_err ("Update event action failed: " ^ s)))
-        end
-      | Modified event_opt ->
-        Js_utils.log "Event has been modified while editing";
-        Dispatcher.set_in_main_page [
-          compare
-            i
-            categories
-            event_opt
-            new_event
-        ];
-        finish ()
-    )
-  end
-
-let export_database args =
-  match timeline_id_from_args args with
-  | None ->
-    Lwt.return (Error (Xhr_lwt.Str_err ("Export database failed: no timeline specified")))
-  | Some timeline ->
-    Request.events ~args timeline (fun events ->
-      Request.title ~args timeline (fun title ->
-        let sep = "," in
-        let title =
-          match title with
-          | Error _ -> sep
-          | Ok (_, title) -> Data_encoding.title_to_csv ~sep title in
-        let header = Data_encoding.header ~sep in
-        let events =
-          List.fold_left
-            (fun acc event ->
-               acc ^ Data_encoding.event_to_csv ~sep event ^ ";\n")
-            ""
-            (snd @@ List.split events) in
-        let str =  (title ^ ";\n" ^ header ^ ";\n" ^ events) in
-        Ui_utils.download "database.csv" str; finish ()
-          )
+let addToken
+  ~readonly
+  ?pretty
+  tid
+  with_tokens =
+  let args =
+    ("readonly", string_of_bool readonly) :: Args.get_args () in
+  let args =
+    match pretty with
+    | None -> args
+    | Some p -> ("pretty", p) :: args in
+  Request.create_token ~error args tid
+    (fun _str ->
+      Request.get_tokens tid (
+        fun tokens ->
+          with_tokens tokens;
+          Lwt.return (Ok ())
       )
-
-let create_timeline = Request.create_timeline
-
-let user_timelines = Request.user_timelines
-
-let allow_user user timeline =
-  ignore @@
-  Request.allow_user user timeline
-    (function 
-     | Ok () -> (* todo: check why this branch is always taken *)
-       Js_utils.log "User allowed";
-       Lwt.return (Ok ())
-     | Error s -> 
-       Js_utils.alert (Format.sprintf "Error while adding user: %s" s);
-       Lwt.return (Ok ())
     )
 
-let goto_selection () =
-  Dispatcher.validate_dispatch @@
-  !Dispatcher.dispatch ~path:"" ~args:[] ()
-
-let remove_timeline timeline =
-  if Js_utils.confirm "Are you sure you want to delete your timeline? Everything will be lost!" then
-    ignore (
-      Request.remove_timeline timeline (
-        function 
-          | Ok () -> goto_selection (); Lwt.return (Ok ())
-          | Error s -> 
-            Js_utils.alert "Error while deleting timeline."; 
-            Lwt.return (Error (Xhr_lwt.Str_err s))
-       )
+let updateTokenFilter ~readonly tid token with_tokens =
+  Request.update_token_readonly ~error readonly tid token (
+    fun () ->
+      Request.get_tokens tid (
+        fun tokens ->
+          with_tokens tokens;
+          Lwt.return (Ok ())
+      )
     )
 
-let remove_account () =
-  if
-    Js_utils.confirm 
-      "Are you sure you want to delete your account? \
-       Every timeline you exclusively own will be deleted and you will lose all \
-       your admin priviledges." then
-  ignore @@ 
-  Request.remove_user () (
-    function 
-      | Ok () -> logout (); Lwt.return (Ok ())
-      | Error s -> 
-        Js_utils.alert "Error while deleting account."; 
-        Lwt.return (Error (Xhr_lwt.Str_err s))
+let updateTokenName pretty tid token with_tokens =
+  Request.update_token_pretty ~error pretty tid token (
+    fun () ->
+      Request.get_tokens tid (
+        fun tokens ->
+          with_tokens tokens;
+          Lwt.return (Ok ())
+      )
     )
-*)
+
+let removeToken tid token with_tokens =
+  Request.remove_token ~error tid token
+    (fun () ->
+      Request.get_tokens tid (
+        fun tokens ->
+          with_tokens tokens;
+          Lwt.return (Ok ())
+      )
+    )
+
+let removeTimeline tid cont =
+  Request.remove_timeline tid
+    (fun () -> cont (); finish (Ok ()))
+
+let updateTimelineName tid new_name cont =
+  Request.update_timeline_name new_name tid (fun failed -> cont failed; Lwt.return (Ok ()))
